@@ -131,8 +131,8 @@ function showError(message) {
 // Get story display name
 function getStoryDisplayName(filename) {
     var storyMap = {
-        'story1.txt': 'একটি ছোট গ্রামের গল্প',
-        'story2.txt': 'বুদ্ধিমান শিয়ালের গল্প'
+        'bissash.txt': 'বিশ্বাস',
+        'upcoming.txt': 'upcoming'
     };
     return storyMap[filename] || filename.replace('.txt', '').replace(/^\w/, function(c) { return c.toUpperCase(); }).replace(/([0-9])/g, ' $1');
 }
