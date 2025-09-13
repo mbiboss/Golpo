@@ -66,7 +66,7 @@ function loadStoryFromSuggestion(storyFile) {
 function createStorySuggestions(currentStoryFile) {
     // List of all available stories
     const stories = [
-        { file: 'bissash.txt', title: 'বিশ্বাস', description: 'A touching Bengali story about trust and faith', status: 'available' },
+        { file: 'bissash.txt', title: 'বিশ্বাস', description: 'A story about trust and faith', status: 'available' },
         { file: 'upcoming.txt', title: 'Upcoming Stories', description: 'More stories coming soon...', status: 'upcoming' }
     ];
     
@@ -193,7 +193,7 @@ function performGlobalSearch() {
     const storyMetadata = {
         'bissash.txt': {
             title: 'বিশ্বাস',
-            description: 'A touching Bengali story about trust and faith',
+            description: 'A story about trust and faith',
             keywords: ['বিশ্বাস', 'trust', 'faith', 'bengali', 'story', 'touching']
         },
         'upcoming.txt': {
@@ -276,7 +276,7 @@ function highlightSearchResults(results) {
 function updateReaderCoverImage() {
     const readerCoverImage = document.getElementById('readerCoverImage');
     if (readerCoverImage) {
-        readerCoverImage.src = 'https://i.postimg.cc/wMDMfnhn/static.png';
+        readerCoverImage.src = 'https://i.postimg.cc/FKDXWnhy/Bissash-small.png';
     }
 }
 
