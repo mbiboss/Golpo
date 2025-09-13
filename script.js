@@ -94,8 +94,8 @@ function displayStory(filename, content) {
     // Update title and logo text
     var storyName = getStoryDisplayName(filename);
     storyTitle.textContent = storyName;
-    logoText.textContent = storyName + ' by MB';
-    document.title = storyName + ' by MB';
+    logoText.textContent = storyName + ' by ✿ㅤ"MʙɪㅤDᴀʀᴋ"';
+    document.title = storyName + ' by ✿ㅤ"MʙɪㅤDᴀʀᴋ"';
     
     // Clear loading state
     storyContent.innerHTML = '';
@@ -126,18 +126,18 @@ function showError(message) {
 // Get story display name
 function getStoryDisplayName(filename) {
     var storyMap = {
-        'story1.txt': 'একটি ছোট গ্রামের গল্প',
-        'story2.txt': 'বুদ্ধিমান শিয়ালের গল্প'
+        'bissash.txt': 'বিশ্বাস',
+        'upcoming.txt': 'upcoming'
     };
     return storyMap[filename] || filename.replace('.txt', '').replace(/^\w/, function(c) { return c.toUpperCase(); }).replace(/([0-9])/g, ' $1');
 }
 
 // Reset to welcome screen
 function resetToWelcome() {
-    storyTitle.textContent = 'Welcome to Story Reader';
-    logoText.textContent = 'StoryReader';
-    document.title = 'Story Reader - Bangla Stories with Music';
-    storyContent.innerHTML = '<div class="welcome-text"><p>Welcome to our Bangla story reading platform! 📚</p><p>Choose a story from the dropdown menu above to start reading.</p><p>You can also play background music while reading for a better experience.</p><p>Toggle between dark and light themes using the theme button.</p></div>';
+    storyTitle.textContent = 'Welcome to Golpo';
+    logoText.textContent = 'Golpo';
+    document.title = 'Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"';
+    storyContent.innerHTML = '<div class="welcome-text"><p>Welcome! 📚</p><p>Choose a story from the dropdown menu above to start reading.</p><p>You can also play background music while reading for a better experience.</p><p>Toggle between dark and light themes using the theme button.</p></div>';
     currentStory = '';
 }
 
