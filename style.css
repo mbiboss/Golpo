@@ -31,8 +31,8 @@
 
 /* Custom Bangla Font */
 @font-face {
-    font-family: 'SolaimanLipi';
-    src: url('assets/fonts/SolaimanLipi.ttf') format('truetype');
+    font-family: 'Bangla_font';
+    src: url('assets/Bangla_font.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
@@ -45,7 +45,7 @@
 }
 
 body {
-    font-family: 'Noto Sans Bengali', 'SolaimanLipi', Arial, sans-serif;
+    font-family: 'Noto Sans Bengali', 'Bangla_font.ttf', Arial, sans-serif;
     background: var(--primary-bg);
     color: var(--text-primary);
     line-height: 1.6;
