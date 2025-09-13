@@ -1,6 +1,5 @@
 // Global Variables
 var currentTheme = 'dark';
-var audioPlayer = null;
 var currentStory = '';
 
 // DOM Elements
@@ -12,7 +11,12 @@ var volumeSlider = document.getElementById('volumeSlider');
 var themeToggle = document.getElementById('themeToggle');
 var musicSelect = document.getElementById('musicSelect');
 var logoText = document.getElementById('logoText');
-var audioPlayerElement = document.getElementById('audioPlayer');
+var audioPlayer = document.getElementById('audioPlayer');
+var youtubeFrame = document.getElementById('youtubeFrame');
+
+// YouTube Player State
+var isYouTubePlaying = false;
+var currentYouTubeUrl = '';
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -28,7 +32,6 @@ function initializeApp() {
     updateThemeIcon();
     
     // Initialize audio player
-    audioPlayer = audioPlayerElement;
     audioPlayer.volume = volumeSlider.value;
     
     // Initialize play/pause button icon
@@ -94,6 +97,7 @@ function displayStory(filename, content) {
     // Update title and logo text
     var storyName = getStoryDisplayName(filename);
     storyTitle.textContent = storyName;
+    storyTitle.className = 'bangla-text';
     logoText.textContent = storyName + ' by ✿ㅤ"MʙɪㅤDᴀʀᴋ"';
     document.title = storyName + ' by ✿ㅤ"MʙɪㅤDᴀʀᴋ"';
     
@@ -105,6 +109,7 @@ function displayStory(filename, content) {
     
     paragraphs.forEach(paragraph => {
         var p = document.createElement('p');
+        p.className = 'bangla-text';
         p.textContent = paragraph.trim();
         storyContent.appendChild(p);
     });
@@ -126,8 +131,8 @@ function showError(message) {
 // Get story display name
 function getStoryDisplayName(filename) {
     var storyMap = {
-        'bissash.txt': 'বিশ্বাস',
-        'upcoming.txt': 'upcoming'
+        'story1.txt': 'একটি ছোট গ্রামের গল্প',
+        'story2.txt': 'বুদ্ধিমান শিয়ালের গল্প'
     };
     return storyMap[filename] || filename.replace('.txt', '').replace(/^\w/, function(c) { return c.toUpperCase(); }).replace(/([0-9])/g, ' $1');
 }
@@ -135,28 +140,50 @@ function getStoryDisplayName(filename) {
 // Reset to welcome screen
 function resetToWelcome() {
     storyTitle.textContent = 'Welcome to Golpo';
+    storyTitle.className = 'english-text';
     logoText.textContent = 'Golpo';
-    document.title = 'Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"';
-    storyContent.innerHTML = '<div class="welcome-text"><p>Welcome! 📚</p><p>Choose a story from the dropdown menu above to start reading.</p><p>You can also play background music while reading for a better experience.</p><p>Toggle between dark and light themes using the theme button.</p></div>';
+    document.title = 'Golpo - Bangla Stories with Music';
+    storyContent.innerHTML = '<div class="welcome-text english-text"><p>Welcome to our Bangla story reading platform! 📚</p><p>Choose a story from the dropdown menu above to start reading.</p><p>You can also play background music while reading for a better experience.</p><p>Toggle between dark and light themes using the theme button.</p></div>';
     currentStory = '';
 }
 
 // Music Player Functions
 function togglePlayPause() {
-    if (!audioPlayer.src) {
+    if (!audioPlayer.src && !currentYouTubeUrl) {
         alert('Please select a music track first.');
         return;
     }
     
-    if (audioPlayer.paused) {
-        audioPlayer.play();
+    if (currentYouTubeUrl) {
+        // Handle YouTube playback
+        if (isYouTubePlaying) {
+            youtubeFrame.src = '';
+            isYouTubePlaying = false;
+            updatePlayPauseButton(true);
+        } else {
+            youtubeFrame.src = currentYouTubeUrl;
+            isYouTubePlaying = true;
+            updatePlayPauseButton(false);
+        }
     } else {
-        audioPlayer.pause();
+        // Handle regular audio playback
+        if (audioPlayer.paused) {
+            audioPlayer.play();
+        } else {
+            audioPlayer.pause();
+        }
     }
 }
 
 function handleVolumeChange() {
     audioPlayer.volume = volumeSlider.value;
+    
+    // Note: YouTube iframe volume cannot be controlled without YouTube API
+    // The volume slider will only affect regular audio playback
+    if (currentYouTubeUrl) {
+        console.log('Volume control not available for YouTube playback');
+    }
+    
     updateVolumeIcon();
     saveSettings();
 }
@@ -165,12 +192,27 @@ function handleMusicSelection() {
     var selectedMusic = musicSelect.value;
     
     if (!selectedMusic) {
+        // Stop any playing music
         audioPlayer.src = '';
+        youtubeFrame.src = '';
+        currentYouTubeUrl = '';
+        isYouTubePlaying = false;
         updatePlayPauseButton(true);
         return;
     }
     
-    audioPlayer.src = selectedMusic;
+    if (selectedMusic.includes('youtube.com')) {
+        // YouTube URL
+        currentYouTubeUrl = selectedMusic;
+        audioPlayer.src = ''; // Clear regular audio
+        updatePlayPauseButton(true);
+    } else {
+        // Regular audio URL
+        audioPlayer.src = selectedMusic;
+        currentYouTubeUrl = '';
+        youtubeFrame.src = '';
+    }
+    
     saveSettings();
 }
 
@@ -204,8 +246,11 @@ function onAudioLoaded() {
 
 function onAudioError() {
     console.error('Audio failed to load');
-    alert('Failed to load selected music. Please try a different track.');
-    musicSelect.value = '';
+    // Only show error if it's not from clearing the src
+    if (audioPlayer.src && audioPlayer.src !== window.location.href) {
+        alert('Failed to load selected music. Please try a different track.');
+        musicSelect.value = '';
+    }
 }
 
 function onAudioPlay() {
@@ -252,11 +297,14 @@ function saveSettings() {
         selectedMusic: musicSelect.value
     };
     
+    localStorage.setItem('golpoSettings', JSON.stringify(settings));
+    
+    // Also save in old key for backward compatibility
     localStorage.setItem('storyReaderSettings', JSON.stringify(settings));
 }
 
 function loadSavedSettings() {
-    var savedSettings = localStorage.getItem('storyReaderSettings');
+    var savedSettings = localStorage.getItem('golpoSettings') || localStorage.getItem('storyReaderSettings');
     
     if (!savedSettings) return;
     
