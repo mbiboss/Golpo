@@ -31,10 +31,20 @@
 
 /* Custom Bangla Font */
 @font-face {
-    font-family: 'Bangla_font';
-    src: url('assets/Bangla_font.ttf') format('truetype');
+    font-family: 'BanglaFont';
+    src: url('assets/fonts/Bangla_font.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
+}
+
+/* Custom English Font */
+@font-face {
+    font-family: 'EnglishFont';
+    src: url('assets/fonts/English_font.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
 }
 
 /* Global Styles */
@@ -45,7 +55,7 @@
 }
 
 body {
-    font-family: 'Noto Sans Bengali', 'Bangla_font.ttf', Arial, sans-serif;
+    font-family: 'EnglishFont', 'BanglaFont', 'Noto Sans Bengali', Arial, sans-serif;
     background: var(--primary-bg);
     color: var(--text-primary);
     line-height: 1.6;
@@ -257,6 +267,7 @@ body {
 }
 
 .logo-text {
+    font-family: 'EnglishFont', Arial, sans-serif;
     font-weight: 600;
     font-size: 18px;
     color: var(--text-primary);
@@ -395,6 +406,16 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-align: center;
+}
+
+/* English text styling */
+.english-text, .welcome-text, .story-subtitle {
+    font-family: 'EnglishFont', Arial, sans-serif;
+}
+
+/* Bangla text styling */
+.bangla-text, .story-content p {
+    font-family: 'BanglaFont', 'Noto Sans Bengali', Arial, sans-serif;
 }
 
 .story-subtitle {
