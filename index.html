@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=6">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -39,37 +39,76 @@
             </div>
             
             <div class="nav-center">
-                <div class="dropdown">
-                    <select id="storySelect" class="story-dropdown">
-                        <option value="">Select Story</option>
-                        <option value="bissash.txt">বিশ্বাস</option>
-                        <option value="upcoming.txt">upcoming</option>
-                    </select>
-                </div>
+                <button class="selection-btn story-selector-btn" id="storySelector" title="Select Story">
+                    <i class="fas fa-book"></i>
+                    <span class="selector-text">Select Story</span>
+                </button>
                 
-                <div class="dropdown">
-                    <select id="musicSelect" class="music-dropdown">
-                        <option value="">Select Music</option>
-                        <option value="https://www.youtube.com/embed/orvJCBTodiY?autoplay=1&loop=1&playlist=/orvJCBTodiY">Tare ami chuye dekhini</option>
-                        <option value="https://www.youtube.com/embed/aJYmxB1iiIU?autoplay=1&loop=1&playlist=aJYmxB1iiIU">Hindi Mashup 1</option>
-                        <option value="https://www.youtube.com/embed/kMU97_dBg_U?autoplay=1&loop=1&playlist=kMU97_dBg_U">Batman ansak</option>
-                        <option value="https://www.youtube.com/embed/Fx6Pk1od_Fo?autoplay=1&loop=1&playlist=Fx6Pk1od_Fo">Bangla Mashup</option>
-                        <option value="https://www.youtube.com/embed/nKaBbplkMB4?autoplay=1&loop=1&playlist=nKaBbplkMB4">Hindi Mashup</option>
-                    </select>
-                </div>
+                <button class="selection-btn music-selector-btn" id="musicSelector" title="Select Music">
+                    <i class="fas fa-music"></i>
+                    <span class="selector-text">Select Music</span>
+                </button>
                 
                 <button id="playPauseBtn" class="control-btn" title="Play/Pause Music">
                     <i class="fas fa-play icon"></i>
                 </button>
                 
-                <div class="volume-container">
-                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.7">
-                    <i class="fas fa-volume-up volume-icon"></i>
-                </div>
+                <div class="nav-progress-percentage" id="progressPercentage" title="Reading Progress">0%</div>
             </div>
             
             
             <div class="nav-right">
+                <!-- Reading Controls Dropdown -->
+                <div class="reading-controls-dropdown" id="readingControlsDropdown">
+                    <button class="control-btn reading-controls-btn" id="readingControlsBtn" title="Reading Controls">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                    <div class="reading-controls-menu" id="readingControlsMenu">
+                        <div class="control-group">
+                            <label class="control-label">Font Size</label>
+                            <div class="font-size-controls">
+                                <button class="control-btn" id="decreaseFontBtn" title="Decrease Font Size">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="font-size-display" id="fontSizeDisplay">100%</span>
+                                <button class="control-btn" id="increaseFontBtn" title="Increase Font Size">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Reading Mode</label>
+                            <button class="control-btn mode-btn" id="focusModeBtn" title="Toggle Focus Mode">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Quick Actions</label>
+                            <div class="quick-actions">
+                                <button class="control-btn" id="scrollTopBtn" title="Scroll to Top">
+                                    <i class="fas fa-arrow-up"></i>
+                                </button>
+                                <button class="control-btn" id="bookmarkBtn" title="Bookmark Position">
+                                    <i class="fas fa-bookmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Search in Story</label>
+                            <div class="search-container">
+                                <input type="text" id="searchInput" class="search-input" placeholder="Search text...">
+                                <button class="control-btn" id="searchBtn" title="Search">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button class="control-btn" id="clearSearchBtn" title="Clear Search">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="search-results" id="searchResults"></div>
+                        </div>
+                    </div>
+                </div>
+                
                 <button id="themeToggle" class="control-btn theme-toggle" title="Toggle Theme">
                     <i class="fas fa-moon icon"></i>
                 </button>
@@ -77,15 +116,20 @@
         </div>
     </nav>
 
+    <!-- Focus Mode Exit Button -->
+    <button id="focusExitBtn" class="focus-exit-btn" title="Exit Focus Mode" style="display: none;">
+        <i class="fas fa-times"></i>
+    </button>
+
     <!-- Main Content Area -->
     <main class="main-content">
         <div class="story-container">
             <div class="story-header">
                 <h1 id="storyTitle" class="english-text">Welcome to Golpo</h1>
-                <p class="story-subtitle english-text">উপরের মেনু থেকে গল্পঃ সিলেক্ট করুন</p>
+                <p id="writerName" class="writer-name english-text"></p>
             </div>
             
-            <div class="story-content" id="storyContent">
+            <div class="story-content" id="storyContent" lang="bn">
                 <div class="welcome-text english-text">
                     <p>আমার ওয়েবসাইট এ আপনাকে স্বাগতম,</p>
                     <p>এখানে আপনি আমার লেখা গল্পঃ পেয়ে যাবেন .</p>
@@ -101,9 +145,70 @@
         
         <!-- YouTube Music Player -->
         <div id="youtubePlayer" style="display: none;">
-            <iframe id="youtubeFrame" width="0" height="0" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+            <iframe id="youtubeFrame" width="0" height="0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
     </main>
+
+    <!-- Story Selection Modal -->
+    <div class="selection-modal" id="storyModal">
+        <div class="modal-overlay" id="storyModalOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Choose Your Story</h3>
+                <button class="modal-close" id="closeStoryModal">&times;</button>
+            </div>
+            <div class="selection-cards">
+                <div class="selection-card story-card" data-story="bissash.txt">
+                    <div class="card-icon">📖</div>
+                    <div class="card-title">বিশ্বাস</div>
+                    <div class="card-description">A touching Bengali story</div>
+                </div>
+                <div class="selection-card story-card" data-story="upcoming.txt">
+                    <div class="card-icon">🚀</div>
+                    <div class="card-title">Upcoming</div>
+                    <div class="card-description">Coming soon...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Music Selection Modal -->
+    <div class="selection-modal" id="musicModal">
+        <div class="modal-overlay" id="musicModalOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Choose Your Music</h3>
+                <button class="modal-close" id="closeMusicModal">&times;</button>
+            </div>
+            <div class="selection-cards">
+                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/orvJCBTodiY?autoplay=1&loop=1&playlist=orvJCBTodiY">
+                    <div class="card-icon">🎵</div>
+                    <div class="card-title">Tare ami chuye dekhini</div>
+                    <div class="card-description">Bengali romantic melody</div>
+                </div>
+                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/aJYmxB1iiIU?autoplay=1&loop=1&playlist=aJYmxB1iiIU">
+                    <div class="card-icon">🎶</div>
+                    <div class="card-title">Hindi Mashup 1</div>
+                    <div class="card-description">Popular Hindi songs</div>
+                </div>
+                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/kMU97_dBg_U?autoplay=1&loop=1&playlist=kMU97_dBg_U">
+                    <div class="card-icon">🦇</div>
+                    <div class="card-title">Batman ansak</div>
+                    <div class="card-description">Dark & mysterious</div>
+                </div>
+                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/Fx6Pk1od_Fo?autoplay=1&loop=1&playlist=Fx6Pk1od_Fo">
+                    <div class="card-icon">🎤</div>
+                    <div class="card-title">Bangla Mashup</div>
+                    <div class="card-description">Bengali song collection</div>
+                </div>
+                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/nKaBbplkMB4?autoplay=1&loop=1&playlist=nKaBbplkMB4">
+                    <div class="card-icon">🎭</div>
+                    <div class="card-title">Hindi Mashup</div>
+                    <div class="card-description">Bollywood favorites</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -115,16 +220,16 @@
             
             <div class="footer-right">
                 <div class="social-links">
-                    <a href="https://www.facebook.com/mbiboss.1/" class="social-link" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://www.youtube.com/@Bekar_Golpo" class="social-link" title="YouTube"><i class="fab fa-youtube"></i></a>
-                    <a href="https://discord.com/users/731544517542674443r" class="social-link" title="Discord"><i class="fab fa-discord"></i></a>
-                    <a href="https://wa.me/8801317460865" class="social-link" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-                    <a href="ooismailforajioo@gmail.com" class="social-link" title="Email"><i class="fas fa-envelope"></i></a>
+                    <a href="https://www.facebook.com/mbiboss.1/" class="social-link" title="Facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.youtube.com/@Bekar_Golpo" class="social-link" title="YouTube" target="_blank"><i class="fab fa-youtube"></i></a>
+                    <a href="https://discord.com/users/731544517542674443r" class="social-link" title="Discord" target="_blank"><i class="fab fa-discord"></i></a>
+                    <a href="https://wa.me/8801317460865" class="social-link" title="WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    <a href="mailto:ooismailforajioo@gmail.com" class="social-link" title="Email" target="_blank"><i class="fas fa-envelope"></i></a>
                 </div>
             </div>
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=7" defer></script>
 </body>
 </html>
