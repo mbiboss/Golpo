@@ -206,7 +206,7 @@ function resetToWelcome() {
     
     logoText.textContent = 'Golpo';
     document.title = 'Golpo - Bangla Stories with Music';
-    storyContent.innerHTML = '<div class="welcome-text english-text"><p>Welcome to our Bangla story reading platform! 📚</p><p>Choose a story from the dropdown menu above to start reading.</p><p>You can also play background music while reading for a better experience.</p><p>Toggle between dark and light themes using the theme button.</p></div>';
+    storyContent.innerHTML = '<div class="welcome-text english-text"><p>Welcome to my website</p><p>Here you will find my written stories.</p><p>Although I am very lazy, I will still write stories here.</p><p>You can read the story and listen to the song with the button above</p><p>Thank you.!</p></div>';
     currentStory = '';
 }
 
