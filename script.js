@@ -131,7 +131,7 @@ function showError(message) {
 // Get story display name
 function getStoryDisplayName(filename) {
     var storyMap = {
-        'bissash.txt': 'বিশ্বাস',
+        'bissash.txt': '_বিশ্বাস_',
         'upcoming.txt': 'upcoming'
     };
     return storyMap[filename] || filename.replace('.txt', '').replace(/^\w/, function(c) { return c.toUpperCase(); }).replace(/([0-9])/g, ' $1');
