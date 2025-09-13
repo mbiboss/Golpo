@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</title>
+    <title>Golpo - Bangla Stories with Music</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,24 +35,26 @@
         <div class="nav-island">
             <div class="nav-left">
                 <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="logo" onerror="this.src='assets/logo.png'">
-                <span class="logo-text" id="logoText">✿ㅤ"MʙɪㅤDᴀʀᴋ"</span>
+                <span class="logo-text" id="logoText">Golpo</span>
             </div>
             
             <div class="nav-center">
                 <div class="dropdown">
                     <select id="storySelect" class="story-dropdown">
                         <option value="">Select Story</option>
-                        <option value="bissash.txt">বিশ্বাস</option>
-                        <option value="upcoming.txt">upcoming</option>
+                        <option value="story1.txt">একটি ছোট গ্রামের গল্প</option>
+                        <option value="story2.txt">বুদ্ধিমান শিয়ালের গল্প</option>
                     </select>
                 </div>
                 
                 <div class="dropdown">
                     <select id="musicSelect" class="music-dropdown">
                         <option value="">Select Music</option>
-                        <option value="https://youtu.be/0WD6vxQz5-I?si=STKuZDd4gvGRfSGl">Mashup</option>
-                        <option value="https://www.soundjay.com/misc/sounds/2.mp3">Nature Sounds</option>
-                        <option value="https://www.soundjay.com/misc/sounds/3.mp3">Ambient Music</option>
+                        <option value="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk">Lofi Hip Hop</option>
+                        <option value="https://www.youtube.com/embed/5qap5aO4i9A?autoplay=1&loop=1&playlist=5qap5aO4i9A">Relaxing Piano</option>
+                        <option value="https://www.youtube.com/embed/DWcJFNfaw9c?autoplay=1&loop=1&playlist=DWcJFNfaw9c">Nature Sounds</option>
+                        <option value="https://www.youtube.com/embed/lTRiuFIWV54?autoplay=1&loop=1&playlist=lTRiuFIWV54">Ambient Music</option>
+                        <option value="https://www.youtube.com/embed/nKaBbplkMB4?autoplay=1&loop=1&playlist=nKaBbplkMB4">Your Song</option>
                     </select>
                 </div>
                 
@@ -78,19 +80,27 @@
     <main class="main-content">
         <div class="story-container">
             <div class="story-header">
-                <h1 id="storyTitle">Welcome to Golpo</h1>
-                <p class="story-subtitle">Select a story from the navigation to begin reading</p>
+                <h1 id="storyTitle" class="english-text">Welcome to Golpo</h1>
+                <p class="story-subtitle english-text">Select a story from the navigation to begin reading</p>
             </div>
             
             <div class="story-content" id="storyContent">
-                <div class="welcome-text">
-                    <p>Welcome to My own story platform! 📚</p>
+                <div class="welcome-text english-text">
+                    <p>Welcome to our Bangla story reading platform! 📚</p>
+                    <p>Choose a story from the dropdown menu above to start reading.</p>
+                    <p>You can also play background music while reading for a better experience.</p>
+                    <p>Toggle between dark and light themes using the theme button.</p>
                 </div>
             </div>
         </div>
         
         <!-- Hidden Audio Player -->
         <audio id="audioPlayer" loop></audio>
+        
+        <!-- YouTube Music Player -->
+        <div id="youtubePlayer" style="display: none;">
+            <iframe id="youtubeFrame" width="0" height="0" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+        </div>
     </main>
 
     <!-- Footer -->
@@ -98,7 +108,7 @@
         <div class="footer-content">
             <div class="footer-left">
                 <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="footer-logo" onerror="this.src='assets/logo.png'">
-                <p>&copy; 2025 Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ". All rights reserved.</p>
+                <p class="english-text">&copy; 2025 Golpo. All rights reserved.</p>
             </div>
             
             <div class="footer-right">
