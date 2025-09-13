@@ -1,22 +1,22 @@
 // Global Variables
-var currentTheme = 'dark';
+var currentTheme = 'sepia';
 var currentStory = '';
 var currentFontSize = 100;
 var isFocusMode = false;
 var storyBookmarks = {}; // Per-story bookmarks
 
-// DOM Elements
-var storySelector = document.getElementById('storySelector');
+// DOM Elements  
 var musicSelector = document.getElementById('musicSelector');
-var storyTitle = document.getElementById('storyTitle');
+// Removed storyTitle reference - using readerStoryTitle in new UI
 var storyContent = document.getElementById('storyContent');
 var playPauseBtn = document.getElementById('playPauseBtn');
 var themeToggle = document.getElementById('themeToggle');
-var logoText = document.getElementById('logoText');
+var logoText = document.querySelector('.logo-text');
 var audioPlayer = document.getElementById('audioPlayer');
 var youtubeFrame = document.getElementById('youtubeFrame');
 var progressBar = document.getElementById('progressBar');
 var progressPercentage = document.getElementById('progressPercentage');
+var progressFill = document.getElementById('progressFill');
 
 // Modal Elements
 var storyModal = document.getElementById('storyModal');
@@ -52,23 +52,438 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSavedSettings();
 });
 
+// Function to load story from suggestion card click
+function loadStoryFromSuggestion(storyFile) {
+    loadStory(storyFile);
+    // Hide story suggestions and show the story
+    const storySuggestions = document.getElementById('storySuggestions');
+    if (storySuggestions) {
+        storySuggestions.style.display = 'none';
+    }
+}
+
+// Function to create story suggestions HTML
+function createStorySuggestions(currentStoryFile) {
+    // List of all available stories
+    const stories = [
+        { file: 'bissash.txt', title: 'বিশ্বাস', description: 'A touching Bengali story about trust and faith', status: 'available' },
+        { file: 'upcoming.txt', title: 'Upcoming Stories', description: 'More stories coming soon...', status: 'upcoming' }
+    ];
+    
+    // Filter out the current story
+    const otherStories = stories.filter(story => story.file !== currentStoryFile);
+    
+    if (otherStories.length === 0) return '';
+    
+    let suggestionsHTML = `
+        <div class="story-end-suggestions">
+            <h2 class="suggestions-title english-text">📚 More Stories to Read</h2>
+            <div class="suggestions-grid">
+    `;
+    
+    otherStories.forEach(story => {
+        const statusClass = story.status === 'upcoming' ? 'upcoming' : '';
+        suggestionsHTML += `
+            <div class="suggestion-card ${statusClass}" onclick="loadStoryFromSuggestion('${story.file}')">
+                <div class="suggestion-icon">${story.status === 'upcoming' ? '🚀' : '📖'}</div>
+                <h3 class="suggestion-title ${story.file === 'upcoming.txt' ? 'english-text' : ''}">${story.title}</h3>
+                <p class="suggestion-description english-text">${story.description}</p>
+                <div class="suggestion-meta english-text">
+                    <span class="author">by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</span>
+                    <span class="status ${story.status}">${story.status === 'upcoming' ? 'Coming Soon' : 'Available'}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    suggestionsHTML += `
+            </div>
+        </div>
+    `;
+    
+    return suggestionsHTML;
+}
+
+// New UI Functions
+function loadStoryFromCard(storyFile) {
+    // Switch to reader view
+    showReaderView();
+    // Load the story
+    loadStory(storyFile);
+    // Update cover image in reader
+    updateReaderCoverImage();
+    // Update navigation buttons
+    updateStoryNavigation(storyFile);
+}
+
+function showReaderView() {
+    document.getElementById('libraryView').style.display = 'none';
+    document.getElementById('readerView').style.display = 'block';
+    
+    // Hide navigation in focus mode
+    if (isFocusMode) {
+        document.querySelector('.nav-container').style.opacity = '0';
+        document.querySelector('.footer').style.opacity = '0';
+    }
+}
+
+function returnToLibrary() {
+    document.getElementById('readerView').style.display = 'none';
+    document.getElementById('libraryView').style.display = 'block';
+    
+    // Show navigation again
+    document.querySelector('.nav-container').style.opacity = '1';
+    if (document.querySelector('.footer')) {
+        document.querySelector('.footer').style.opacity = '1';
+    }
+    
+    // Reset story content
+    resetReaderView();
+}
+
+// Export to global scope for inline onclick handlers
+window.returnToLibrary = returnToLibrary;
+
+function resetReaderView() {
+    // Clear story content
+    const storyContent = document.getElementById('storyContent');
+    if (storyContent) {
+        storyContent.innerHTML = '';
+    }
+    
+    // Reset progress
+    updateReaderProgress(0);
+    
+    // Reset story title and details
+    const readerStoryTitle = document.getElementById('readerStoryTitle');
+    if (readerStoryTitle) {
+        readerStoryTitle.textContent = 'Select a Story';
+    }
+    
+    // Reset reading details
+    const readerReadingTime = document.getElementById('readerReadingTime');
+    const readerWordCount = document.getElementById('readerWordCount');
+    if (readerReadingTime) {
+        readerReadingTime.textContent = '~0 min read';
+    }
+    if (readerWordCount) {
+        readerWordCount.textContent = '~0 words';
+    }
+}
+
+function toggleSearch() {
+    const searchSection = document.getElementById('searchSection');
+    if (searchSection.style.display === 'none' || searchSection.style.display === '') {
+        searchSection.style.display = 'block';
+        document.getElementById('globalSearch').focus();
+    } else {
+        searchSection.style.display = 'none';
+        document.getElementById('globalSearch').value = '';
+    }
+}
+
+function performGlobalSearch() {
+    const query = document.getElementById('globalSearch').value.toLowerCase().trim();
+    if (!query) {
+        highlightSearchResults([]);
+        return;
+    }
+    
+    // Define story metadata for searching
+    const storyMetadata = {
+        'bissash.txt': {
+            title: 'বিশ্বাস',
+            description: 'A touching Bengali story about trust and faith',
+            keywords: ['বিশ্বাস', 'trust', 'faith', 'bengali', 'story', 'touching']
+        },
+        'upcoming.txt': {
+            title: 'Upcoming Stories',
+            description: 'More stories coming soon...',
+            keywords: ['upcoming', 'coming', 'soon', 'stories', 'future']
+        }
+    };
+    
+    // Search through story metadata and content
+    const results = Object.keys(storyMetadata).filter(storyFile => {
+        const metadata = storyMetadata[storyFile];
+        const searchableText = `${metadata.title} ${metadata.description} ${metadata.keywords.join(' ')}`.toLowerCase();
+        
+        // Check if query matches title, description, or keywords
+        return searchableText.includes(query) || 
+               metadata.keywords.some(keyword => keyword.toLowerCase().includes(query));
+    });
+    
+    // Highlight matching story cards
+    highlightSearchResults(results);
+    
+    // Show search feedback
+    showSearchFeedback(query, results.length);
+}
+
+function showSearchFeedback(query, resultCount) {
+    // Remove existing feedback
+    const existingFeedback = document.querySelector('.search-feedback');
+    if (existingFeedback) {
+        existingFeedback.remove();
+    }
+    
+    // Add new feedback
+    const searchSection = document.getElementById('searchSection');
+    const feedback = document.createElement('div');
+    feedback.className = 'search-feedback';
+    feedback.innerHTML = `
+        <p class="english-text">
+            ${resultCount > 0 
+                ? `Found ${resultCount} story${resultCount > 1 ? 's' : ''} matching "${query}"` 
+                : `No stories found matching "${query}"`
+            }
+        </p>
+    `;
+    searchSection.appendChild(feedback);
+    
+    // Remove feedback after 3 seconds
+    setTimeout(() => {
+        if (feedback.parentNode) {
+            feedback.remove();
+        }
+    }, 3000);
+}
+
+function highlightSearchResults(results) {
+    const storyCards = document.querySelectorAll('.story-card');
+    storyCards.forEach(card => {
+        const storyFile = card.dataset.story;
+        if (results.includes(storyFile)) {
+            card.style.border = '2px solid var(--accent-color)';
+            card.style.transform = 'translateY(-2px)';
+        } else {
+            card.style.border = '';
+            card.style.transform = '';
+            card.style.opacity = results.length > 0 ? '0.5' : '1';
+        }
+    });
+    
+    // Reset after 3 seconds
+    setTimeout(() => {
+        storyCards.forEach(card => {
+            card.style.border = '';
+            card.style.transform = '';
+            card.style.opacity = '1';
+        });
+    }, 3000);
+}
+
+function updateReaderCoverImage() {
+    const readerCoverImage = document.getElementById('readerCoverImage');
+    if (readerCoverImage) {
+        readerCoverImage.src = 'https://i.postimg.cc/wMDMfnhn/static.png';
+    }
+}
+
+function updateStoryNavigation(currentStoryFile) {
+    const stories = ['bissash.txt', 'upcoming.txt'];
+    const currentIndex = stories.indexOf(currentStoryFile);
+    
+    const prevBtn = document.getElementById('prevStoryBtn');
+    const nextBtn = document.getElementById('nextStoryBtn');
+    
+    if (prevBtn && nextBtn) {
+        // Enable/disable based on position
+        prevBtn.disabled = currentIndex <= 0;
+        nextBtn.disabled = currentIndex >= stories.length - 1;
+        
+        // Store current story info
+        prevBtn.dataset.story = currentIndex > 0 ? stories[currentIndex - 1] : '';
+        nextBtn.dataset.story = currentIndex < stories.length - 1 ? stories[currentIndex + 1] : '';
+    }
+}
+
+function loadPreviousStory() {
+    const prevBtn = document.getElementById('prevStoryBtn');
+    const storyFile = prevBtn.dataset.story;
+    if (storyFile && !prevBtn.disabled) {
+        loadStoryFromCard(storyFile);
+    }
+}
+
+function loadNextStory() {
+    const nextBtn = document.getElementById('nextStoryBtn');
+    const storyFile = nextBtn.dataset.story;
+    if (storyFile && !nextBtn.disabled) {
+        loadStoryFromCard(storyFile);
+    }
+}
+
+function updateReaderProgress(percentage) {
+    const progressBar = document.getElementById('readerProgressBar');
+    const progressText = document.getElementById('readerProgressText');
+    
+    if (progressBar) {
+        progressBar.style.setProperty('--progress', percentage + '%');
+    }
+    if (progressText) {
+        progressText.textContent = Math.round(percentage) + '%';
+    }
+}
+
+function continuePreviousReading() {
+    // Get last read story from localStorage
+    const lastReadingSession = JSON.parse(localStorage.getItem('lastReadingSession') || '{}');
+    const lastStory = lastReadingSession.story || Object.keys(storyBookmarks)[0] || 'bissash.txt';
+    
+    // Load the story
+    loadStoryFromCard(lastStory);
+    
+    // Restore scroll position after story loads
+    setTimeout(() => {
+        if (lastReadingSession.scrollPosition) {
+            window.scrollTo({
+                top: lastReadingSession.scrollPosition,
+                behavior: 'smooth'
+            });
+        }
+    }, 500);
+}
+
+function saveReadingSession(storyFile, scrollPosition = 0) {
+    const readingSession = {
+        story: storyFile,
+        scrollPosition: scrollPosition,
+        timestamp: Date.now()
+    };
+    localStorage.setItem('lastReadingSession', JSON.stringify(readingSession));
+    updateContinueReadingVisibility();
+}
+
+function hasRecentReadingSession() {
+    const lastSession = JSON.parse(localStorage.getItem('lastReadingSession') || '{}');
+    if (!lastSession.timestamp) return false;
+    
+    // Consider session recent if within 7 days
+    const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    return lastSession.timestamp > weekAgo;
+}
+
+function calculateReadingTime(content) {
+    // Average reading speed: 200 words per minute
+    const words = content.split(/\s+/).length;
+    const minutes = Math.ceil(words / 200);
+    return minutes;
+}
+
+function updateStoryDetails(filename, content) {
+    const readingTime = calculateReadingTime(content);
+    const wordCount = content.split(/\s+/).length;
+    
+    const readerReadingTime = document.getElementById('readerReadingTime');
+    const readerWordCount = document.getElementById('readerWordCount');
+    
+    if (readerReadingTime) {
+        readerReadingTime.textContent = `~${readingTime} min read`;
+    }
+    if (readerWordCount) {
+        readerWordCount.textContent = `~${wordCount.toLocaleString()} words`;
+    }
+}
+
 // Initialize application
 function initializeApp() {
     // Set default theme
     document.body.setAttribute('data-theme', currentTheme);
     updateThemeIcon();
     
-    // Initialize audio player
-    audioPlayer.volume = 0.7;
+    // Initialize audio player with safety check
+    const audioPlayer = document.getElementById('audioPlayer');
+    if (audioPlayer) {
+        audioPlayer.volume = 0.7;
+    }
     
     // Initialize play/pause button icon
     updatePlayPauseButton(true);
+    
+    // Show library view by default
+    const libraryView = document.getElementById('libraryView');
+    const readerView = document.getElementById('readerView');
+    if (libraryView) libraryView.style.display = 'block';
+    if (readerView) readerView.style.display = 'none';
+    
+    // Initialize continue reading visibility
+    updateContinueReadingVisibility();
+    
+    // Setup search input event listener
+    const globalSearch = document.getElementById('globalSearch');
+    if (globalSearch) {
+        globalSearch.addEventListener('input', debounce(performGlobalSearch, 300));
+        globalSearch.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performGlobalSearch();
+            }
+        });
+    }
+}
+
+// Setup reading progress tracking for reader view
+function setupReaderProgress() {
+    const storyContent = document.getElementById('storyContent');
+    if (!storyContent) return;
+    
+    // Create intersection observer for progress tracking
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const paragraphs = Array.from(storyContent.querySelectorAll('p'));
+                const visibleIndex = paragraphs.indexOf(entry.target);
+                const progress = ((visibleIndex + 1) / paragraphs.length) * 100;
+                updateReaderProgress(progress);
+                
+                // Also update main nav progress
+                const progressPercentage = document.getElementById('progressPercentage');
+                const progressFill = document.getElementById('progressFill');
+                if (progressPercentage) {
+                    progressPercentage.textContent = Math.round(progress) + '%';
+                }
+                if (progressFill) {
+                    progressFill.style.width = progress + '%';
+                }
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    // Observe all paragraphs
+    storyContent.querySelectorAll('p').forEach(p => {
+        observer.observe(p);
+    });
+}
+
+function updateContinueReadingVisibility() {
+    const continueReading = document.getElementById('continueReading');
+    const hasBookmarks = Object.keys(storyBookmarks).length > 0;
+    const hasRecentSession = hasRecentReadingSession();
+    
+    if (continueReading) {
+        continueReading.style.display = (hasBookmarks || hasRecentSession) ? 'block' : 'none';
+        
+        // Update button text based on what's available
+        const continueBtn = continueReading.querySelector('.continue-btn span');
+        if (continueBtn) {
+            if (hasRecentSession) {
+                const lastSession = JSON.parse(localStorage.getItem('lastReadingSession') || '{}');
+                if (lastSession.story) {
+                    const storyName = getStoryDisplayName(lastSession.story);
+                    continueBtn.textContent = `Continue "${storyName}"`;
+                } else {
+                    continueBtn.textContent = 'Continue Reading';
+                }
+            } else {
+                continueBtn.textContent = 'Continue Reading';
+            }
+        }
+    }
 }
 
 // Setup all event listeners
 function setupEventListeners() {
     // New modal-based selection
-    storySelector.addEventListener('click', openStoryModal);
     musicSelector.addEventListener('click', openMusicModal);
     
     // Modal close events
@@ -99,7 +514,13 @@ function setupEventListeners() {
     increaseFontBtn.addEventListener('click', increaseFontSize);
     focusModeBtn.addEventListener('click', toggleFocusMode);
     scrollTopBtn.addEventListener('click', scrollToTop);
-    bookmarkBtn.addEventListener('click', toggleBookmark);
+    
+    if (bookmarkBtn) {
+        bookmarkBtn.addEventListener('click', toggleBookmark);
+        console.log('Bookmark button event listener added');
+    } else {
+        console.error('Bookmark button not found!');
+    }
     
     // Focus mode exit button
     var focusExitBtn = document.getElementById('focusExitBtn');
@@ -109,7 +530,14 @@ function setupEventListeners() {
     
     // Search functionality
     searchBtn.addEventListener('click', performSearch);
-    clearSearchBtn.addEventListener('click', clearSearch);
+    
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', clearSearch);
+        console.log('Clear search button event listener added');
+    } else {
+        console.error('Clear search button not found!');
+    }
+    
     searchInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             performSearch();
@@ -123,65 +551,110 @@ function setupEventListeners() {
             closeMusicModalFunc();
         }
     });
+    
+    // Logo click to return to library
+    const logo = document.querySelector('.nav-left');
+    if (logo) {
+        logo.addEventListener('click', returnToLibrary);
+    }
 }
 
 
 // Display story content
 function displayStory(filename, content) {
+    // Save reading session
+    saveReadingSession(filename, window.pageYOffset);
     // Update title and logo text
     var storyName = getStoryDisplayName(filename);
     var writerName = '✿ㅤ"MʙɪㅤDᴀʀᴋ"';
     
-    storyTitle.textContent = storyName;
-    storyTitle.className = 'bangla-text';
+    // Update reader view elements
+    const readerStoryTitle = document.getElementById('readerStoryTitle');
+    const readerAuthor = document.getElementById('readerAuthor');
     
-    // Update writer name in story header
-    var writerNameElement = document.getElementById('writerName');
-    if (writerNameElement) {
-        writerNameElement.textContent = 'by ' + writerName;
-        writerNameElement.className = 'writer-name english-text';
+    if (readerStoryTitle) {
+        readerStoryTitle.textContent = storyName;
+        readerStoryTitle.className = 'story-title-large';
+        if (filename !== 'upcoming.txt') {
+            readerStoryTitle.style.fontFamily = "'BanglaFont', 'Noto Sans Bengali', sans-serif";
+        }
     }
     
+    if (readerAuthor) {
+        readerAuthor.textContent = 'by ' + writerName;
+    }
+    
+    // Update browser title and nav logo
     logoText.textContent = storyName + ' by ' + writerName;
     document.title = storyName + ' by ' + writerName;
     
+    // Update story details (reading time, word count)
+    updateStoryDetails(filename, content);
+    
     // Clear loading state
-    storyContent.innerHTML = '';
+    const storyContent = document.getElementById('storyContent');
+    if (storyContent) {
+        storyContent.innerHTML = '';
+    }
     
     // Process and display content
     var paragraphs = content.split('\n').filter(function(p) { return p.trim() !== ''; });
     
-    paragraphs.forEach(paragraph => {
-        var p = document.createElement('p');
-        p.className = 'bangla-text';
-        p.textContent = paragraph.trim();
-        storyContent.appendChild(p);
-    });
-    
-    // Scroll to top
-    var storyContainer = document.querySelector('.story-container');
-    if (storyContainer) {
-        storyContainer.scrollTop = 0;
+    if (storyContent) {
+        paragraphs.forEach(paragraph => {
+            var p = document.createElement('p');
+            p.className = 'bangla-text';
+            p.textContent = paragraph.trim();
+            storyContent.appendChild(p);
+        });
     }
     
-    // Setup reading progress tracking
-    setupReadingProgress();
+    // Add story suggestions at the end
+    if (storyContent) {
+        var suggestionsHTML = createStorySuggestions(filename);
+        if (suggestionsHTML) {
+            var suggestionsDiv = document.createElement('div');
+            suggestionsDiv.innerHTML = suggestionsHTML;
+            storyContent.appendChild(suggestionsDiv.firstElementChild);
+        }
+    }
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Setup reading progress tracking for reader view
+    setupReaderProgress();
+    
+    // Save reading session when progress is tracked
+    const saveProgressHandler = () => {
+        saveReadingSession(filename, window.pageYOffset);
+    };
+    window.addEventListener('scroll', saveProgressHandler, { passive: true });
     
     // Update bookmark button state for this story
     updateBookmarkButton();
     
     // Restore bookmark position for this story
     restoreBookmarkForCurrentStory();
+    
+    // Show continue reading button if user has bookmarks
+    updateContinueReadingVisibility();
 }
 
 // Show loading state
 function showLoadingState() {
-    storyContent.innerHTML = '<div class="welcome-text"><p>Loading story... 📖</p></div>';
+    const storyContent = document.getElementById('storyContent');
+    if (storyContent) {
+        storyContent.innerHTML = '<div class="welcome-text"><p>Loading story... 📖</p></div>';
+    }
 }
 
 // Show error message
 function showError(message) {
-    storyContent.innerHTML = '<div class="welcome-text"><p>❌ ' + message + '</p></div>';
+    const storyContent = document.getElementById('storyContent');
+    if (storyContent) {
+        storyContent.innerHTML = '<div class="welcome-text"><p>❌ ' + message + '</p></div>';
+    }
 }
 
 // Get story display name
@@ -195,29 +668,28 @@ function getStoryDisplayName(filename) {
 
 // Reset to welcome screen
 function resetToWelcome() {
-    storyTitle.textContent = 'Welcome to Golpo';
-    storyTitle.className = 'english-text';
+    // Return to library view
+    returnToLibrary();
     
-    // Clear writer name
-    var writerNameElement = document.getElementById('writerName');
-    if (writerNameElement) {
-        writerNameElement.textContent = '';
+    // Update page title and logo
+    if (logoText) {
+        logoText.textContent = 'Golpo';
     }
-    
-    logoText.textContent = 'Golpo';
     document.title = 'Golpo - Bangla Stories with Music';
-    storyContent.innerHTML = '<div class="welcome-text english-text"><p>Welcome to my website</p><p>Here you will find my written stories.</p><p>Although I am very lazy, I will still write stories here.</p><p>You can read the story and listen to the song with the button above</p><p>Thank you.!</p></div>';
     currentStory = '';
 }
 
 // Music Player Functions
 function togglePlayPause() {
-    if (!audioPlayer.src && !currentYouTubeUrl) {
+    const audioPlayer = document.getElementById('audioPlayer');
+    const youtubeFrame = document.getElementById('youtubeFrame');
+    
+    if (!audioPlayer || (!audioPlayer.src && !currentYouTubeUrl)) {
         alert('Please select a music track first.');
         return;
     }
     
-    if (currentYouTubeUrl) {
+    if (currentYouTubeUrl && youtubeFrame) {
         // Handle YouTube playback
         if (isYouTubePlaying) {
             youtubeFrame.src = '';
@@ -230,7 +702,7 @@ function togglePlayPause() {
             updatePlayPauseButton(false);
             console.log('YouTube music started:', currentYouTubeUrl);
         }
-    } else {
+    } else if (audioPlayer) {
         // Handle regular audio playback
         if (audioPlayer.paused) {
             audioPlayer.play();
@@ -284,7 +756,17 @@ function onAudioEnded() {
 
 // Theme Functions
 function toggleTheme() {
-    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    // Cycle through: light → sepia → dark → dark-sepia → light...
+    if (currentTheme === 'light') {
+        currentTheme = 'sepia';
+    } else if (currentTheme === 'sepia') {
+        currentTheme = 'dark';
+    } else if (currentTheme === 'dark') {
+        currentTheme = 'dark-sepia';
+    } else {
+        currentTheme = 'light';
+    }
+    
     document.body.setAttribute('data-theme', currentTheme);
     updateThemeIcon();
     saveSettings();
@@ -300,6 +782,10 @@ function updateThemeIcon() {
     var icon = themeToggle.querySelector('.icon');
     if (currentTheme === 'dark') {
         icon.className = 'fas fa-moon icon';
+    } else if (currentTheme === 'dark-sepia') {
+        icon.className = 'fas fa-eye icon';
+    } else if (currentTheme === 'sepia') {
+        icon.className = 'fas fa-book-open icon';
     } else {
         icon.className = 'fas fa-sun icon';
     }
@@ -374,7 +860,13 @@ function debounce(func, wait) {
     return function executedFunction(...args) {
         var later = function() {
             clearTimeout(timeout);
-            func(...args);
+            if (typeof func === 'function') {
+                try {
+                    func(...args);
+                } catch (error) {
+                    console.error('Debounced function error:', error);
+                }
+            }
         };
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
@@ -418,6 +910,9 @@ function updateReadingProgress() {
     
     if (maxScroll <= 0) {
         progressPercentage.textContent = '100%';
+        if (progressFill) {
+            progressFill.style.width = '100%';
+        }
         return;
     }
     
@@ -425,6 +920,9 @@ function updateReadingProgress() {
     scrollPercent = Math.max(0, Math.min(100, scrollPercent));
     
     progressPercentage.textContent = Math.round(scrollPercent) + '%';
+    if (progressFill) {
+        progressFill.style.width = scrollPercent + '%';
+    }
 }
 
 // Setup reading progress tracking for story content
@@ -478,10 +976,10 @@ function setupCardListeners() {
     document.querySelectorAll('.story-card').forEach(card => {
         card.addEventListener('click', function() {
             var storyFile = this.dataset.story;
-            var storyName = this.querySelector('.card-title').textContent;
+            var titleElement = this.querySelector('.card-title');
+            var storyName = titleElement ? titleElement.textContent : 'Unknown Story';
             
             loadStory(storyFile);
-            updateSelectorText(storySelector, storyName, 'book');
             closeStoryModalFunc();
         });
     });
@@ -490,7 +988,8 @@ function setupCardListeners() {
     document.querySelectorAll('.music-card').forEach(card => {
         card.addEventListener('click', function() {
             var musicUrl = this.dataset.music;
-            var musicName = this.querySelector('.card-title').textContent;
+            var titleElement = this.querySelector('.card-title');
+            var musicName = titleElement ? titleElement.textContent : 'Unknown Music';
             
             setMusicSource(musicUrl);
             updateSelectorText(musicSelector, musicName, 'music');
@@ -613,35 +1112,73 @@ function setFocusMode(enabled) {
 }
 
 function scrollToTop() {
-    var storyContainer = document.querySelector('.story-container');
-    if (storyContainer) {
-        storyContainer.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    }
+    // Always scroll to the very top of the page for maximum visibility
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+    
+    // Show notification that scroll happened
+    showNotification('📍 Scrolled to top', 'success');
 }
 
 function toggleBookmark() {
-    if (!currentStory) return;
+    console.log('toggleBookmark function called');
+    console.log('Current story:', currentStory);
     
-    var storyContainer = document.querySelector('.story-container');
-    if (!storyContainer) return;
+    if (!currentStory) {
+        console.log('No current story, bookmark not available');
+        showNotification('⚠️ Please load a story first', 'warning');
+        return;
+    }
     
-    var currentScrollTop = storyContainer.scrollTop;
-    var existingBookmark = storyBookmarks[currentStory];
-    
-    if (existingBookmark !== null && existingBookmark !== undefined && bookmarkBtn.classList.contains('active')) {
-        // Go to bookmark if we have one
-        goToBookmark();
-        showNotification('Jumped to bookmark');
-    } else {
-        // Save current position as bookmark for this story
-        storyBookmarks[currentStory] = currentScrollTop;
-        bookmarkBtn.classList.add('active');
-        bookmarkBtn.title = 'Go to Bookmark';
-        showNotification('Position bookmarked');
-        saveSettings();
+    try {
+        // Initialize storyBookmarks if it doesn't exist
+        if (typeof storyBookmarks === 'undefined') {
+            window.storyBookmarks = {};
+            console.log('Initialized storyBookmarks');
+        }
+        
+        // Use window scroll position instead of container scroll
+        var currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        var existingBookmark = storyBookmarks[currentStory];
+        
+        console.log('Current scroll position:', currentScrollTop);
+        console.log('Existing bookmark:', existingBookmark);
+        console.log('Bookmark button has active class:', bookmarkBtn ? bookmarkBtn.classList.contains('active') : 'bookmarkBtn not found');
+        
+        if (existingBookmark !== null && existingBookmark !== undefined && bookmarkBtn && bookmarkBtn.classList.contains('active')) {
+            // Check if we're close to the bookmarked position (within 50 pixels)
+            var distanceFromBookmark = Math.abs(currentScrollTop - existingBookmark);
+            
+            if (distanceFromBookmark <= 50) {
+                // We're at the bookmark position, offer to delete it
+                console.log('At bookmark position, deleting bookmark');
+                delete storyBookmarks[currentStory];
+                bookmarkBtn.classList.remove('active');
+                bookmarkBtn.title = 'Bookmark Position';
+                showNotification('🗑️ Bookmark deleted', 'success');
+                saveSettings();
+            } else {
+                // Go to bookmark if we have one
+                console.log('Going to existing bookmark');
+                goToBookmark();
+                showNotification('📖 Jumped to bookmark', 'success');
+            }
+        } else {
+            // Save current position as bookmark for this story
+            console.log('Saving new bookmark at position:', currentScrollTop);
+            storyBookmarks[currentStory] = currentScrollTop;
+            if (bookmarkBtn) {
+                bookmarkBtn.classList.add('active');
+                bookmarkBtn.title = 'Go to Bookmark';
+            }
+            showNotification('🔖 Position bookmarked', 'success');
+            saveSettings();
+        }
+    } catch (error) {
+        console.error('Error in toggleBookmark:', error);
+        showNotification('❌ Bookmark error', 'error');
     }
 }
 
@@ -649,14 +1186,15 @@ function goToBookmark() {
     if (!currentStory) return;
     
     var bookmark = storyBookmarks[currentStory];
+    console.log('Going to bookmark position:', bookmark);
+    
     if (bookmark !== null && bookmark !== undefined) {
-        var storyContainer = document.querySelector('.story-container');
-        if (storyContainer) {
-            storyContainer.scrollTo({
-                top: bookmark,
-                behavior: 'smooth'
-            });
-        }
+        // Use window scroll instead of container scroll
+        window.scrollTo({
+            top: bookmark,
+            behavior: 'smooth'
+        });
+        console.log('Scrolled to bookmark position');
     }
 }
 
@@ -741,7 +1279,14 @@ function escapeHtml(text) {
 // Search Functions
 function performSearch() {
     var searchTerm = searchInput.value.trim();
-    if (!searchTerm || !currentStory) {
+    
+    if (!searchTerm) {
+        showNotification('⚠️ Please enter a search term', 'warning');
+        return;
+    }
+    
+    if (!currentStory) {
+        showNotification('⚠️ Please load a story first', 'warning');
         return;
     }
     
@@ -750,6 +1295,12 @@ function performSearch() {
     
     clearPreviousHighlights();
     var storyContent = document.getElementById('storyContent');
+    
+    if (!storyContent) {
+        showNotification('❌ Story content not found', 'error');
+        return;
+    }
+    
     var paragraphs = storyContent.querySelectorAll('p');
     var results = [];
     
@@ -760,8 +1311,8 @@ function performSearch() {
             var matches = text.match(regex);
         
             if (matches) {
-                // Highlight the text
-                var highlightedText = text.replace(regex, '<span class="search-highlight">$&</span>');
+                // Highlight the text with ultra-visible styling
+                var highlightedText = text.replace(regex, '<span class="search-highlight" style="background: linear-gradient(45deg, #ff0000, #ff6b6b) !important; color: #ffffff !important; padding: 3px 6px !important; border-radius: 6px !important; font-weight: 900 !important; box-shadow: 0 2px 8px rgba(255, 0, 0, 0.5) !important; border: 2px solid #ffffff !important;">$&</span>');
                 paragraph.innerHTML = highlightedText;
                 
                 // Add to results
@@ -779,22 +1330,48 @@ function performSearch() {
         }
     });
     
+    // Show notification with results
+    if (results.length > 0) {
+        showNotification(`🔍 Found ${results.length} matches highlighted in red`, 'success');
+        
+        // Don't auto-scroll so user can see all highlights
+        // Just show the search results list for navigation
+    } else {
+        showNotification(`❌ No matches found for "${searchTerm}"`, 'error');
+    }
+    
     displaySearchResults(results, searchTerm);
 }
 
 function clearSearch() {
-    searchInput.value = '';
-    searchResults.innerHTML = '';
+    console.log('clearSearch function called');
+    
+    if (searchInput) {
+        searchInput.value = '';
+        console.log('Search input cleared');
+    }
+    
+    if (searchResults) {
+        searchResults.innerHTML = '';
+        console.log('Search results cleared');
+    }
+    
     clearPreviousHighlights();
+    showNotification('🗑️ Search cleared', 'success');
+    console.log('clearSearch function completed');
 }
 
 function clearPreviousHighlights() {
     var storyContent = document.getElementById('storyContent');
+    if (!storyContent) return;
+    
     var highlights = storyContent.querySelectorAll('.search-highlight');
     highlights.forEach(highlight => {
         var parent = highlight.parentNode;
-        parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
-        parent.normalize();
+        if (parent) {
+            parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+            parent.normalize();
+        }
     });
 }
 
@@ -816,19 +1393,46 @@ function displaySearchResults(results, searchTerm) {
 }
 
 function scrollToSearchResult(paragraphIndex) {
+    console.log('scrollToSearchResult called with index:', paragraphIndex);
+    
     var storyContent = document.getElementById('storyContent');
+    if (!storyContent) {
+        console.log('Story content not found');
+        return;
+    }
+    
     var paragraphs = storyContent.querySelectorAll('p');
+    console.log('Found paragraphs:', paragraphs.length);
+    
     if (paragraphs[paragraphIndex]) {
-        var storyContainer = document.querySelector('.story-container');
-        if (storyContainer) {
-            var elementTop = paragraphs[paragraphIndex].offsetTop;
-            storyContainer.scrollTo({
-                top: elementTop - 100, // Offset for better visibility
-                behavior: 'smooth'
-            });
-        }
+        console.log('Scrolling to paragraph', paragraphIndex);
+        paragraphs[paragraphIndex].scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+        
+        // Add temporary visual indicator
+        var paragraph = paragraphs[paragraphIndex];
+        paragraph.style.border = '2px solid #ff6b6b';
+        paragraph.style.borderRadius = '8px';
+        paragraph.style.padding = '10px';
+        
+        // Remove indicator after 3 seconds
+        setTimeout(() => {
+            paragraph.style.border = '';
+            paragraph.style.borderRadius = '';
+            paragraph.style.padding = '';
+        }, 3000);
+        
+        showNotification('📍 Jumped to search result', 'success');
+    } else {
+        console.log('Paragraph not found at index:', paragraphIndex);
+        showNotification('❌ Search result not found', 'error');
     }
 }
+
+// Export to global scope for inline onclick handlers
+window.scrollToSearchResult = scrollToSearchResult;
 
 // Handle visibility change (pause music when tab is not active)
 document.addEventListener('visibilitychange', () => {

@@ -4,12 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</title>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=8">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="assets/logo.png">
+    <style>
+        /* Emergency override for search highlights */
+        .search-highlight {
+            background: linear-gradient(45deg, #ff0000, #ff6b6b) !important;
+            color: #ffffff !important;
+            padding: 3px 6px !important;
+            border-radius: 6px !important;
+            font-weight: 900 !important;
+            box-shadow: 0 2px 8px rgba(255, 0, 0, 0.5) !important;
+            border: 2px solid #ffffff !important;
+        }
+    </style>
 </head>
 <body data-theme="dark">
     <!-- Background Particles -->
@@ -39,11 +51,6 @@
             </div>
             
             <div class="nav-center">
-                <button class="selection-btn story-selector-btn" id="storySelector" title="Select Story">
-                    <i class="fas fa-book"></i>
-                    <span class="selector-text">Select Story</span>
-                </button>
-                
                 <button class="selection-btn music-selector-btn" id="musicSelector" title="Select Music">
                     <i class="fas fa-music"></i>
                     <span class="selector-text">Select Music</span>
@@ -53,7 +60,12 @@
                     <i class="fas fa-play icon"></i>
                 </button>
                 
-                <div class="nav-progress-percentage" id="progressPercentage" title="Reading Progress">0%</div>
+                <div class="nav-progress-container" id="progressContainer" title="Reading Progress">
+                    <div class="nav-progress-bar">
+                        <div class="nav-progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="nav-progress-text" id="progressPercentage">0%</span>
+                </div>
             </div>
             
             
@@ -122,23 +134,134 @@
     </button>
 
     <!-- Main Content Area -->
-    <main class="main-content">
-        <div class="story-container">
-            <div class="story-header">
-                <h1 id="storyTitle" class="english-text">Welcome to Golpo</h1>
-                <p id="writerName" class="writer-name english-text"></p>
-            </div>
-            
-            <div class="story-content" id="storyContent" lang="bn">
-                <div class="welcome-text english-text">
-                    <p>আমার ওয়েবসাইট এ আপনাকে স্বাগতম,</p>
-                    <p>এখানে আপনি আমার লেখা গল্পঃ পেয়ে যাবেন .</p>
-                    <p>যদিও আমি খুব অলস, তবুও আমি গল্পঃ লিখলে এখানে পাবেন .</p>
-                    <p>এখন গল্পঃ কখন লিখব ঐটা জিগ্গেস করবেন না !</p>
-                    <p>ওপরের বাটন দিয়ে আপনি গল্পঃ পড়তে পারবেন সাথে গান শুনতে পারবেন</p>
-                    <p>ধন্যবাদ.!</p>
+    <main class="main-content" id="mainContent">
+        <!-- Landing/Library View -->
+        <div class="library-view" id="libraryView">
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1 class="hero-title">Welcome to Golpo</h1>
+                    <p class="hero-subtitle">আমার লেখা গল্পঃ এর সংসার</p>
+                    <div class="hero-description english-text">
+                        <p>Discover beautiful Bengali stories written with love and care</p>
+                    </div>
+                    <div class="continue-reading" id="continueReading" style="display: none;">
+                        <button class="continue-btn" onclick="continuePreviousReading()">
+                            <i class="fas fa-play"></i>
+                            <span>Continue Reading</span>
+                        </button>
+                    </div>
                 </div>
+            </section>
+
+            <!-- Story Library -->
+            <section class="story-library">
+                <div class="library-header">
+                    <h2 class="library-title english-text">📚 Story Collection</h2>
+                    <div class="library-actions">
+                        <button class="search-toggle" onclick="toggleSearch()" aria-label="Toggle story search" title="Search stories">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-section" id="searchSection" style="display: none;">
+                    <div class="search-container">
+                        <input type="text" id="globalSearch" class="global-search" placeholder="Search stories...">
+                        <button class="search-btn" onclick="performGlobalSearch()" aria-label="Search stories" title="Search">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="story-grid">
+                    <div class="story-card" data-story="bissash.txt" onclick="loadStoryFromCard('bissash.txt')">
+                        <div class="story-cover">
+                            <img src="https://i.postimg.cc/wMDMfnhn/static.png" alt="বিশ্বাস Cover" />
+                            <div class="story-overlay">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="story-info">
+                            <h3 class="story-title">বিশ্বাস</h3>
+                            <p class="story-description english-text">A touching Bengali story about trust and faith</p>
+                            <div class="story-meta">
+                                <span class="author">✿ㅤ"MʙɪㅤDᴀʀᴋ"</span>
+                                <div class="meta-right">
+                                    <span class="reading-time">~15 min read</span>
+                                    <span class="status available">Available</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="story-card upcoming" data-story="upcoming.txt" onclick="loadStoryFromCard('upcoming.txt')">
+                        <div class="story-cover">
+                            <img src="https://i.postimg.cc/wMDMfnhn/static.png" alt="Upcoming Stories Cover" />
+                            <div class="story-overlay">
+                                <div class="coming-soon-badge">Coming Soon</div>
+                            </div>
+                        </div>
+                        <div class="story-info">
+                            <h3 class="story-title english-text">Upcoming Stories</h3>
+                            <p class="story-description english-text">More beautiful stories coming soon...</p>
+                            <div class="story-meta">
+                                <span class="author">✿ㅤ"MʙɪㅤDᴀʀᴋ"</span>
+                                <div class="meta-right">
+                                    <span class="reading-time">~Coming Soon</span>
+                                    <span class="status upcoming">Upcoming</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Reader View -->
+        <div class="reader-view" id="readerView" style="display: none;">
+            <div class="reader-header">
+                <button class="back-btn" onclick="returnToLibrary()" aria-label="Return to story library" title="Back to Library">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Library</span>
+                </button>
             </div>
+
+            <article class="story-reader">
+                <header class="story-header">
+                    <div class="story-cover-small">
+                        <img id="readerCoverImage" src="https://i.postimg.cc/wMDMfnhn/static.png" alt="Story Cover" />
+                    </div>
+                    <div class="story-title-section">
+                        <h1 id="readerStoryTitle" class="story-title-large">Story Title</h1>
+                        <p id="readerAuthor" class="story-author">by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</p>
+                        <div class="story-details">
+                            <span id="readerReadingTime" class="reading-time">~15 min read</span>
+                            <span class="divider">•</span>
+                            <span id="readerWordCount" class="word-count">~2,500 words</span>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="story-content" id="storyContent" lang="bn">
+                    <!-- Story content will be loaded here -->
+                </div>
+
+                <footer class="story-footer">
+                    <div class="story-navigation">
+                        <button class="nav-btn prev-btn" id="prevStoryBtn" onclick="loadPreviousStory()" disabled aria-label="Load previous story" title="Previous Story">
+                            <i class="fas fa-chevron-left"></i>
+                            <span>Previous Story</span>
+                        </button>
+                        <button class="nav-btn next-btn" id="nextStoryBtn" onclick="loadNextStory()" disabled aria-label="Load next story" title="Next Story">
+                            <span>Next Story</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </footer>
+            </article>
         </div>
         
         <!-- Hidden Audio Player -->
@@ -231,6 +354,6 @@
         </div>
     </footer>
 
-    <script src="script.js?v=7" defer></script>
+    <script src="script.js?v=20" defer></script>
 </body>
 </html>
