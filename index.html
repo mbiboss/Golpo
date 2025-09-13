@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mbi Dark Music</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <img src="assets/logo.png" alt="Logo" class="logo">
+    <div class="controls">
+      <select id="songSelect">
+        <option value="" disabled selected>গান নির্বাচন করুন</option>
+        <option value="https://www.youtube.com/watch?v=6Dh-RL__uN4">Alan Walker - Faded</option>
+        <option value="https://www.youtube.com/watch?v=kJQP7kiw5Fk">Luis Fonsi - Despacito</option>
+      </select>
+      <button id="playPauseBtn">▶️</button>
+      <button id="themeToggle">🌙</button>
+    </div>
+  </nav>
+
+  <!-- Now Playing -->
+  <header class="now-playing">
+    <h2 id="currentSong">🎵 কোনো গান চালু হয়নি</h2>
+  </header>
+
+  <!-- Player Section -->
+  <main>
+    <div class="player">
+      <iframe id="ytPlayer" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 Mbi Dark Music | Developed with ❤️</p>
+  </footer>
+
+</body>
+</html>
