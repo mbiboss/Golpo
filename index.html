@@ -4,26 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</title>
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="assets/logo.png">
-    <style>
-        /* Emergency override for search highlights */
-        .search-highlight {
-            background: linear-gradient(45deg, #ff0000, #ff6b6b) !important;
-            color: #ffffff !important;
-            padding: 3px 6px !important;
-            border-radius: 6px !important;
-            font-weight: 900 !important;
-            box-shadow: 0 2px 8px rgba(255, 0, 0, 0.5) !important;
-            border: 2px solid #ffffff !important;
-        }
-    </style>
 </head>
 <body data-theme="dark">
+    <!-- Startup/Splash Screen -->
+    <div id="startupScreen" class="startup-screen">
+        <div class="startup-background"></div>
+        <div class="startup-content">
+            <div class="startup-logo">
+                <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="startup-logo-img" onerror="this.src='assets/logo.png'">
+            </div>
+            <div class="startup-title">
+                <h1 class="startup-text">Golpo</h1>
+                <p class="startup-subtitle">by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</p>
+            </div>
+            <div class="startup-hint">
+                <p class="tap-hint">
+                    <i class="fas fa-hand-pointer"></i>
+                    Tap anywhere to continue
+                </p>
+            </div>
+        </div>
+        <div class="startup-particles">
+            <div class="startup-particle"></div>
+            <div class="startup-particle"></div>
+            <div class="startup-particle"></div>
+            <div class="startup-particle"></div>
+            <div class="startup-particle"></div>
+        </div>
+    </div>
+
     <!-- Background Particles -->
     <div class="particles-container">
         <div class="particle"></div>
@@ -141,7 +156,7 @@
             <section class="hero-section">
                 <div class="hero-content">
                     <h1 class="hero-title">Welcome to Golpo</h1>
-                    <p class="hero-subtitle">আমার লেখা গল্পঃ এর সংসার</p>
+                    <p class="hero-subtitle">আমার নিজের লেখা গল্পঃ</p>
                     <div class="hero-description english-text">
                         <p>My Own Story From The Heart</p>
                     </div>
@@ -174,48 +189,9 @@
                     </div>
                 </div>
 
-                <div class="story-grid">
-                    <div class="story-card" data-story="bissash.txt" onclick="loadStoryFromCard('bissash.txt')">
-                        <div class="story-cover">
-                            <img src="https://i.postimg.cc/zv9rwb84/Bissash-wide.png" alt="বিশ্বাস Cover" />
-                            <div class="story-overlay">
-                                <div class="play-button">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="story-info">
-                            <h3 class="story-title">বিশ্বাস</h3>
-                            <p class="story-description english-text">A story about trust and faith</p>
-                            <div class="story-meta">
-                                <span class="author">✿ㅤ"MʙɪㅤDᴀʀᴋ"</span>
-                                <div class="meta-right">
-                                    <span class="reading-time">~15 min read</span>
-                                    <span class="status available">Available</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="story-card upcoming" data-story="upcoming.txt" onclick="loadStoryFromCard('upcoming.txt')">
-                        <div class="story-cover">
-                            <img src="https://i.postimg.cc/0yjGwmHJ/banner.gif" alt="Upcoming Stories Cover" />
-                            <div class="story-overlay">
-                                <div class="coming-soon-badge">Coming Soon</div>
-                            </div>
-                        </div>
-                        <div class="story-info">
-                            <h3 class="story-title english-text">Upcoming Stories</h3>
-                            <p class="story-description english-text">More beautiful stories coming soon...</p>
-                            <div class="story-meta">
-                                <span class="author">✿ㅤ"MʙɪㅤDᴀʀᴋ"</span>
-                                <div class="meta-right">
-                                    <span class="reading-time">~Coming Soon</span>
-                                    <span class="status upcoming">Upcoming</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="story-grid" data-stories="bissash,upcoming">
+                    <!-- Story cards will be automatically generated from JavaScript based on the data-stories attribute -->
+                    <!-- To add new stories: 1) Add story metadata to storyDatabase in script.js, 2) Add story ID to data-stories above -->
                 </div>
             </section>
         </div>
@@ -232,7 +208,7 @@
             <article class="story-reader">
                 <header class="story-header">
                     <div class="story-cover-small">
-                        <img id="readerCoverImage" src="https://i.postimg.cc/FKDXWnhy/Bissash-small.png" alt="Story Cover" />
+                        <img id="readerCoverImage" src="" alt="Story Cover" />
                     </div>
                     <div class="story-title-section">
                         <h1 id="readerStoryTitle" class="story-title-large">Story Title</h1>
@@ -282,16 +258,7 @@
                 <button class="modal-close" id="closeStoryModal">&times;</button>
             </div>
             <div class="selection-cards">
-                <div class="selection-card story-card" data-story="bissash.txt">
-                    <div class="card-icon">📖</div>
-                    <div class="card-title">বিশ্বাস</div>
-                    <div class="card-description">A touching Bengali story</div>
-                </div>
-                <div class="selection-card story-card" data-story="upcoming.txt">
-                    <div class="card-icon">🚀</div>
-                    <div class="card-title">Upcoming</div>
-                    <div class="card-description">Coming soon...</div>
-                </div>
+                <!-- Story cards are now generated dynamically from JavaScript -->
             </div>
         </div>
     </div>
@@ -304,31 +271,103 @@
                 <h3>Choose Your Music</h3>
                 <button class="modal-close" id="closeMusicModal">&times;</button>
             </div>
-            <div class="selection-cards">
-                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/orvJCBTodiY?autoplay=1&loop=1&playlist=orvJCBTodiY">
-                    <div class="card-icon">🎵</div>
-                    <div class="card-title">Tare ami chuye dekhini</div>
-                    <div class="card-description">Bengali romantic melody</div>
+            <div class="song-playlist">
+                <div class="playlist-header">
+                    <div class="playlist-info">
+                        <div class="playlist-count">5 songs available</div>
+                    </div>
                 </div>
-                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/aJYmxB1iiIU?autoplay=1&loop=1&playlist=aJYmxB1iiIU">
-                    <div class="card-icon">🎶</div>
-                    <div class="card-title">Hindi Mashup 1</div>
-                    <div class="card-description">Popular Hindi songs</div>
-                </div>
-                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/kMU97_dBg_U?autoplay=1&loop=1&playlist=kMU97_dBg_U">
-                    <div class="card-icon">🦇</div>
-                    <div class="card-title">Batman ansak</div>
-                    <div class="card-description">Dark & mysterious</div>
-                </div>
-                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/Fx6Pk1od_Fo?autoplay=1&loop=1&playlist=Fx6Pk1od_Fo">
-                    <div class="card-icon">🎤</div>
-                    <div class="card-title">Bangla Mashup</div>
-                    <div class="card-description">Bengali song collection</div>
-                </div>
-                <div class="selection-card music-card" data-music="https://www.youtube.com/embed/nKaBbplkMB4?autoplay=1&loop=1&playlist=nKaBbplkMB4">
-                    <div class="card-icon">🎭</div>
-                    <div class="card-title">Hindi Mashup</div>
-                    <div class="card-description">Bollywood favorites</div>
+                <div class="song-list">
+                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/orvJCBTodiY?autoplay=1&loop=1&playlist=orvJCBTodiY">
+                        <div class="song-play-btn">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="song-cover">
+                            <div class="song-cover-placeholder">
+                                <i class="fas fa-music"></i>
+                            </div>
+                        </div>
+                        <div class="song-details">
+                            <div class="song-title">Tare ami chuye dekhini</div>
+                            <div class="song-artist">Bengali romantic melody</div>
+                        </div>
+                        <div class="song-duration">3:45</div>
+                        <div class="song-options">
+                            <i class="fas fa-heart song-like"></i>
+                        </div>
+                    </div>
+                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/aJYmxB1iiIU?autoplay=1&loop=1&playlist=aJYmxB1iiIU">
+                        <div class="song-play-btn">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="song-cover">
+                            <div class="song-cover-placeholder">
+                                <i class="fas fa-music"></i>
+                            </div>
+                        </div>
+                        <div class="song-details">
+                            <div class="song-title">Hindi Mashup 1</div>
+                            <div class="song-artist">Popular Hindi songs</div>
+                        </div>
+                        <div class="song-duration">4:12</div>
+                        <div class="song-options">
+                            <i class="fas fa-heart song-like"></i>
+                        </div>
+                    </div>
+                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/kMU97_dBg_U?autoplay=1&loop=1&playlist=kMU97_dBg_U">
+                        <div class="song-play-btn">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="song-cover">
+                            <div class="song-cover-placeholder">
+                                <i class="fas fa-mask"></i>
+                            </div>
+                        </div>
+                        <div class="song-details">
+                            <div class="song-title">Batman ansak</div>
+                            <div class="song-artist">Dark & mysterious</div>
+                        </div>
+                        <div class="song-duration">2:58</div>
+                        <div class="song-options">
+                            <i class="fas fa-heart song-like"></i>
+                        </div>
+                    </div>
+                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/Fx6Pk1od_Fo?autoplay=1&loop=1&playlist=Fx6Pk1od_Fo">
+                        <div class="song-play-btn">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="song-cover">
+                            <div class="song-cover-placeholder">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                        </div>
+                        <div class="song-details">
+                            <div class="song-title">Bangla Mashup</div>
+                            <div class="song-artist">Bengali song collection</div>
+                        </div>
+                        <div class="song-duration">5:23</div>
+                        <div class="song-options">
+                            <i class="fas fa-heart song-like"></i>
+                        </div>
+                    </div>
+                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/nKaBbplkMB4?autoplay=1&loop=1&playlist=nKaBbplkMB4">
+                        <div class="song-play-btn">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="song-cover">
+                            <div class="song-cover-placeholder">
+                                <i class="fas fa-film"></i>
+                            </div>
+                        </div>
+                        <div class="song-details">
+                            <div class="song-title">Hindi Mashup</div>
+                            <div class="song-artist">Bollywood favorites</div>
+                        </div>
+                        <div class="song-duration">6:15</div>
+                        <div class="song-options">
+                            <i class="fas fa-heart song-like"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -339,7 +378,7 @@
         <div class="footer-content">
             <div class="footer-left">
                 <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="footer-logo" onerror="this.src='assets/logo.png'">
-                <p class="english-text">✿ㅤ"MʙɪㅤDᴀʀᴋ"&copy; 2025 Golpo. All rights reserved.</p>
+                <p class="english-text">✿ㅤ"MʙɪㅤDᴀʀᴋ &copy; 2025 Golpo. All rights reserved.</p>
             </div>
             
             <div class="footer-right">
@@ -354,6 +393,6 @@
         </div>
     </footer>
 
-    <script src="script.js?v=20" defer></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
