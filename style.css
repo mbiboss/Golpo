@@ -1,34 +1,35 @@
 /* Root Variables for Theme Management */
 :root {
-    --primary-bg: #FEFEFE;
-    --secondary-bg: #F8F9FA;
-    --accent-bg: #F1F3F4;
-    --text-primary: #1A1A1A;
-    --text-secondary: #4A4A4A;
-    --text-muted: #6C6C6C;
-    --border-color: #E8EAED;
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(26, 26, 26, 0.1);
-    --shadow-color: rgba(0, 0, 0, 0.08);
-    --accent-color: #4285F4;
-    --accent-hover: #1A73E8;
-    --particle-color: rgba(66, 133, 244, 0.1);
+    --primary-bg: #000000;
+    --secondary-bg: #121212;
+    --accent-bg: #1F1F1F;
+    --text-primary: #FFFFFF;
+    --text-secondary: #E0E0E0;
+    --text-muted: #B3B3B3;
+    --border-color: #333333;
+    --glass-bg: rgba(18, 18, 18, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.8);
+    --accent-color: #64B5F6;
+    --accent-hover: #42A5F5;
+    --particle-color: rgba(100, 181, 246, 0.2);
 }
 
+/* Sepia theme - warm, paper-like colors */
 [data-theme="sepia"] {
-    --primary-bg: #FEFEFE;
-    --secondary-bg: #F8F9FA;
-    --accent-bg: #F1F3F4;
-    --text-primary: #1A1A1A;
-    --text-secondary: #4A4A4A;
-    --text-muted: #6C6C6C;
-    --border-color: #E8EAED;
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(26, 26, 26, 0.1);
-    --shadow-color: rgba(0, 0, 0, 0.08);
-    --accent-color: #4285F4;
-    --accent-hover: #1A73E8;
-    --particle-color: rgba(66, 133, 244, 0.1);
+    --primary-bg: #F4F1E8;
+    --secondary-bg: #EAE5D6;
+    --accent-bg: #E0D9C7;
+    --text-primary: #3C3530;
+    --text-secondary: #5D5649;
+    --text-muted: #8B7355;
+    --border-color: #D4C4A8;
+    --glass-bg: rgba(244, 241, 232, 0.85);
+    --glass-border: rgba(60, 53, 48, 0.15);
+    --shadow-color: rgba(60, 53, 48, 0.12);
+    --accent-color: #8B4513;
+    --accent-hover: #A0522D;
+    --particle-color: rgba(139, 69, 19, 0.1);
 }
 
 [data-theme="dark"] {
@@ -401,12 +402,8 @@ body.focus-mode .story-container {
     color: var(--text-primary);
 }
 
-/* Ultra-strong search highlight - overrides everything */
-.search-highlight,
-#storyContent .search-highlight,
-.story-content .search-highlight,
-.bangla-text .search-highlight,
-p .search-highlight {
+/* Search highlight styling */
+.search-highlight {
     background: linear-gradient(45deg, #ff0000, #ff6b6b) !important;
     color: #ffffff !important;
     padding: 3px 6px !important;
@@ -544,6 +541,39 @@ p .search-highlight {
     gap: 20px;
 }
 
+/* Simple List View Override for Music Modal */
+#musicModal .selection-cards {
+    display: block !important;
+    grid-template-columns: none !important;
+}
+
+#musicModal .song-playlist {
+    width: 100%;
+}
+
+#musicModal .song-list {
+    display: block !important;
+}
+
+/* Beautiful Song Playlist Layout */
+#musicModal .playlist-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+#musicModal .playlist-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#musicModal .playlist-count {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
 .selection-card {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
@@ -557,10 +587,75 @@ p .search-highlight {
     overflow: hidden;
 }
 
+/* Clean List Item Style for Music */
+#musicModal .song-item,
+#musicModal .music-card {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 10px !important;
+    padding: 0 !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+    overflow: hidden !important;
+}
+
+/* Inner content layout */
+#musicModal .song-item {
+    display: flex !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    gap: 15px !important;
+}
+
+/* Beautiful Song Item Styling */
+#musicModal .song-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+#musicModal .song-item:hover {
+    background: var(--accent-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--accent-color);
+}
+
+#musicModal .song-item:hover .song-play-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+#musicModal .song-item:hover .song-like {
+    opacity: 0.7;
+}
+
 .selection-card:hover {
     background: var(--accent-bg);
     transform: translateY(-5px);
     box-shadow: var(--shadow-color) 0 8px 25px;
+}
+
+/* Simple hover effects */
+#musicModal .song-item:hover,
+#musicModal .music-card:hover {
+    background: var(--accent-bg) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    border-color: var(--accent-color) !important;
 }
 
 .selection-card:hover .card-title {
@@ -573,6 +668,52 @@ p .search-highlight {
     display: block;
 }
 
+/* Song Play Button */
+#musicModal .song-play-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s ease;
+    position: absolute;
+    left: 16px;
+    z-index: 2;
+}
+
+#musicModal .song-play-btn:hover {
+    background: var(--accent-hover);
+    transform: scale(1.05);
+}
+
+/* Song Cover */
+#musicModal .song-cover {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--accent-bg);
+    position: relative;
+}
+
+#musicModal .song-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-color);
+    font-size: 20px;
+    background: linear-gradient(135deg, var(--accent-bg), var(--glass-bg));
+}
+
 .card-title {
     font-size: 18px;
     font-weight: 600;
@@ -581,10 +722,124 @@ p .search-highlight {
     transition: color 0.3s ease;
 }
 
+/* Song Details */
+#musicModal .song-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+#musicModal .song-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.3s ease;
+}
+
+#musicModal .song-item:hover .song-title {
+    color: var(--accent-color);
+}
+
+#musicModal .song-artist {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .card-description {
     font-size: 14px;
     color: var(--text-muted);
     line-height: 1.4;
+}
+
+/* Song Duration */
+#musicModal .song-duration {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Song Options */
+#musicModal .song-options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#musicModal .song-like {
+    font-size: 16px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    padding: 4px;
+}
+
+#musicModal .song-like:hover {
+    color: var(--accent-color);
+    opacity: 1 !important;
+    transform: scale(1.1);
+}
+
+/* Playing State */
+#musicModal .song-item.playing {
+    background: rgba(var(--accent-color), 0.1);
+    border-color: var(--accent-color);
+}
+
+#musicModal .song-item.playing .song-title {
+    color: var(--accent-color);
+}
+
+#musicModal .song-item.playing .song-play-btn {
+    opacity: 1;
+    background: var(--accent-color);
+}
+
+#musicModal .song-item.playing .song-play-btn i::before {
+    content: "\f04c";
+}
+
+/* Responsive adjustments for song list */
+@media (max-width: 480px) {
+    #musicModal .song-item {
+        padding: 10px 12px;
+        gap: 12px;
+    }
+    
+    #musicModal .song-cover {
+        width: 40px;
+        height: 40px;
+    }
+    
+    #musicModal .song-play-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        left: 12px;
+    }
+    
+    #musicModal .song-title {
+        font-size: 14px;
+    }
+    
+    #musicModal .song-artist {
+        font-size: 12px;
+    }
+    
+    #musicModal .song-duration {
+        font-size: 12px;
+        min-width: 35px;
+    }
 }
 
 /* Responsive adjustments */
@@ -807,11 +1062,12 @@ body {
 .nav-container {
     position: fixed;
     top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
     z-index: 1000;
     width: 90%;
     max-width: 1200px;
+    margin: 0 auto;
 }
 
 .nav-island {
@@ -824,6 +1080,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
     box-shadow: 0 8px 32px var(--shadow-color);
     transition: all 0.3s ease;
 }
@@ -836,7 +1093,10 @@ body {
 .nav-left {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 10px;
+    flex: 1;
+    min-width: 0;
 }
 
 .logo {
@@ -861,13 +1121,18 @@ body {
 .nav-center {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 15px;
+    flex: 0 0 auto;
 }
 
 .nav-right {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 15px;
+    flex: 1;
+    min-width: 0;
 }
 
 /* Dropdown Styles */
@@ -1097,17 +1362,22 @@ body {
     
     .nav-island {
         padding: 8px 15px;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: 10px;
+        text-align: center;
+    }
+    
+    .nav-left,
+    .nav-right {
+        justify-content: center;
+        flex: none;
     }
     
     .nav-center {
-        order: 3;
-        width: 100%;
-        justify-content: space-between;
-        margin-top: 10px;
+        justify-content: center;
         flex-wrap: wrap;
         gap: 8px;
+        flex: none;
     }
     
     .logo-text {
@@ -1506,6 +1776,10 @@ body {
     overflow: hidden;
 }
 
+.story-cover-wide {
+    height: 160px; /* Reduced height to make it more wide/banner-like */
+}
+
 .story-cover img {
     width: 100%;
     height: 100%;
@@ -1901,4 +2175,556 @@ body {
     .story-title-large {
         font-size: 1.8rem;
     }
+}
+
+/* ========================================
+   STARTUP SCREEN & ANIMATIONS
+   ======================================== */
+
+/* Startup Screen */
+.startup-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 26, 0.95) 0%, 
+        rgba(18, 18, 18, 0.98) 50%, 
+        rgba(31, 31, 31, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: startupFadeIn 1s ease-out;
+}
+
+.startup-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 30% 70%, 
+        rgba(100, 181, 246, 0.1) 0%, 
+        transparent 50%),
+        radial-gradient(circle at 70% 30%, 
+        rgba(212, 165, 116, 0.08) 0%, 
+        transparent 50%);
+    animation: backgroundPulse 4s ease-in-out infinite;
+}
+
+.startup-content {
+    text-align: center;
+    z-index: 2;
+    padding: 2rem;
+    animation: contentSlideUp 1.2s ease-out 0.3s both;
+}
+
+.startup-logo {
+    margin-bottom: 2rem;
+    animation: logoFloat 3s ease-in-out infinite;
+}
+
+.startup-logo-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid rgba(100, 181, 246, 0.3);
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    animation: logoGlow 2s ease-in-out infinite alternate;
+    transition: all 0.3s ease;
+}
+
+.startup-title {
+    margin-bottom: 3rem;
+}
+
+.startup-text {
+    font-family: 'Noto Sans Bengali', sans-serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 0 30px rgba(100, 181, 246, 0.3);
+    animation: titleGlow 3s ease-in-out infinite;
+    letter-spacing: 2px;
+}
+
+.startup-subtitle {
+    font-family: 'Noto Sans Bengali', sans-serif;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    margin: 0;
+    opacity: 0.9;
+    animation: subtitleFade 2s ease-in-out 0.5s both;
+}
+
+.startup-hint {
+    animation: hintBounce 2s ease-in-out 1s infinite;
+}
+
+.tap-hint {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.tap-hint i {
+    animation: pointerPulse 1.5s ease-in-out infinite;
+    color: var(--accent-color);
+}
+
+/* Startup Particles */
+.startup-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.startup-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: particleFloat 6s linear infinite;
+}
+
+.startup-particle:nth-child(1) {
+    left: 20%;
+    animation-delay: 0s;
+    animation-duration: 8s;
+}
+
+.startup-particle:nth-child(2) {
+    left: 40%;
+    animation-delay: 1s;
+    animation-duration: 6s;
+}
+
+.startup-particle:nth-child(3) {
+    left: 60%;
+    animation-delay: 2s;
+    animation-duration: 10s;
+}
+
+.startup-particle:nth-child(4) {
+    left: 80%;
+    animation-delay: 3s;
+    animation-duration: 7s;
+}
+
+.startup-particle:nth-child(5) {
+    left: 10%;
+    animation-delay: 4s;
+    animation-duration: 9s;
+}
+
+/* Startup Screen Exit Animation */
+.startup-screen.fade-out {
+    animation: startupFadeOut 0.8s ease-in forwards;
+}
+
+/* Enhanced Site Animations */
+
+/* Global Smooth Transitions */
+* {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Navigation Animations */
+.nav-container {
+    animation: navSlideDown 0.8s ease-out 0.5s both;
+}
+
+.nav-island {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-island:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px var(--shadow-color);
+}
+
+/* Button Hover Animations */
+.control-btn, .selection-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.control-btn::before, .selection-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.4s ease;
+}
+
+.control-btn:hover::before, .selection-btn:hover::before {
+    width: 100px;
+    height: 100px;
+}
+
+.control-btn:hover, .selection-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px var(--shadow-color);
+}
+
+/* Story Card Animations */
+.story-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
+}
+
+.story-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px var(--shadow-color);
+}
+
+.story-card:hover .story-cover {
+    transform: scale(1.05);
+}
+
+.story-cover {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hero Section Animations */
+.hero-section {
+    animation: heroFadeIn 1s ease-out 1.2s both;
+}
+
+.hero-title {
+    animation: titleSlideUp 0.8s ease-out 1.4s both;
+}
+
+.hero-subtitle {
+    animation: subtitleSlideUp 0.8s ease-out 1.6s both;
+}
+
+.hero-description {
+    animation: descriptionSlideUp 0.8s ease-out 1.8s both;
+}
+
+/* Story Grid Animation */
+.story-grid {
+    animation: gridFadeIn 0.8s ease-out 2s both;
+}
+
+.story-card {
+    animation: cardSlideUp 0.6s ease-out both;
+}
+
+.story-card:nth-child(1) { animation-delay: 2.1s; }
+.story-card:nth-child(2) { animation-delay: 2.3s; }
+.story-card:nth-child(3) { animation-delay: 2.5s; }
+
+/* Reading Controls Animations */
+.reading-controls-menu {
+    animation: menuSlideDown 0.3s ease-out;
+    transform-origin: top center;
+}
+
+/* Modal Animations */
+.selection-modal {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Progress Bar Animations */
+.nav-progress-fill, .reader-progress-bar::before {
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus Mode Transition */
+.main-content, .nav-container, .footer {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Enhanced Particle Animations */
+.particle {
+    animation: enhancedParticleFloat 15s linear infinite;
+}
+
+/* Keyframe Animations */
+@keyframes startupFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes startupFadeOut {
+    to { 
+        opacity: 0; 
+        visibility: hidden;
+        transform: scale(1.1);
+    }
+}
+
+@keyframes backgroundPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes contentSlideUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(50px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0);
+    }
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes logoGlow {
+    from { 
+        box-shadow: 0 0 20px rgba(100, 181, 246, 0.3);
+        border-color: rgba(100, 181, 246, 0.3);
+    }
+    to { 
+        box-shadow: 0 0 40px rgba(100, 181, 246, 0.6);
+        border-color: rgba(100, 181, 246, 0.6);
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% { 
+        text-shadow: 0 0 30px rgba(100, 181, 246, 0.3);
+        transform: scale(1);
+    }
+    50% { 
+        text-shadow: 0 0 50px rgba(100, 181, 246, 0.6);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes subtitleFade {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 0.9; transform: translateY(0); }
+}
+
+@keyframes hintBounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-5px); }
+    60% { transform: translateY(-3px); }
+}
+
+@keyframes pointerPulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.2); opacity: 1; }
+}
+
+@keyframes particleFloat {
+    0% { 
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { 
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes navSlideDown {
+    from { 
+        opacity: 0; 
+        transform: translateY(-50px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0);
+    }
+}
+
+@keyframes heroFadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes titleSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes subtitleSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes descriptionSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gridFadeIn {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardSlideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes menuSlideDown {
+    from { 
+        opacity: 0; 
+        transform: scaleY(0) translateY(-10px);
+    }
+    to { 
+        opacity: 1; 
+        transform: scaleY(1) translateY(0);
+    }
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(50px) scale(0.95);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes enhancedParticleFloat {
+    0% { 
+        transform: translateY(100vh) translateX(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { 
+        transform: translateY(-100px) translateX(50px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Responsive Startup Screen */
+@media (max-width: 768px) {
+    .startup-text {
+        font-size: 3rem;
+    }
+    
+    .startup-subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .startup-logo-img {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .startup-content {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .startup-text {
+        font-size: 2.5rem;
+    }
+    
+    .startup-subtitle {
+        font-size: 1rem;
+    }
+    
+    .startup-logo-img {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .tap-hint {
+        font-size: 1rem;
+    }
+}
+
+/* Force proper list view in Music modal - must be at end to override everything */
+#musicModal .song-playlist .song-list { 
+    display: block !important; 
+    grid-template-columns: none !important; 
+    gap: 0 !important; 
+}
+
+#musicModal .song-list > .song-item { 
+    display: flex !important; 
+    width: 100% !important; 
+    margin: 0 !important; 
+    padding: 12px 16px !important; 
+    background: transparent !important; 
+    border: 0 !important; 
+    border-bottom: 1px solid var(--glass-border) !important; 
+    border-radius: 0 !important; 
+    box-shadow: none !important; 
+    align-items: center !important;
+    gap: 15px !important;
+    cursor: pointer !important;
+}
+
+#musicModal .song-list > .song-item:last-child {
+    border-bottom: none !important;
+}
+
+#musicModal .song-list > .song-item:hover { 
+    background: var(--accent-bg) !important; 
+    transform: none !important; 
+    box-shadow: none !important; 
+}
+
+#musicModal .song-list > .song-item.music-card { 
+    all: unset; 
+    display: flex !important; 
+    width: 100% !important; 
+    padding: 12px 16px !important; 
+    border-bottom: 1px solid var(--glass-border) !important; 
+    align-items: center !important;
+    gap: 15px !important;
+    cursor: pointer !important;
+}
+
+#musicModal .song-list > .song-item.music-card:hover { 
+    background: var(--accent-bg) !important; 
+}
+
+/* Optimize inner layout for clean list */
+#musicModal .song-item .song-cover { 
+    flex: 0 0 44px; 
+    height: 44px; 
+    border-radius: 6px;
 }
