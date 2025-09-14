@@ -18,7 +18,7 @@ var currentReadingImage = '';
 // Story Image Mapping - Maps story IDs to their image URLs
 var storyImageMap = {
     'bissash': {
-        banner: 'https://i.postimg.cc/zv9rwb84/Bissash-wide.png',
+        banner: 'https://i.postimg.cc/SRhxGb8L/Bissash-wide.png',
         reading: 'https://i.postimg.cc/FKDXWnhy/Bissash-small.png'
     },
     'upcoming': {
