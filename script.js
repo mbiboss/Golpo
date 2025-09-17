@@ -42,7 +42,7 @@ var storyDatabase = {
     'bissash.txt': {
         id: 'bissash',
         name: 'বিশ্বাস',
-        location: 'ঢাকা',
+        location: 'Kathora,Shalna,Gazipur',
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'A story about trust and faith',
         status: 'available',
@@ -52,9 +52,9 @@ var storyDatabase = {
     'Obisaperonontochaya.txt': {
         id: 'Obisaperonontochaya',
         name: 'অভিশাপের অনন্ত ছায়া',
-        location: 'Dhaka',
+        location: 'Kathora,Shalna,Gazipur',
         writer:'✿ㅤ"MʙɪㅤDᴀʀᴋ"',
-        description: 'My curse',
+        description: 'About My Curse',
         status: 'available',
         readingTime: 0,
         wordCount: 0
@@ -62,7 +62,7 @@ var storyDatabase = {
     'upcoming.txt': {
         id: 'upcoming',
         name: 'Upcoming Stories',
-        location: 'বিভিন্ন স্থান',
+        location: 'Kathora,Shalna,Gazipur',
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'More stories coming soon...',
         status: 'upcoming',
