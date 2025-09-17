@@ -51,7 +51,7 @@ var storyDatabase = {
     },
     'Obisaperonontochaya.txt': {
         id: 'Obisaperonontochaya',
-        bame: 'অভিশাপের অনন্ত ছায়া',
+        name: 'অভিশাপের অনন্ত ছায়া',
         location: 'Dhaka',
         writer:'✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'My curse',
