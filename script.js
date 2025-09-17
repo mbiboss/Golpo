@@ -21,6 +21,10 @@ var storyImageMap = {
         banner: 'https://i.postimg.cc/SRhxGb8L/Bissash-wide.png',
         reading: 'https://i.postimg.cc/FKDXWnhy/Bissash-small.png'
     },
+    'Obisaperonontochaya': {
+        banner:'https://i.postimg.cc/wMDMfnhn/static.png',
+        reading:'https://i.postimg.cc/wMDMfnhn/static.png'
+    },
     'upcoming': {
         banner: 'https://i.postimg.cc/wMDMfnhn/static.png',
         reading: 'https://i.postimg.cc/wMDMfnhn/static.png'
@@ -44,6 +48,16 @@ var storyDatabase = {
         status: 'available',
         readingTime: 0, // Will be calculated
         wordCount: 0    // Will be calculated
+    },
+    'Obisaperonontochaya.txt': {
+        id: 'Obisaperonontochaya',
+        bame: 'অভিশাপের অনন্ত ছায়া',
+        location: 'Dhaka',
+        writer:'✿ㅤ"MʙɪㅤDᴀʀᴋ"',
+        description: 'My curse',
+        status: 'available',
+        readingTime: 0,
+        wordCount: 0
     },
     'upcoming.txt': {
         id: 'upcoming',
