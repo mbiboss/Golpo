@@ -42,7 +42,7 @@ var storyDatabase = {
     'bissash.txt': {
         id: 'bissash',
         name: 'বিশ্বাস',
-        location: 'ঢাকা, বাংলাদেশ',
+        location: 'ঢাকা',
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'A story about trust and faith',
         status: 'available',
