@@ -22,8 +22,8 @@ var storyImageMap = {
         reading: 'https://i.postimg.cc/FKDXWnhy/Bissash-small.png'
     },
     'Obisaperonontochaya': {
-        banner:'https://i.postimg.cc/wMDMfnhn/static.png',
-        reading:'https://i.postimg.cc/wMDMfnhn/static.png'
+        banner:'https://i.postimg.cc/qMyzHwD1/Obisaperonontochayacover.png',
+        reading:'https://i.postimg.cc/YC7jrFJM/20250918-011638.png'
     },
     'upcoming': {
         banner: 'https://i.postimg.cc/wMDMfnhn/static.png',
