@@ -26,8 +26,8 @@ var storyImageMap = {
         reading:'https://i.postimg.cc/YC7jrFJM/20250918-011638.png'
     },
     'Valobasha':{
-        banner:'',
-        reading:''
+        banner:'https://i.postimg.cc/gkcPhzjf/Valobashawide.png',
+        reading:'https://i.postimg.cc/sXpRY1pR/Valobashasmall.png'
     },
     'upcoming': {
         banner: 'https://i.postimg.cc/wMDMfnhn/static.png',
