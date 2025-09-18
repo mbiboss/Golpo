@@ -25,6 +25,10 @@ var storyImageMap = {
         banner:'https://i.postimg.cc/qMyzHwD1/Obisaperonontochayacover.png',
         reading:'https://i.postimg.cc/YC7jrFJM/20250918-011638.png'
     },
+    'Valobasha':{
+        banner:'',
+        reading:''
+    },
     'upcoming': {
         banner: 'https://i.postimg.cc/wMDMfnhn/static.png',
         reading: 'https://i.postimg.cc/wMDMfnhn/static.png'
@@ -58,6 +62,16 @@ var storyDatabase = {
         status: 'available',
         readingTime: 0,
         wordCount: 0
+    },
+    'Valobasha.txt':{
+        id: 'Valobasha',
+        name: 'ভালোবাসা : এক অন্তহীন মহাবৃত্ত',
+        location: 'Kathora,Shalna,Gazipur',
+        writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
+        description: 'About love',
+        status: 'available',
+        readingTime:0,
+        wordCount:0
     },
     'upcoming.txt': {
         id: 'upcoming',
