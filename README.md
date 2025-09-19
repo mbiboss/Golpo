@@ -29,7 +29,7 @@
 
 ## 🚀 **Live Demo**
 
-Experience the magic of Bengali storytelling at: **[Golpo Live](https://replit.com/@mbiboss/golpo)**
+Experience the magic of Bengali storytelling at: **[Golpo Live](https://mbiboss.github.io/Golpo/)**
 
 <div align="center">
 
@@ -86,7 +86,7 @@ Experience the magic of Bengali storytelling at: **[Golpo Live](https://replit.c
 
 ```bash
 # Clone the repository
-git clone https://github.com/mbiboss/golpo.git
+git clone https://github.com/mbiboss/Golpo.git
 
 # Navigate to directory
 cd golpo
