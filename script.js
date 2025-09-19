@@ -5,35 +5,64 @@ var currentFontSize = 100;
 var isFocusMode = false;
 var storyBookmarks = {}; // Per-story bookmarks
 
+// Pagination Variables
+var currentPage = 1;
+var totalPages = 1;
+var linesPerPage = 100;
+var storyPages = [];
+var isStoryCompleted = false;
+
 // Offline Reading Variables
 var isOnline = navigator.onLine;
 var serviceWorkerRegistration = null;
 var cachedStories = new Set();
 var offlineIndicator = null;
 
+// Music Playlist Variables
+var musicPlaylist = [
+    {
+        title: "Tare ami chuye dekhini",
+        artist: "MBI FAVORITE",
+        url: "https://www.youtube.com/embed/orvJCBTodiY?autoplay=1",
+        duration: "4:10",
+        icon: "fas fa-star"
+    },
+    {
+        title: "Qusad Einy",
+        artist: "Arabic Song",
+        url: "https://www.youtube.com/embed/vzvz0LtMrCQ?autoplay=1",
+        duration: "4:24",
+        icon: "fas fa-music"
+    },
+    {
+        title: "Batman ansak",
+        artist: "Arabic Song",
+        url: "https://www.youtube.com/embed/kMU97_dBg_U?autoplay=1",
+        duration: "3:15",
+        icon: "fas fa-music"
+    },
+    {
+        title: "Tumi chaile",
+        artist: "Bengala song",
+        url: "https://www.youtube.com/embed/5s0Mujwa-r8?autoplay=1",
+        duration: "6:14",
+        icon: "fas fa-music"
+    },
+    {
+        title: "Pal Pal x Jhol",
+        artist: "Hindi Mashup",
+        url: "https://www.youtube.com/embed/dvawR63DnqE?autoplay=1",
+        duration: "4:51",
+        icon: "fas fa-music"
+    }
+];
+var currentMusicIndex = 0;
+var isPlaylistMode = true;
+var autoplayEnabled = true;
+
 // Dynamic Image System - Only 2 images that change per story
 var currentBannerImage = '';
 var currentReadingImage = '';
-
-// Story Image Mapping - Maps story IDs to their image URLs
-var storyImageMap = {
-    'bissash': {
-        banner: 'https://i.postimg.cc/SRhxGb8L/Bissash-wide.png',
-        reading: 'https://i.postimg.cc/FKDXWnhy/Bissash-small.png'
-    },
-    'Obisaperonontochaya': {
-        banner:'https://i.postimg.cc/qMyzHwD1/Obisaperonontochayacover.png',
-        reading:'https://i.postimg.cc/YC7jrFJM/20250918-011638.png'
-    },
-    'Valobasha':{
-        banner:'https://i.postimg.cc/gkcPhzjf/Valobashawide.png',
-        reading:'https://i.postimg.cc/sXpRY1pR/Valobashasmall.png'
-    },
-    'upcoming': {
-        banner: 'https://i.postimg.cc/wMDMfnhn/static.png',
-        reading: 'https://i.postimg.cc/wMDMfnhn/static.png'
-    }
-};
 
 // Default fallback images
 var defaultImages = {
@@ -41,7 +70,7 @@ var defaultImages = {
     reading: 'https://i.postimg.cc/wMDMfnhn/static.png'
 };
 
-// Story Database with metadata (no hardcoded image URLs)
+// Story Database with metadata including image URLs
 var storyDatabase = {
     'bissash.txt': {
         id: 'bissash',
@@ -50,28 +79,34 @@ var storyDatabase = {
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'A story about trust and faith',
         status: 'available',
+        banner: 'https://i.postimg.cc/SRhxGb8L/Bissash-wide.png',
+        reading: 'https://i.postimg.cc/FKDXWnhy/Bissash-small.png',
         readingTime: 0, // Will be calculated
         wordCount: 0    // Will be calculated
     },
     'Obisaperonontochaya.txt': {
         id: 'Obisaperonontochaya',
-        name: 'অভিশাপের অনন্ত ছায়া',
+        name: 'অভিশাপের অনন্ত ছায়া',
         location: 'Kathora,Shalna,Gazipur',
         writer:'✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'About My Curse',
         status: 'available',
+        banner: 'https://i.postimg.cc/qMyzHwD1/Obisaperonontochayacover.png',
+        reading: 'https://i.postimg.cc/YC7jrFJM/20250918-011638.png',
         readingTime: 0,
         wordCount: 0
     },
-    'Valobasha.txt':{
+    'Valobasha.txt': {
         id: 'Valobasha',
         name: 'ভালোবাসা : এক অন্তহীন মহাবৃত্ত',
         location: 'Kathora,Shalna,Gazipur',
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'About love',
         status: 'available',
-        readingTime:0,
-        wordCount:0
+        banner: 'https://i.postimg.cc/gkcPhzjf/Valobashawide.png',
+        reading: 'https://i.postimg.cc/sXpRY1pR/Valobashasmall.png',
+        readingTime: 0,
+        wordCount: 0
     },
     'upcoming.txt': {
         id: 'upcoming',
@@ -80,6 +115,8 @@ var storyDatabase = {
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'More stories coming soon...',
         status: 'upcoming',
+        banner: 'https://i.postimg.cc/wMDMfnhn/static.png',
+        reading: 'https://i.postimg.cc/wMDMfnhn/static.png',
         readingTime: 0,
         wordCount: 0
     }
@@ -87,21 +124,23 @@ var storyDatabase = {
 
 // Function to get banner image for a specific story
 function getBannerImageForStory(storyId) {
-    const images = storyImageMap[storyId] || defaultImages;
-    return images.banner || defaultImages.banner;
+    // Find the story by ID in storyDatabase
+    const storyEntry = Object.values(storyDatabase).find(story => story.id === storyId);
+    return storyEntry?.banner || defaultImages.banner;
 }
 
 // Function to get reading image for a specific story
 function getReadingImageForStory(storyId) {
-    const images = storyImageMap[storyId] || defaultImages;
-    return images.reading || defaultImages.reading;
+    // Find the story by ID in storyDatabase
+    const storyEntry = Object.values(storyDatabase).find(story => story.id === storyId);
+    return storyEntry?.reading || defaultImages.reading;
 }
 
 // Function to load images for current active story (for global access)
 function loadStoryImages(storyId) {
-    const images = storyImageMap[storyId] || defaultImages;
-    currentBannerImage = images.banner;
-    currentReadingImage = images.reading;
+    const storyEntry = Object.values(storyDatabase).find(story => story.id === storyId);
+    currentBannerImage = storyEntry?.banner || defaultImages.banner;
+    currentReadingImage = storyEntry?.reading || defaultImages.reading;
 }
 
 // Function to get current banner image
@@ -126,10 +165,10 @@ function getStoryMetadata(filename) {
         readingTime: 0,
         wordCount: 0
     };
-    
+
     // Load images for this story
     loadStoryImages(metadata.id);
-    
+
     return metadata;
 }
 
@@ -200,7 +239,7 @@ function setupStartupScreen() {
     if (startupScreen) {
         // Use single pointer event to handle both touch and mouse, with once option
         startupScreen.addEventListener('pointerdown', dismissStartupScreen, { once: true });
-        
+
         // Add keyboard support (Enter or Space to continue)
         document.addEventListener('keydown', function(e) {
             if (!startupDismissed && startupScreen && startupScreen.style.display !== 'none' && 
@@ -217,48 +256,48 @@ function dismissStartupScreen(e) {
     if (startupDismissed || !startupScreen) {
         return false;
     }
-    
+
     // Prevent event propagation and default behavior
     if (e) {
         e.preventDefault();
         e.stopPropagation();
     }
-    
+
     // Mark as dismissed
     startupDismissed = true;
-    
+
     // Add fade-out class for smooth animation
     startupScreen.classList.add('fade-out');
-    
+
     // Save that user has seen startup
     localStorage.setItem('hasSeenStartup', '1');
-    
+
     // Remove startup screen after animation completes
     setTimeout(() => {
         if (startupScreen) {
             startupScreen.style.display = 'none';
         }
-        
+
         // Enable interactions with main content
         document.body.style.overflow = 'auto';
-        
+
         // Initialize main app functionality
         initializeMainApp();
     }, 800); // Match the CSS animation duration
-    
+
     return false;
 }
 
 function initializeMainApp() {
     // Initialize the main application
     initializeApp();
-    
+
     // Setup offline indicators
     setupOfflineIndicators();
-    
+
     // Initialize performance optimizations
     initializePerformanceOptimizations();
-    
+
     setupEventListeners();
     loadSavedSettings();
 }
@@ -267,20 +306,20 @@ function initializeMainApp() {
 document.addEventListener('DOMContentLoaded', function() {
     // Initially hide scroll on body to prevent background scrolling during startup
     document.body.style.overflow = 'hidden';
-    
+
     // Initialize offline functionality
     initializeOfflineSupport();
-    
+
     // Setup startup screen functionality
     setupStartupScreen();
-    
+
     // Check if user has seen startup screen before (optional - uncomment to skip for returning users)
     const hasSeenStartup = localStorage.getItem('hasSeenStartup');
     if (hasSeenStartup) {
         // Skip startup screen for returning users
         // dismissStartupScreen();
     }
-    
+
     // Add accessibility support
     if (startupScreen) {
         startupScreen.setAttribute('tabindex', '0');
@@ -288,6 +327,16 @@ document.addEventListener('DOMContentLoaded', function() {
         startupScreen.setAttribute('aria-label', 'Tap to enter Golpo storytelling app');
     }
 });
+
+// Function to load story from story card click
+function loadStoryFromCard(storyFile) {
+    // Switch to reader view
+    showReaderView();
+    // Load the story
+    loadStory(storyFile);
+    // Update cover image in reader
+    updateReaderCoverImage(storyFile);
+}
 
 // Function to load story from suggestion card click
 function loadStoryFromSuggestion(storyFile) {
@@ -297,8 +346,6 @@ function loadStoryFromSuggestion(storyFile) {
     loadStory(storyFile);
     // Update cover image in reader
     updateReaderCoverImage(storyFile);
-    // Update navigation buttons
-    updateStoryNavigation(storyFile);
     // Hide story suggestions and show the story
     const storySuggestions = document.getElementById('storySuggestions');
     if (storySuggestions) {
@@ -310,64 +357,67 @@ function loadStoryFromSuggestion(storyFile) {
 function createStorySuggestions(currentStoryFile) {
     // Get all available stories from database
     const stories = getAllStories();
-    
+
     // Filter out the current story
     const otherStories = stories.filter(story => story.file !== currentStoryFile);
-    
+
     if (otherStories.length === 0) return '';
-    
+
     let suggestionsHTML = `
         <div class="story-end-suggestions">
-            <h2 class="suggestions-title english-text">📚 More Stories to Read</h2>
+            <h2 class="suggestions-title english-text">More Stories to Explore</h2>
             <div class="suggestions-grid">
     `;
-    
+
     otherStories.forEach(story => {
         const statusClass = story.status === 'upcoming' ? 'upcoming' : '';
         // Get reading image for this specific story
         const suggestionImage = getReadingImageForStory(story.id);
-        
+
         suggestionsHTML += `
             <div class="suggestion-card ${statusClass}" onclick="loadStoryFromSuggestion('${story.file}')">
-                <div class="suggestion-cover" style="background-image: url('${suggestionImage}'); background-size: cover; background-position: center; width: 80px; height: 80px; border-radius: 8px; margin-right: 15px;"></div>
+                <div class="suggestion-cover">
+                    <img src="${suggestionImage}" alt="${story.name}" loading="lazy">
+                    <div class="suggestion-overlay">
+                        <i class="fas fa-${story.status === 'upcoming' ? 'clock' : 'play'}"></i>
+                    </div>
+                </div>
                 <div class="suggestion-content">
-                    <div class="suggestion-icon">${story.status === 'upcoming' ? '🚀' : '📖'}</div>
                     <h3 class="suggestion-title ${story.file === 'upcoming.txt' ? 'english-text' : ''}">${story.name}</h3>
                     <p class="suggestion-description english-text">${story.description}</p>
                     <div class="suggestion-meta english-text">
-                        <span class="author">by ${story.writer}</span>
-                        <span class="location">📍 ${story.location}</span>
-                        <span class="status ${story.status}">${story.status === 'upcoming' ? 'Coming Soon' : 'Available'}</span>
+                        <span class="author">${story.writer}</span>
+                        <span class="status ${story.status}">${story.status === 'upcoming' ? 'Coming Soon' : 'Read Now'}</span>
                     </div>
                 </div>
             </div>
         `;
     });
-    
+
     suggestionsHTML += `
             </div>
         </div>
     `;
-    
+
     return suggestionsHTML;
 }
 
 // New UI Functions
-function loadStoryFromCard(storyFile) {
-    // Switch to reader view
-    showReaderView();
-    // Load the story
-    loadStory(storyFile);
-    // Update cover image in reader
-    updateReaderCoverImage(storyFile);
-    // Update navigation buttons
-    updateStoryNavigation(storyFile);
-}
-
 function showReaderView() {
     document.getElementById('libraryView').style.display = 'none';
     document.getElementById('readerView').style.display = 'block';
-    
+
+    // Show reading controls and progress on reader page
+    const progressContainer = document.getElementById('progressContainer');
+    const readingControlsDropdown = document.getElementById('readingControlsDropdown');
+
+    if (progressContainer) {
+        progressContainer.style.display = 'flex';
+    }
+    if (readingControlsDropdown) {
+        readingControlsDropdown.style.display = 'inline-block';
+    }
+
     // Hide navigation in focus mode
     if (isFocusMode) {
         document.querySelector('.nav-container').style.opacity = '0';
@@ -378,19 +428,31 @@ function showReaderView() {
 function returnToLibrary() {
     document.getElementById('readerView').style.display = 'none';
     document.getElementById('libraryView').style.display = 'block';
-    
+
+    // Hide reading controls and progress on landing page
+    const progressContainer = document.getElementById('progressContainer');
+    const readingControlsDropdown = document.getElementById('readingControlsDropdown');
+
+    if (progressContainer) {
+        progressContainer.style.display = 'none';
+    }
+    if (readingControlsDropdown) {
+        readingControlsDropdown.style.display = 'none';
+    }
+
     // Show navigation again
     document.querySelector('.nav-container').style.opacity = '1';
     if (document.querySelector('.footer')) {
         document.querySelector('.footer').style.opacity = '1';
     }
-    
+
     // Reset story content
     resetReaderView();
 }
 
 // Export to global scope for inline onclick handlers
 window.returnToLibrary = returnToLibrary;
+window.displayPage = displayPage;
 
 function resetReaderView() {
     // Clear story content
@@ -398,16 +460,16 @@ function resetReaderView() {
     if (storyContent) {
         storyContent.innerHTML = '';
     }
-    
+
     // Reset progress
     updateReaderProgress(0);
-    
+
     // Reset story title and details
     const readerStoryTitle = document.getElementById('readerStoryTitle');
     if (readerStoryTitle) {
         readerStoryTitle.textContent = 'Select a Story';
     }
-    
+
     // Reset reading details
     const readerReadingTime = document.getElementById('readerReadingTime');
     const readerWordCount = document.getElementById('readerWordCount');
@@ -436,11 +498,11 @@ function performGlobalSearch() {
         highlightSearchResults([]);
         return;
     }
-    
+
     // Get story metadata from database for searching
     const allStories = getAllStories();
     const storyMetadata = {};
-    
+
     allStories.forEach(story => {
         storyMetadata[story.file] = {
             title: story.name,
@@ -456,20 +518,20 @@ function performGlobalSearch() {
             ]
         };
     });
-    
+
     // Search through story metadata and content
     const results = Object.keys(storyMetadata).filter(storyFile => {
         const metadata = storyMetadata[storyFile];
         const searchableText = `${metadata.title} ${metadata.description} ${metadata.keywords.join(' ')}`.toLowerCase();
-        
+
         // Check if query matches title, description, or keywords
         return searchableText.includes(query) || 
                metadata.keywords.some(keyword => keyword.toLowerCase().includes(query));
     });
-    
+
     // Highlight matching story cards
     highlightSearchResults(results);
-    
+
     // Show search feedback
     showSearchFeedback(query, results.length);
 }
@@ -480,7 +542,7 @@ function showSearchFeedback(query, resultCount) {
     if (existingFeedback) {
         existingFeedback.remove();
     }
-    
+
     // Add new feedback
     const searchSection = document.getElementById('searchSection');
     const feedback = document.createElement('div');
@@ -494,7 +556,7 @@ function showSearchFeedback(query, resultCount) {
         </p>
     `;
     searchSection.appendChild(feedback);
-    
+
     // Remove feedback after 3 seconds
     setTimeout(() => {
         if (feedback.parentNode) {
@@ -516,7 +578,7 @@ function highlightSearchResults(results) {
             card.style.opacity = results.length > 0 ? '0.5' : '1';
         }
     });
-    
+
     // Reset after 3 seconds
     setTimeout(() => {
         storyCards.forEach(card => {
@@ -532,7 +594,7 @@ function updateReaderCoverImage(filename) {
     if (readerCoverImage && filename) {
         const storyData = getStoryMetadata(filename);
         const readingImage = getReadingImageForStory(storyData.id);
-        
+
         // Defensive fallback if image is undefined or empty
         if (!readingImage || readingImage === '') {
             console.warn('No reading image found for story:', storyData.id, 'using default');
@@ -540,49 +602,17 @@ function updateReaderCoverImage(filename) {
         } else {
             readerCoverImage.src = readingImage;
         }
-        
+
         readerCoverImage.alt = storyData.name + ' - Story Photo';
     }
 }
 
-function updateStoryNavigation(currentStoryFile) {
-    const stories = Object.keys(storyDatabase);
-    const currentIndex = stories.indexOf(currentStoryFile);
-    
-    const prevBtn = document.getElementById('prevStoryBtn');
-    const nextBtn = document.getElementById('nextStoryBtn');
-    
-    if (prevBtn && nextBtn) {
-        // Enable/disable based on position
-        prevBtn.disabled = currentIndex <= 0;
-        nextBtn.disabled = currentIndex >= stories.length - 1;
-        
-        // Store current story info
-        prevBtn.dataset.story = currentIndex > 0 ? stories[currentIndex - 1] : '';
-        nextBtn.dataset.story = currentIndex < stories.length - 1 ? stories[currentIndex + 1] : '';
-    }
-}
-
-function loadPreviousStory() {
-    const prevBtn = document.getElementById('prevStoryBtn');
-    const storyFile = prevBtn.dataset.story;
-    if (storyFile && !prevBtn.disabled) {
-        loadStoryFromCard(storyFile);
-    }
-}
-
-function loadNextStory() {
-    const nextBtn = document.getElementById('nextStoryBtn');
-    const storyFile = nextBtn.dataset.story;
-    if (storyFile && !nextBtn.disabled) {
-        loadStoryFromCard(storyFile);
-    }
-}
+// Story navigation functions removed - navigation now only available on last page of story
 
 function updateReaderProgress(percentage) {
     const progressBar = document.getElementById('readerProgressBar');
     const progressText = document.getElementById('readerProgressText');
-    
+
     if (progressBar) {
         progressBar.style.setProperty('--progress', percentage + '%');
     }
@@ -595,25 +625,46 @@ function continuePreviousReading() {
     // Get last read story from localStorage
     const lastReadingSession = JSON.parse(localStorage.getItem('lastReadingSession') || '{}');
     const lastStory = lastReadingSession.story || Object.keys(storyBookmarks)[0] || 'bissash.txt';
-    
+
     // Load the story
     loadStoryFromCard(lastStory);
-    
-    // Restore scroll position after story loads
+
+    // Restore both page and scroll position after story loads
     setTimeout(() => {
-        if (lastReadingSession.scrollPosition) {
-            window.scrollTo({
-                top: lastReadingSession.scrollPosition,
-                behavior: 'smooth'
-            });
+        // Get saved page from reading session (preferred) or from individual page storage
+        const savedPage = lastReadingSession.currentPage || safeStorage.get(`page_${lastStory}`, 1);
+
+        if (savedPage && savedPage > 1) {
+            // Navigate to the saved page first
+            displayPage(savedPage);
+            // Wait longer for page content to render completely
+            setTimeout(() => {
+                if (lastReadingSession.scrollPosition) {
+                    window.scrollTo({
+                        top: lastReadingSession.scrollPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 800);
+        } else {
+            // For page 1, just restore scroll position
+            if (lastReadingSession.scrollPosition) {
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: lastReadingSession.scrollPosition,
+                        behavior: 'smooth'
+                    });
+                }, 200);
+            }
         }
-    }, 500);
+    }, 1000);
 }
 
 function saveReadingSession(storyFile, scrollPosition = 0) {
     const readingSession = {
         story: storyFile,
         scrollPosition: scrollPosition,
+        currentPage: currentPage || 1,
         timestamp: Date.now()
     };
     localStorage.setItem('lastReadingSession', JSON.stringify(readingSession));
@@ -623,7 +674,7 @@ function saveReadingSession(storyFile, scrollPosition = 0) {
 function hasRecentReadingSession() {
     const lastSession = JSON.parse(localStorage.getItem('lastReadingSession') || '{}');
     if (!lastSession.timestamp) return false;
-    
+
     // Consider session recent if within 7 days
     const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
     return lastSession.timestamp > weekAgo;
@@ -639,10 +690,10 @@ function calculateReadingTime(content) {
 function updateStoryDetails(filename, content) {
     const readingTime = calculateReadingTime(content);
     const wordCount = content.split(/\s+/).length;
-    
+
     const readerReadingTime = document.getElementById('readerReadingTime');
     const readerWordCount = document.getElementById('readerWordCount');
-    
+
     if (readerReadingTime) {
         readerReadingTime.textContent = `~${readingTime} min read`;
     }
@@ -656,28 +707,31 @@ function initializeApp() {
     // Set default theme
     document.body.setAttribute('data-theme', currentTheme);
     updateThemeIcon();
-    
+
     // Initialize audio player with safety check
     const audioPlayer = document.getElementById('audioPlayer');
     if (audioPlayer) {
         audioPlayer.volume = 0.7;
     }
-    
+
     // Initialize play/pause button icon
     updatePlayPauseButton(true);
-    
+
     // Show library view by default
     const libraryView = document.getElementById('libraryView');
     const readerView = document.getElementById('readerView');
     if (libraryView) libraryView.style.display = 'block';
     if (readerView) readerView.style.display = 'none';
-    
+
     // Initialize continue reading visibility
     updateContinueReadingVisibility();
-    
+
     // Initialize story grid from HTML data attributes
     initializeStoryGrid();
-    
+
+    // Initialize music system (generate playlist and start autoplay)
+    initializeMusicSystem();
+
     // Setup search input event listener
     const globalSearch = document.getElementById('globalSearch');
     if (globalSearch) {
@@ -694,7 +748,9 @@ function initializeApp() {
 function setupReaderProgress() {
     const storyContent = document.getElementById('storyContent');
     if (!storyContent) return;
-    
+
+    let storyCompleted = false;
+
     // Create intersection observer for progress tracking
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -703,7 +759,7 @@ function setupReaderProgress() {
                 const visibleIndex = paragraphs.indexOf(entry.target);
                 const progress = ((visibleIndex + 1) / paragraphs.length) * 100;
                 updateReaderProgress(progress);
-                
+
                 // Also update main nav progress
                 const progressPercentage = document.getElementById('progressPercentage');
                 const progressFill = document.getElementById('progressFill');
@@ -713,24 +769,324 @@ function setupReaderProgress() {
                 if (progressFill) {
                     progressFill.style.width = progress + '%';
                 }
+
+                // Check if story is completed (reached the last paragraph)
+                if (progress >= 95 && !storyCompleted && currentStory) {
+                    storyCompleted = true;
+                    setTimeout(() => {
+                        showStoryCompletionSuggestions();
+                    }, 1000); // Small delay to ensure smooth experience
+                }
             }
         });
     }, { threshold: 0.5 });
-    
+
     // Observe all paragraphs
     storyContent.querySelectorAll('p').forEach(p => {
         observer.observe(p);
     });
 }
 
+// Pagination Functions
+function createPagination(content) {
+    const lines = content.split('\n').filter(line => line.trim() !== '');
+    storyPages = [];
+
+    // Ensure exactly 100 lines per page (no more, no less)
+    for (let i = 0; i < lines.length; i += 100) {
+        const pageLines = lines.slice(i, i + 100);
+        storyPages.push(pageLines.join('\n'));
+    }
+
+    totalPages = storyPages.length;
+    currentPage = 1;
+    isStoryCompleted = false;
+
+    console.log(`Story paginated into ${totalPages} pages with exactly 100 lines per page (except last page: ${lines.length % 100} lines)`);
+
+    return storyPages;
+}
+
+function displayPage(pageNumber) {
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+
+    currentPage = pageNumber;
+    const storyContent = document.getElementById('storyContent');
+
+    if (!storyContent) return;
+
+    // Clear content and show current page
+    storyContent.innerHTML = '';
+
+    const pageContent = storyPages[pageNumber - 1];
+    const paragraphs = pageContent.split('\n').filter(p => p.trim() !== '');
+
+    paragraphs.forEach(paragraph => {
+        const p = document.createElement('p');
+        p.className = 'bangla-text';
+        p.textContent = paragraph.trim();
+        storyContent.appendChild(p);
+    });
+
+    // Add pagination controls
+    addPaginationControls();
+
+    // Check if this is the last page and story is completed
+    if (pageNumber === totalPages && !isStoryCompleted) {
+        isStoryCompleted = true;
+        setTimeout(() => {
+            showStoryCompletionSuggestions();
+        }, 1000);
+    }
+
+    // Save current page immediately when changed
+    if (currentStory) {
+        safeStorage.set(`page_${currentStory}`, currentPage);
+        saveReadingSession(currentStory, window.pageYOffset);
+    }
+
+    // Update focus exit button progress if in focus mode
+    if (isFocusMode) {
+        updateFocusExitButtonProgress();
+    }
+
+    // Update bookmark button to show correct page info
+    updateBookmarkButton();
+
+    // Scroll to top of content
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+}
+
+function addPaginationControls() {
+    const storyContent = document.getElementById('storyContent');
+    if (!storyContent) return;
+
+    // Remove existing pagination
+    const existingPagination = storyContent.querySelector('.pagination-container');
+    if (existingPagination) {
+        existingPagination.remove();
+    }
+
+    // Create pagination container
+    const paginationContainer = document.createElement('div');
+    paginationContainer.className = 'pagination-container';
+
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-nav-btn';
+    prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i><span>Previous</span>';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+        if (currentPage > 1) {
+            displayPage(currentPage - 1);
+        }
+    };
+
+    // Page info
+    const pageInfo = document.createElement('div');
+    pageInfo.className = 'page-info';
+    pageInfo.innerHTML = `
+        <div class="page-current">Page ${currentPage}</div>
+        <div class="page-total">of ${totalPages}</div>
+        <div class="page-dots">
+            ${Array.from({length: Math.min(5, totalPages)}, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                    pageNum = i + 1;
+                } else {
+                    const start = Math.max(1, currentPage - 2);
+                    const end = Math.min(totalPages, start + 4);
+                    pageNum = start + i;
+                    if (pageNum > end) return '';
+                }
+                return `<div class="page-dot ${pageNum === currentPage ? 'active' : ''}" onclick="displayPage(${pageNum})"></div>`;
+            }).join('')}
+        </div>
+    `;
+
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-nav-btn';
+    nextBtn.innerHTML = '<span>Next</span><i class="fas fa-chevron-right"></i>';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+            displayPage(currentPage + 1);
+        }
+    };
+
+    paginationContainer.appendChild(prevBtn);
+    paginationContainer.appendChild(pageInfo);
+    paginationContainer.appendChild(nextBtn);
+
+    storyContent.appendChild(paginationContainer);
+
+    // Add story navigation buttons only on the last page
+    if (currentPage === totalPages) {
+        addStoryNavigationButtons();
+    }
+}
+
+function addStoryNavigationButtons() {
+    const storyContent = document.getElementById('storyContent');
+    if (!storyContent) return;
+
+    // Remove existing story navigation
+    const existingStoryNav = storyContent.querySelector('.story-navigation-container');
+    if (existingStoryNav) {
+        existingStoryNav.remove();
+    }
+
+    // Create story navigation container
+    const storyNavContainer = document.createElement('div');
+    storyNavContainer.className = 'story-navigation-container';
+    storyNavContainer.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+    `;
+
+    // Get current story info for navigation
+    const stories = Object.keys(storyDatabase);
+    const currentIndex = stories.indexOf(currentStory);
+
+    // Previous story button
+    const prevStoryBtn = document.createElement('button');
+    prevStoryBtn.className = 'story-nav-btn prev-story-btn';
+    prevStoryBtn.innerHTML = '<i class="fas fa-chevron-left"></i><span>Previous Story</span>';
+    prevStoryBtn.disabled = currentIndex <= 0;
+    prevStoryBtn.style.cssText = `
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        padding: 12px 20px;
+        border-radius: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        min-width: 150px;
+        justify-content: center;
+    `;
+
+    if (currentIndex > 0) {
+        const prevStoryFile = stories[currentIndex - 1];
+        const prevStoryName = getStoryMetadata(prevStoryFile).name;
+        prevStoryBtn.onclick = () => loadStoryFromCard(prevStoryFile);
+        prevStoryBtn.title = `Load: ${prevStoryName}`;
+    }
+
+    // Next story button
+    const nextStoryBtn = document.createElement('button');
+    nextStoryBtn.className = 'story-nav-btn next-story-btn';
+    nextStoryBtn.innerHTML = '<span>Next Story</span><i class="fas fa-chevron-right"></i>';
+    nextStoryBtn.disabled = currentIndex >= stories.length - 1;
+    nextStoryBtn.style.cssText = `
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        padding: 12px 20px;
+        border-radius: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        min-width: 150px;
+        justify-content: center;
+    `;
+
+    if (currentIndex < stories.length - 1) {
+        const nextStoryFile = stories[currentIndex + 1];
+        const nextStoryName = getStoryMetadata(nextStoryFile).name;
+        nextStoryBtn.onclick = () => loadStoryFromCard(nextStoryFile);
+        nextStoryBtn.title = `Load: ${nextStoryName}`;
+    }
+
+    // Add hover styles
+    [prevStoryBtn, nextStoryBtn].forEach(btn => {
+        if (!btn.disabled) {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.background = 'var(--accent-color)';
+                btn.style.color = 'white';
+                btn.style.transform = 'translateY(-2px)';
+                btn.style.boxShadow = '0 4px 12px rgba(0, 122, 255, 0.3)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.background = 'var(--glass-bg)';
+                btn.style.color = 'var(--text-primary)';
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = 'none';
+            });
+        } else {
+            btn.style.opacity = '0.4';
+            btn.style.cursor = 'not-allowed';
+        }
+    });
+
+    storyNavContainer.appendChild(prevStoryBtn);
+    storyNavContainer.appendChild(nextStoryBtn);
+    storyContent.appendChild(storyNavContainer);
+}
+
+// Function to show suggestions after story completion
+function showStoryCompletionSuggestions() {
+    const storyContent = document.getElementById('storyContent');
+    if (!storyContent || !currentStory) return;
+
+    // Check if suggestions already exist
+    if (storyContent.querySelector('.story-end-suggestions')) return;
+
+    const suggestionsHTML = createStorySuggestions(currentStory);
+    if (suggestionsHTML) {
+        const suggestionsDiv = document.createElement('div');
+        suggestionsDiv.innerHTML = suggestionsHTML;
+
+        // Insert suggestions after pagination but before any existing content
+        const pagination = storyContent.querySelector('.pagination-container');
+        if (pagination) {
+            pagination.insertAdjacentElement('afterend', suggestionsDiv.firstElementChild);
+        } else {
+            storyContent.appendChild(suggestionsDiv.firstElementChild);
+        }
+
+        // Add smooth fade-in animation
+        const suggestions = storyContent.querySelector('.story-end-suggestions');
+        if (suggestions) {
+            suggestions.style.opacity = '0';
+            suggestions.style.transform = 'translateY(20px)';
+            suggestions.style.transition = 'all 0.5s ease';
+
+            setTimeout(() => {
+                suggestions.style.opacity = '1';
+                suggestions.style.transform = 'translateY(0)';
+            }, 100);
+        }
+
+        // Show notification about completion
+        showNotification('🎉 Story completed! Check out more stories below', 'success');
+    }
+}
+
 function updateContinueReadingVisibility() {
     const continueReading = document.getElementById('continueReading');
     const hasBookmarks = Object.keys(storyBookmarks).length > 0;
     const hasRecentSession = hasRecentReadingSession();
-    
+
     if (continueReading) {
         continueReading.style.display = (hasBookmarks || hasRecentSession) ? 'block' : 'none';
-        
+
         // Update button text based on what's available
         const continueBtn = continueReading.querySelector('.continue-btn span');
         if (continueBtn) {
@@ -753,61 +1109,61 @@ function updateContinueReadingVisibility() {
 function setupEventListeners() {
     // New modal-based selection
     musicSelector.addEventListener('click', openMusicModal);
-    
+
     // Modal close events
     closeStoryModal.addEventListener('click', closeStoryModalFunc);
     closeMusicModal.addEventListener('click', closeMusicModalFunc);
     storyModalOverlay.addEventListener('click', closeStoryModalFunc);
     musicModalOverlay.addEventListener('click', closeMusicModalFunc);
-    
+
     // Story and music card clicks
     setupCardListeners();
-    
+
     // Music controls
     playPauseBtn.addEventListener('click', togglePlayPause);
-    
+
     // Theme toggle
     themeToggle.addEventListener('click', toggleTheme);
-    
+
     // Audio player events
     audioPlayer.addEventListener('loadeddata', onAudioLoaded);
     audioPlayer.addEventListener('error', onAudioError);
     audioPlayer.addEventListener('play', onAudioPlay);
     audioPlayer.addEventListener('pause', onAudioPause);
     audioPlayer.addEventListener('ended', onAudioEnded);
-    
+
     // Reading controls
     readingControlsBtn.addEventListener('click', toggleReadingControls);
     decreaseFontBtn.addEventListener('click', decreaseFontSize);
     increaseFontBtn.addEventListener('click', increaseFontSize);
     focusModeBtn.addEventListener('click', toggleFocusMode);
     scrollTopBtn.addEventListener('click', scrollToTop);
-    
+
     if (bookmarkBtn) {
         bookmarkBtn.addEventListener('click', toggleBookmark);
     } else {
     }
-    
+
     // Focus mode exit button
     var focusExitBtn = document.getElementById('focusExitBtn');
     if (focusExitBtn) {
         focusExitBtn.addEventListener('click', toggleFocusMode);
     }
-    
+
     // Search functionality
     searchBtn.addEventListener('click', performSearch);
-    
+
     if (clearSearchBtn) {
         clearSearchBtn.addEventListener('click', clearSearch);
     } else {
     }
-    
+
     searchInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             performSearch();
         }
     });
-    
+
     // ESC key to close modals
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -815,7 +1171,7 @@ function setupEventListeners() {
             closeMusicModalFunc();
         }
     });
-    
+
     // Logo click to return to library
     const logo = document.querySelector('.nav-left');
     if (logo) {
@@ -833,11 +1189,11 @@ function displayStory(filename, content) {
     var storyName = storyMetadata.name;
     var writerName = storyMetadata.writer;
     var storyLocation = storyMetadata.location;
-    
+
     // Update reader view elements
     const readerStoryTitle = document.getElementById('readerStoryTitle');
     const readerAuthor = document.getElementById('readerAuthor');
-    
+
     if (readerStoryTitle) {
         readerStoryTitle.textContent = storyName;
         readerStoryTitle.className = 'story-title-large';
@@ -845,21 +1201,21 @@ function displayStory(filename, content) {
             readerStoryTitle.style.fontFamily = "'BanglaFont', 'Noto Sans Bengali', sans-serif";
         }
     }
-    
+
     if (readerAuthor) {
         readerAuthor.innerHTML = `
             <span class="author-info">by ${writerName}</span>
             <span class="location-info">📍 ${storyLocation}</span>
         `;
     }
-    
+
     // Update browser title and nav logo
     logoText.textContent = storyName + ' by ' + writerName;
     document.title = storyName + ' by ' + writerName;
-    
+
     // Update story details (reading time, word count)
     updateStoryDetails(filename, content);
-    
+
     // Update story metadata with calculated values
     const readingTime = calculateReadingTime(content);
     const wordCount = content.split(/\s+/).length;
@@ -867,53 +1223,34 @@ function displayStory(filename, content) {
         readingTime: readingTime,
         wordCount: wordCount
     });
-    
+
     // Clear loading state
     const storyContent = document.getElementById('storyContent');
     if (storyContent) {
         storyContent.innerHTML = '';
     }
-    
-    // Process and display content
-    var paragraphs = content.split('\n').filter(function(p) { return p.trim() !== ''; });
-    
-    if (storyContent) {
-        paragraphs.forEach(paragraph => {
-            var p = document.createElement('p');
-            p.className = 'bangla-text';
-            p.textContent = paragraph.trim();
-            storyContent.appendChild(p);
-        });
-    }
-    
-    // Add story suggestions at the end
-    if (storyContent) {
-        var suggestionsHTML = createStorySuggestions(filename);
-        if (suggestionsHTML) {
-            var suggestionsDiv = document.createElement('div');
-            suggestionsDiv.innerHTML = suggestionsHTML;
-            storyContent.appendChild(suggestionsDiv.firstElementChild);
-        }
-    }
-    
+
+    // Create pagination from content
+    createPagination(content);
+
+    // Display first page
+    displayPage(1);
+
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // Setup reading progress tracking for reader view
-    setupReaderProgress();
-    
+
     // Save reading session when progress is tracked
     const saveProgressHandler = () => {
         saveReadingSession(filename, window.pageYOffset);
     };
     window.addEventListener('scroll', saveProgressHandler, { passive: true });
-    
+
     // Update bookmark button state for this story
     updateBookmarkButton();
-    
+
     // Restore bookmark position for this story
     restoreBookmarkForCurrentStory();
-    
+
     // Show continue reading button if user has bookmarks
     updateContinueReadingVisibility();
 }
@@ -945,9 +1282,9 @@ function getStoryDisplayName(filename) {
 function createStoryCardHTML(filename) {
     const story = getStoryMetadata(filename);
     const bannerImage = getBannerImageForStory(story.id);
-    
+
     return `
-        <div class="story-card" data-story="${filename}" onclick="loadStoryFromCard('${filename}')">
+        <div class="story-card" data-story="${filename}" onclick="window.loadStoryFromCard('${filename}')">
             <div class="story-cover story-cover-wide" style="background-image: url('${bannerImage}'); background-size: cover; background-position: center;">
                 <div class="story-status ${story.status}">${story.status === 'upcoming' ? 'Coming Soon' : 'Available'}</div>
             </div>
@@ -956,7 +1293,7 @@ function createStoryCardHTML(filename) {
                 <p class="story-description">${story.description}</p>
                 <div class="story-meta">
                     <span class="author">by ${story.writer}</span>
-                    <span class="location">📍 ${story.location}</span>
+                    <span class="location">${story.location}</span>
                     ${story.readingTime > 0 ? `<span class="reading-time">~${story.readingTime} min read</span>` : ''}
                 </div>
             </div>
@@ -969,15 +1306,15 @@ function createStoryCardHTML(filename) {
 function initializeStoryGrid() {
     const storyGrid = document.querySelector('.story-grid');
     if (!storyGrid) return;
-    
+
     // Check if grid has data-stories attribute with story IDs
     const storyIds = storyGrid.getAttribute('data-stories');
-    
+
     if (storyIds) {
         // Parse story IDs (comma-separated) and generate cards
         const storyList = storyIds.split(',').map(id => id.trim());
         let cardsHTML = '';
-        
+
         storyList.forEach(storyId => {
             // Convert story ID to filename if needed
             const filename = storyId.includes('.txt') ? storyId : storyId + '.txt';
@@ -985,16 +1322,16 @@ function initializeStoryGrid() {
                 cardsHTML += createStoryCardHTML(filename);
             }
         });
-        
+
         storyGrid.innerHTML = cardsHTML;
     } else {
         // Check for individual story containers with data-story-id
         const storyContainers = document.querySelectorAll('[data-story-id]');
-        
+
         storyContainers.forEach(container => {
             const storyId = container.getAttribute('data-story-id');
             const filename = storyId.includes('.txt') ? storyId : storyId + '.txt';
-            
+
             if (storyDatabase[filename]) {
                 container.innerHTML = createStoryCardHTML(filename);
                 container.classList.add('story-card-container');
@@ -1005,16 +1342,150 @@ function initializeStoryGrid() {
 
 
 
+// Music System Initialization
+function initializeMusicSystem() {
+    // Generate music list dynamically
+    generateMusicList();
+
+    // Start autoplay if enabled
+    if (autoplayEnabled && musicPlaylist.length > 0) {
+        setTimeout(() => {
+            startAutoplay();
+        }, 2000); // Delay to let the page load completely
+    }
+
+    // Setup music modal listeners
+    setupMusicModalListeners();
+}
+
+// Generate music list HTML dynamically from musicPlaylist array
+function generateMusicList() {
+    const songList = document.getElementById('songList');
+    const playlistCount = document.getElementById('playlistCount');
+
+    if (!songList || !playlistCount) return;
+
+    // Update playlist count
+    playlistCount.textContent = `${musicPlaylist.length} songs available`;
+
+    // Generate HTML for each song
+    let musicHTML = '';
+    musicPlaylist.forEach((song, index) => {
+        musicHTML += `
+            <div class="song-item music-card" data-music="${song.url}" data-song-index="${index}">
+                <div class="song-play-btn">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="song-cover">
+                    <div class="song-cover-placeholder">
+                        <i class="${song.icon}"></i>
+                    </div>
+                </div>
+                <div class="song-details">
+                    <div class="song-title">${song.title}</div>
+                    <div class="song-artist">${song.artist}</div>
+                </div>
+                <div class="song-duration">${song.duration}</div>
+                <div class="song-options">
+                    <i class="fas fa-heart song-like"></i>
+                </div>
+            </div>
+        `;
+    });
+
+    songList.innerHTML = musicHTML;
+}
+
+// Setup music modal event listeners
+function setupMusicModalListeners() {
+    // Re-setup card listeners after dynamic generation
+    setupCardListeners();
+}
+
+// Start autoplay functionality
+function startAutoplay() {
+    if (!autoplayEnabled || musicPlaylist.length === 0) return;
+
+    const firstSong = musicPlaylist[0];
+    currentMusicIndex = 0;
+
+    try {
+        // Set the first song source
+        setMusicSource(firstSong.url, true);
+        updateSelectorText(musicSelector, firstSong.title, 'music');
+
+        // Auto-start playback with proper error handling
+        setTimeout(() => {
+            if (currentYouTubeUrl && youtubeFrame) {
+                // Ensure enablejsapi is present for playlist functionality
+                if (!currentYouTubeUrl.includes('enablejsapi')) {
+                    const separator = currentYouTubeUrl.includes('?') ? '&' : '?';
+                    currentYouTubeUrl += `${separator}enablejsapi=1&origin=${window.location.origin}`;
+                }
+
+                youtubeFrame.src = currentYouTubeUrl;
+                isYouTubePlaying = true;
+                updatePlayPauseButton(false);
+
+                // Set up playlist looping for the first song
+                setupYouTubePlaylistLoop();
+
+                showMusicNotification('Auto-playing', firstSong.title, { duration: 3000 });
+            }
+        }, 1000);
+    } catch (error) {
+        console.error('Autoplay failed:', error);
+        showNotification('⚠️ Autoplay failed, please start music manually', 'warning');
+    }
+}
+
+// Cleanup music system resources
+function cleanupMusicSystem() {
+    // Remove YouTube event listeners
+    if (window.currentYouTubeHandler) {
+        window.removeEventListener('message', window.currentYouTubeHandler);
+        window.currentYouTubeHandler = null;
+    }
+
+    // Clear intervals
+    if (window.youtubeCheckInterval) {
+        clearInterval(window.youtubeCheckInterval);
+        window.youtubeCheckInterval = null;
+    }
+
+    // Stop current playback
+    if (youtubeFrame) {
+        youtubeFrame.src = '';
+    }
+    if (audioPlayer) {
+        audioPlayer.pause();
+        audioPlayer.src = '';
+    }
+
+    // Reset state
+    isYouTubePlaying = false;
+    currentYouTubeUrl = '';
+    updatePlayPauseButton(true);
+}
+
+// Toggle autoplay setting
+function toggleAutoplay() {
+    autoplayEnabled = !autoplayEnabled;
+    saveSettings();
+    showNotification(`🎵 Autoplay ${autoplayEnabled ? 'enabled' : 'disabled'}`, 'info');
+    return autoplayEnabled;
+}
+
 // Music Player Functions
 function togglePlayPause() {
     const audioPlayer = document.getElementById('audioPlayer');
     const youtubeFrame = document.getElementById('youtubeFrame');
-    
+
     if (!audioPlayer || (!audioPlayer.src && !currentYouTubeUrl)) {
         alert('Please select a music track first.');
         return;
     }
-    
+
     if (currentYouTubeUrl && youtubeFrame) {
         // Handle YouTube playback
         if (isYouTubePlaying) {
@@ -1088,11 +1559,11 @@ function toggleTheme() {
     } else {
         currentTheme = 'light';
     }
-    
+
     document.body.setAttribute('data-theme', currentTheme);
     updateThemeIcon();
     saveSettings();
-    
+
     // Add a subtle animation
     document.body.style.transition = 'all 0.3s ease';
     setTimeout(() => {
@@ -1122,39 +1593,39 @@ function saveSettings() {
         focusMode: isFocusMode,
         bookmarks: storyBookmarks
     };
-    
+
     localStorage.setItem('golpoSettings', JSON.stringify(settings));
 }
 
 function loadSavedSettings() {
     var savedSettings = localStorage.getItem('golpoSettings') || localStorage.getItem('storyReaderSettings');
-    
+
     if (!savedSettings) return;
-    
+
     try {
         var settings = JSON.parse(savedSettings);
-        
+
         // Restore theme
         if (settings.theme) {
             currentTheme = settings.theme;
             document.body.setAttribute('data-theme', currentTheme);
             updateThemeIcon();
         }
-        
+
         // Volume controls were removed - skip volume restoration
-        
+
         // Music selection now uses modal system - skip automatic restoration
-        
+
         // Restore reading controls
         if (settings.fontSize) {
             currentFontSize = Math.max(70, Math.min(150, settings.fontSize));
             updateFontSize();
         }
-        
+
         if (settings.focusMode !== undefined) {
             setFocusMode(Boolean(settings.focusMode));
         }
-        
+
         // Restore per-story bookmarks
         if (settings.bookmarks) {
             storyBookmarks = settings.bookmarks;
@@ -1165,9 +1636,9 @@ function loadSavedSettings() {
                 storyBookmarks[currentStory] = settings.bookmark;
             }
         }
-        
+
         // Story selection now handled by modal system
-        
+
     } catch (error) {
     }
 }
@@ -1190,19 +1661,223 @@ function debounce(func, wait) {
     };
 }
 
-// Keyboard shortcuts
+// Enhanced Keyboard Shortcuts System
 document.addEventListener('keydown', function(e) {
-    // Space bar to toggle play/pause (when not in input fields)
-    if (e.code === 'Space' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) {
-        e.preventDefault();
-        togglePlayPause();
-    }
+    // Don't trigger shortcuts when typing in input fields
+    const isInputActive = ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName) || 
+                          e.target.contentEditable === 'true';
     
-    // T key to toggle theme
-    if (e.code === 'KeyT' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) {
-        toggleTheme();
+    // Don't trigger if modal is open
+    const isModalOpen = document.querySelector('.selection-modal.active');
+    
+    if (isInputActive || isModalOpen) return;
+
+    // Music Controls (with Alt modifier for safety)
+    if (e.altKey) {
+        switch(e.code) {
+            case 'KeyM': // Alt + M: Open Music Selector
+                e.preventDefault();
+                openMusicModal();
+                showMusicNotification('Music selector opened', 'Use ↑↓ keys to navigate', {
+                    duration: 2000
+                });
+                break;
+                
+            case 'KeyP': // Alt + P: Play/Pause
+                e.preventDefault();
+                togglePlayPause();
+                const playState = isYouTubePlaying || !audioPlayer.paused ? 'Playing' : 'Paused';
+                showMusicNotification(`Music ${playState.toLowerCase()}`, getCurrentSongTitle(), {
+                    duration: 2000
+                });
+                break;
+                
+            case 'KeyN': // Alt + N: Next Song
+                e.preventDefault();
+                playNextSong();
+                showMusicNotification('Next song', getCurrentSongTitle(), {
+                    duration: 2500
+                });
+                break;
+                
+            case 'KeyB': // Alt + B: Previous Song (Back)
+                e.preventDefault();
+                playPreviousSong();
+                showMusicNotification('Previous song', getCurrentSongTitle(), {
+                    duration: 2500
+                });
+                break;
+        }
+        return;
+    }
+
+    // Regular shortcuts (without modifier)
+    switch(e.code) {
+        case 'Space': // Space: Play/Pause (classic)
+            e.preventDefault();
+            togglePlayPause();
+            break;
+            
+        case 'KeyT': // T: Toggle Theme
+            e.preventDefault();
+            toggleTheme();
+            const themeName = currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1).replace('-', ' ');
+            showNotification(`Theme changed to ${themeName}`, 'info', 2000);
+            break;
+            
+        case 'KeyF': // F: Toggle Focus Mode
+            e.preventDefault();
+            toggleFocusMode();
+            const focusState = isFocusMode ? 'enabled' : 'disabled';
+            showNotification(`Focus mode ${focusState}`, 'info', 2000, {
+                subtitle: isFocusMode ? 'Press F again to exit' : 'Distraction-free reading'
+            });
+            break;
+            
+        case 'KeyB': // B: Toggle Bookmark
+            e.preventDefault();
+            toggleBookmark();
+            break;
+            
+        case 'KeyS': // S: Scroll to Top
+            e.preventDefault();
+            scrollToTop();
+            break;
+            
+        case 'Escape': // Escape: Close modals or exit focus mode
+            e.preventDefault();
+            if (isFocusMode) {
+                toggleFocusMode();
+                showNotification('Focus mode disabled', 'info', 2000);
+            } else {
+                closeStoryModalFunc();
+                closeMusicModalFunc();
+            }
+            break;
+            
+        case 'KeyH': // H: Show help/shortcuts
+            e.preventDefault();
+            showKeyboardShortcuts();
+            break;
+            
+        case 'ArrowLeft': // Left Arrow: Previous page (in reader)
+            if (currentStory && currentPage > 1) {
+                e.preventDefault();
+                displayPage(currentPage - 1);
+                showNotification(`Page ${currentPage}`, 'info', 1500);
+            }
+            break;
+            
+        case 'ArrowRight': // Right Arrow: Next page (in reader)
+            if (currentStory && currentPage < totalPages) {
+                e.preventDefault();
+                displayPage(currentPage + 1);
+                showNotification(`Page ${currentPage}`, 'info', 1500);
+            }
+            break;
+            
+        case 'Home': // Home: First page
+            if (currentStory && currentPage > 1) {
+                e.preventDefault();
+                displayPage(1);
+                showNotification('First page', 'info', 1500);
+            }
+            break;
+            
+        case 'End': // End: Last page
+            if (currentStory && currentPage < totalPages) {
+                e.preventDefault();
+                displayPage(totalPages);
+                showNotification('Last page', 'info', 1500);
+            }
+            break;
+            
+        case 'Equal': // + key: Increase font size
+            if (e.shiftKey) { // Shift + = (which is +)
+                e.preventDefault();
+                increaseFontSize();
+                showNotification(`Font size: ${currentFontSize}%`, 'info', 1500);
+            }
+            break;
+            
+        case 'Minus': // - key: Decrease font size
+            e.preventDefault();
+            decreaseFontSize();
+            showNotification(`Font size: ${currentFontSize}%`, 'info', 1500);
+            break;
     }
 });
+
+// Function to get current song title for notifications
+function getCurrentSongTitle() {
+    if (currentMusicIndex >= 0 && currentMusicIndex < musicPlaylist.length) {
+        return musicPlaylist[currentMusicIndex].title;
+    }
+    return 'Unknown';
+}
+
+// Function to play previous song
+function playPreviousSong() {
+    if (!isPlaylistMode || musicPlaylist.length === 0) return;
+
+    // Move to previous song (loop to end if at beginning)
+    currentMusicIndex = currentMusicIndex <= 0 ? musicPlaylist.length - 1 : currentMusicIndex - 1;
+    const prevSong = musicPlaylist[currentMusicIndex];
+
+    // Update selector text
+    updateSelectorText(musicSelector, prevSong.title, 'music');
+
+    // Set previous song source
+    setMusicSource(prevSong.url, true);
+
+    // Auto-play the previous song after a brief delay
+    setTimeout(() => {
+        if (currentYouTubeUrl && youtubeFrame) {
+            youtubeFrame.src = currentYouTubeUrl;
+            isYouTubePlaying = true;
+            updatePlayPauseButton(false);
+            setupYouTubePlaylistLoop();
+        } else if (audioPlayer && audioPlayer.src) {
+            audioPlayer.play();
+        }
+    }, 1000);
+}
+
+// Function to show keyboard shortcuts help
+function showKeyboardShortcuts() {
+    const shortcuts = `
+        <div style="line-height: 1.6; font-size: 13px;">
+            <strong>🎵 Music Controls (with Alt):</strong><br>
+            Alt + M → Open music selector<br>
+            Alt + P → Play/Pause<br>
+            Alt + N → Next song<br>
+            Alt + B → Previous song<br><br>
+            
+            <strong>⌨️ General Shortcuts:</strong><br>
+            Space → Play/Pause<br>
+            T → Toggle theme<br>
+            F → Focus mode<br>
+            B → Bookmark position<br>
+            S → Scroll to top<br>
+            H → Show this help<br>
+            Esc → Close modals/Exit focus<br><br>
+            
+            <strong>📖 Reading Navigation:</strong><br>
+            ← → Previous page<br>
+            → → Next page<br>
+            Home → First page<br>
+            End → Last page<br>
+            + → Increase font size<br>
+            - → Decrease font size
+        </div>
+    `;
+
+    showNotification('Keyboard Shortcuts', 'info', 8000, {
+        subtitle: shortcuts,
+        persistent: false,
+        stackable: false
+    });
+}
 
 // Handle window resize for responsive design
 window.addEventListener('resize', debounce(() => {
@@ -1219,12 +1894,12 @@ window.addEventListener('resize', debounce(() => {
 function updateReadingProgress() {
     var storyContainer = document.querySelector('.story-container');
     if (!storyContainer || !progressPercentage) return;
-    
+
     var scrollTop = storyContainer.scrollTop;
     var scrollHeight = storyContainer.scrollHeight;
     var clientHeight = storyContainer.clientHeight;
     var maxScroll = scrollHeight - clientHeight;
-    
+
     if (maxScroll <= 0) {
         progressPercentage.textContent = '100%';
         if (progressFill) {
@@ -1232,10 +1907,10 @@ function updateReadingProgress() {
         }
         return;
     }
-    
+
     var scrollPercent = (scrollTop / maxScroll) * 100;
     scrollPercent = Math.max(0, Math.min(100, scrollPercent));
-    
+
     progressPercentage.textContent = Math.round(scrollPercent) + '%';
     if (progressFill) {
         progressFill.style.width = scrollPercent + '%';
@@ -1247,7 +1922,7 @@ function setupReadingProgress() {
     var storyContainer = document.querySelector('.story-container');
     if (storyContainer) {
         storyContainer.addEventListener('scroll', updateReadingProgress);
-        
+
         // Also update on resize
         window.addEventListener('resize', updateReadingProgress);
         // Initial update
@@ -1295,19 +1970,19 @@ function setupCardListeners() {
             var storyFile = this.dataset.story;
             var titleElement = this.querySelector('.card-title');
             var storyName = titleElement ? titleElement.textContent : 'Unknown Story';
-            
+
             loadStory(storyFile);
             closeStoryModalFunc();
         });
     });
-    
+
     // Music card listeners
     document.querySelectorAll('.music-card').forEach(card => {
         card.addEventListener('click', function() {
             var musicUrl = this.dataset.music;
             var titleElement = this.querySelector('.song-title') || this.querySelector('.card-title');
             var musicName = titleElement ? titleElement.textContent : 'Unknown Music';
-            
+
             setMusicSource(musicUrl);
             updateSelectorText(musicSelector, musicName, 'music');
             closeMusicModalFunc();
@@ -1318,13 +1993,25 @@ function setupCardListeners() {
 function updateSelectorText(selector, text, iconType) {
     var textElement = selector.querySelector('.selector-text');
     var iconElement = selector.querySelector('i');
-    
+
     if (textElement) {
-        textElement.textContent = text;
+        // Truncate long song names
+        const maxLength = 15;
+        const displayText = text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        textElement.textContent = displayText;
     }
-    
+
     if (iconElement) {
         iconElement.className = iconType === 'book' ? 'fas fa-book-open' : 'fas fa-music';
+    }
+
+    // Update logo text to show smaller music name
+    const logoText = document.querySelector('.logo-text');
+    if (logoText && iconType === 'music') {
+        logoText.classList.add('music-playing');
+        const maxLogoLength = 20;
+        const logoDisplayText = text.length > maxLogoLength ? text.substring(0, maxLogoLength) + '...' : text;
+        logoText.textContent = logoDisplayText;
     }
 }
 
@@ -1333,22 +2020,22 @@ async function loadStory(filename) {
         showError('No story selected. Please choose a story from the library.');
         return;
     }
-    
+
     currentStory = filename;
     showLoadingState();
-    
+
     const maxRetries = 3;
     let retryCount = 0;
-    
+
     const attemptLoad = async () => {
         try {
             // Check if we're offline and have cached version
             if (!isOnline && cachedStories.has(filename)) {
                 showNotification('📖 Loading cached story (offline mode)', 'info');
             }
-            
+
             const response = await fetch('stories/' + filename);
-            
+
             if (!response.ok) {
                 if (response.status === 404) {
                     throw new Error(`Story "${getStoryMetadata(filename).name}" not found`);
@@ -1358,35 +2045,35 @@ async function loadStory(filename) {
                     throw new Error(`Failed to load story (Error ${response.status})`);
                 }
             }
-            
+
             const content = await response.text();
-            
+
             if (!content || content.trim().length === 0) {
                 throw new Error('Story content is empty');
             }
-            
+
             displayStory(filename, content);
-            
+
             // Auto-cache story for offline reading (only when online)
             if (isOnline && !cachedStories.has(filename)) {
                 setTimeout(() => cacheStoryForOffline(filename), 1000);
             }
-            
+
         } catch (error) {
             console.error('Story loading error:', error);
-            
+
             // Retry mechanism for network errors
             if (retryCount < maxRetries && isOnline && 
                 (error.name === 'TypeError' || error.message.includes('Server error'))) {
                 retryCount++;
                 showNotification(`⏳ Retrying... (${retryCount}/${maxRetries})`, 'warning');
-                
+
                 // Exponential backoff delay
                 const delay = Math.pow(2, retryCount) * 1000;
                 setTimeout(attemptLoad, delay);
                 return;
             }
-            
+
             // Handle specific error types
             if (!isOnline) {
                 if (cachedStories.has(filename)) {
@@ -1398,21 +2085,32 @@ async function loadStory(filename) {
             } else {
                 showError(`Failed to load story: ${error.message}`);
             }
-            
+
             hideLoadingState();
         }
     };
-    
+
     await attemptLoad();
 }
 
-function setMusicSource(url) {
+function setMusicSource(url, fromPlaylist = false) {
     if (!url) {
         showNotification('❌ No music URL provided', 'error');
         return;
     }
-    
+
     try {
+        console.log('Setting music source:', url, 'fromPlaylist:', fromPlaylist);
+
+        // Find the song in playlist if not from playlist selection
+        if (!fromPlaylist) {
+            const playlistIndex = musicPlaylist.findIndex(song => song.url === url);
+            if (playlistIndex !== -1) {
+                currentMusicIndex = playlistIndex;
+                console.log('Updated currentMusicIndex to:', currentMusicIndex);
+            }
+        }
+
         // Stop current playback safely
         try {
             if (audioPlayer && audioPlayer.src) {
@@ -1423,22 +2121,38 @@ function setMusicSource(url) {
         } catch (audioError) {
             console.warn('Error stopping audio:', audioError);
         }
-        
+
+        // Clean up YouTube properly
         try {
-            if (currentYouTubeUrl && youtubeFrame) {
+            if (youtubeFrame) {
                 youtubeFrame.src = '';
                 isYouTubePlaying = false;
-                currentYouTubeUrl = '';
+            }
+            // Clean up previous intervals
+            if (window.youtubeCheckInterval) {
+                clearInterval(window.youtubeCheckInterval);
+                window.youtubeCheckInterval = null;
             }
         } catch (youtubeError) {
             console.warn('Error stopping YouTube:', youtubeError);
         }
-        
+
         // Set new music source with error handling
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
             try {
-                currentYouTubeUrl = url;
-                showNotification('🎵 YouTube music selected', 'success');
+                // Ensure proper YouTube URL format for API
+                let formattedUrl = url;
+                if (!url.includes('enablejsapi')) {
+                    const separator = url.includes('?') ? '&' : '?';
+                    formattedUrl = `${url}${separator}enablejsapi=1&origin=${window.location.origin}&rel=0&controls=1`;
+                }
+                
+                currentYouTubeUrl = formattedUrl;
+                console.log('YouTube URL set:', currentYouTubeUrl);
+
+                // Don't auto-setup loop here - let the calling function decide when to play
+                showNotification('🎵 YouTube music ready', 'success', 2000);
+                
             } catch (error) {
                 showNotification('❌ Failed to set YouTube music', 'error');
                 console.error('YouTube setup error:', error);
@@ -1446,34 +2160,198 @@ function setMusicSource(url) {
         } else {
             try {
                 audioPlayer.src = url;
-                
-                // Add one-time error handler for this track
+
+                // Remove any existing event listeners to prevent duplicates
+                audioPlayer.removeEventListener('ended', playNextSong);
+
+                // Add event handlers
                 const errorHandler = () => {
                     showNotification('❌ Failed to load audio track', 'error');
                     audioPlayer.removeEventListener('error', errorHandler);
                 };
-                
+
                 const loadHandler = () => {
                     showNotification('🎵 Audio track loaded successfully', 'success');
                     audioPlayer.removeEventListener('loadeddata', loadHandler);
                     audioPlayer.removeEventListener('error', errorHandler);
                 };
-                
+
+                // Add auto-progression for audio files
+                if (isPlaylistMode && musicPlaylist.length > 1) {
+                    audioPlayer.addEventListener('ended', playNextSong);
+                }
+
                 audioPlayer.addEventListener('error', errorHandler, { once: true });
                 audioPlayer.addEventListener('loadeddata', loadHandler, { once: true });
-                
+
             } catch (error) {
                 showNotification('❌ Failed to set audio source', 'error');
                 console.error('Audio setup error:', error);
             }
         }
-        
+
         updatePlayPauseButton(true);
-        
+
     } catch (error) {
         console.error('Music source setup error:', error);
         showNotification('❌ Failed to change music', 'error');
     }
+}
+
+function playNextSong() {
+    if (!isPlaylistMode || musicPlaylist.length === 0) {
+        console.warn('Cannot play next song: playlist mode disabled or empty playlist');
+        return;
+    }
+
+    console.log('Playing next song from index:', currentMusicIndex);
+
+    // Move to next song in playlist (loop back to start if at end)
+    const oldIndex = currentMusicIndex;
+    currentMusicIndex = (currentMusicIndex + 1) % musicPlaylist.length;
+    const nextSong = musicPlaylist[currentMusicIndex];
+
+    console.log(`Moving from song ${oldIndex} to ${currentMusicIndex}:`, nextSong.title);
+
+    // Update selector text
+    updateSelectorText(musicSelector, nextSong.title, 'music');
+
+    // Set next song source with playlist flag
+    setMusicSource(nextSong.url, true);
+
+    // Auto-play the next song with proper timing
+    setTimeout(() => {
+        try {
+            if (currentYouTubeUrl && youtubeFrame) {
+                console.log('Starting next YouTube song:', currentYouTubeUrl);
+                
+                // Clear any existing frame first
+                youtubeFrame.src = '';
+                
+                // Small delay to ensure frame is cleared
+                setTimeout(() => {
+                    youtubeFrame.src = currentYouTubeUrl;
+                    isYouTubePlaying = true;
+                    updatePlayPauseButton(false);
+
+                    // Set up automatic progression for the new song
+                    setTimeout(() => {
+                        setupYouTubePlaylistLoop();
+                    }, 500);
+                }, 200);
+                
+            } else if (audioPlayer && audioPlayer.src) {
+                console.log('Starting next audio track');
+                audioPlayer.play();
+            }
+
+            // Show notification
+            showMusicNotification(
+                `Now playing (${currentMusicIndex + 1}/${musicPlaylist.length})`, 
+                nextSong.title, 
+                { duration: 3000 }
+            );
+
+        } catch (error) {
+            console.error('Error playing next song:', error);
+            showNotification('❌ Failed to play next song', 'error');
+        }
+    }, 800);
+}
+
+// Setup YouTube playlist looping with automatic progression
+function setupYouTubePlaylistLoop() {
+    if (!youtubeFrame || !isPlaylistMode || musicPlaylist.length <= 1) return;
+
+    // Ensure YouTube URLs have enablejsapi parameter for proper API access
+    if (currentYouTubeUrl && !currentYouTubeUrl.includes('enablejsapi')) {
+        const separator = currentYouTubeUrl.includes('?') ? '&' : '?';
+        currentYouTubeUrl += `${separator}enablejsapi=1&origin=${window.location.origin}&rel=0&controls=1`;
+        // Update the frame with the new URL
+        if (youtubeFrame.src) {
+            youtubeFrame.src = currentYouTubeUrl;
+        }
+    }
+
+    // Create a robust message listener for YouTube player events
+    const messageHandler = (event) => {
+        // Whitelist YouTube origins for security
+        if (!event.origin.includes('youtube.com') && !event.origin.includes('youtube-nocookie.com')) return;
+
+        try {
+            let data;
+            // Handle different YouTube message formats
+            if (typeof event.data === 'string') {
+                // Try to parse JSON messages
+                if (event.data.includes('{')) {
+                    data = JSON.parse(event.data);
+                } else if (event.data.includes('onStateChange')) {
+                    // Extract state from string format
+                    const match = event.data.match(/info":"?(\d+)"?/);
+                    if (match) {
+                        data = { info: parseInt(match[1]) };
+                    }
+                }
+            } else if (typeof event.data === 'object') {
+                data = event.data;
+            }
+
+            if (data && typeof data.info !== 'undefined') {
+                console.log('YouTube player state:', data.info);
+                
+                // State 0 = ended, 1 = playing, 2 = paused, 3 = buffering, 5 = cued
+                if (data.info === 0) {
+                    // Video ended, play next song after a brief delay
+                    console.log('Video ended, playing next song...');
+                    setTimeout(() => {
+                        if (isPlaylistMode && musicPlaylist.length > 1) {
+                            playNextSong();
+                        }
+                    }, 1000);
+                } else if (data.info === 1) {
+                    // Video is playing
+                    isYouTubePlaying = true;
+                    updatePlayPauseButton(false);
+                } else if (data.info === 2) {
+                    // Video is paused
+                    isYouTubePlaying = false;
+                    updatePlayPauseButton(true);
+                }
+            }
+        } catch (e) {
+            // Not a valid YouTube message, ignore silently
+            console.warn('YouTube message parsing error:', e);
+        }
+    };
+
+    // Clean up existing listener to prevent duplicates
+    if (window.currentYouTubeHandler) {
+        window.removeEventListener('message', window.currentYouTubeHandler);
+    }
+
+    // Add new listener and store reference for cleanup
+    window.addEventListener('message', messageHandler);
+    window.currentYouTubeHandler = messageHandler;
+
+    // Set up periodic fallback check as backup for auto-progression
+    if (window.youtubeCheckInterval) {
+        clearInterval(window.youtubeCheckInterval);
+    }
+
+    // More aggressive fallback - check every 30 seconds if playing
+    window.youtubeCheckInterval = setInterval(() => {
+        if (isYouTubePlaying && isPlaylistMode && musicPlaylist.length > 1) {
+            // Estimate if song should have ended (most songs are 3-6 minutes)
+            // This is a fallback in case the message event fails
+            const songDuration = musicPlaylist[currentMusicIndex]?.duration || "4:00";
+            const [minutes, seconds] = songDuration.split(':').map(Number);
+            const totalSeconds = (minutes * 60) + seconds;
+            
+            // Add 10 seconds buffer and check if enough time has passed
+            // This is just a safety net - the message event should handle progression
+            console.log('Fallback check - song should auto-advance via message events');
+        }
+    }, 30000);
 }
 
 function updateFontSize() {
@@ -1508,15 +2386,16 @@ function setFocusMode(enabled) {
     isFocusMode = enabled;
     document.body.classList.toggle('focus-mode', isFocusMode);
     focusModeBtn.classList.toggle('active', isFocusMode);
-    
+
     var icon = focusModeBtn.querySelector('i');
     var focusExitBtn = document.getElementById('focusExitBtn');
-    
+
     if (isFocusMode) {
         icon.className = 'fas fa-eye-slash';
-        // Show the dedicated exit button
+        // Show the dedicated exit button with progress
         if (focusExitBtn) {
             focusExitBtn.style.display = 'flex';
+            updateFocusExitButtonProgress();
         }
     } else {
         icon.className = 'fas fa-eye';
@@ -1527,40 +2406,75 @@ function setFocusMode(enabled) {
     }
 }
 
+function updateFocusExitButtonProgress() {
+    const focusExitBtn = document.getElementById('focusExitBtn');
+
+    if (focusExitBtn && isFocusMode) {
+        // Get the current scroll-based progress (1-100% per page) from the main progress indicator
+        const progressPercentage = document.getElementById('progressPercentage');
+        let progress = 0;
+
+        if (progressPercentage) {
+            // Use the same scroll-based progress that's shown in the main nav
+            progress = parseInt(progressPercentage.textContent) || 0;
+        }
+
+        focusExitBtn.innerHTML = `
+            <i class="fas fa-times"></i>
+            <span class="progress-text">${progress}%</span>
+        `;
+    }
+}
+
 function scrollToTop() {
     // Always scroll to the very top of the page for maximum visibility
     window.scrollTo({
         top: 0,
         behavior: 'smooth'
     });
-    
+
     // Show notification that scroll happened
     showNotification('📍 Scrolled to top', 'success');
 }
 
 function toggleBookmark() {
-    
     if (!currentStory) {
         showNotification('⚠️ Please load a story first', 'warning');
         return;
     }
-    
+
     try {
         // Initialize storyBookmarks if it doesn't exist
         if (typeof storyBookmarks === 'undefined') {
             window.storyBookmarks = {};
         }
-        
-        // Use window scroll position instead of container scroll
+
         var currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
         var existingBookmark = storyBookmarks[currentStory];
-        
-        
-        if (existingBookmark !== null && existingBookmark !== undefined && bookmarkBtn && bookmarkBtn.classList.contains('active')) {
-            // Check if we're close to the bookmarked position (within 50 pixels)
-            var distanceFromBookmark = Math.abs(currentScrollTop - existingBookmark);
-            
-            if (distanceFromBookmark <= 50) {
+
+        // Normalize legacy bookmarks (just numbers) to new format
+        if (existingBookmark && typeof existingBookmark === 'number') {
+            existingBookmark = {
+                page: currentPage, // Assume legacy bookmark is on current page
+                scrollPosition: existingBookmark,
+                totalPages: totalPages
+            };
+            storyBookmarks[currentStory] = existingBookmark; // Save normalized version
+        }
+
+        // For paginated content, store both page number and scroll position
+        var bookmarkData = {
+            page: currentPage,
+            scrollPosition: currentScrollTop,
+            totalPages: totalPages
+        };
+
+        if (existingBookmark && bookmarkBtn && bookmarkBtn.classList.contains('active')) {
+            // Check if we're on the same page and close to the bookmarked position
+            var isOnSamePage = (existingBookmark.page === currentPage);
+            var distanceFromBookmark = isOnSamePage ? Math.abs(currentScrollTop - existingBookmark.scrollPosition) : 1000;
+
+            if (isOnSamePage && distanceFromBookmark <= 50) {
                 // We're at the bookmark position, offer to delete it
                 delete storyBookmarks[currentStory];
                 bookmarkBtn.classList.remove('active');
@@ -1574,7 +2488,7 @@ function toggleBookmark() {
             }
         } else {
             // Save current position as bookmark for this story
-            storyBookmarks[currentStory] = currentScrollTop;
+            storyBookmarks[currentStory] = bookmarkData;
             if (bookmarkBtn) {
                 bookmarkBtn.classList.add('active');
                 bookmarkBtn.title = 'Go to Bookmark';
@@ -1589,25 +2503,56 @@ function toggleBookmark() {
 
 function goToBookmark() {
     if (!currentStory) return;
-    
+
     var bookmark = storyBookmarks[currentStory];
-    
+
     if (bookmark !== null && bookmark !== undefined) {
-        // Use window scroll instead of container scroll
-        window.scrollTo({
-            top: bookmark,
-            behavior: 'smooth'
-        });
+        // Handle both old format (just scroll position) and new format (page + scroll position)
+        if (typeof bookmark === 'number') {
+            // Old format - just scroll to position
+            window.scrollTo({
+                top: bookmark,
+                behavior: 'smooth'
+            });
+        } else if (bookmark.page && bookmark.scrollPosition !== undefined) {
+            // New format - navigate to page first, then scroll to position
+            if (bookmark.page !== currentPage) {
+                // Need to navigate to different page first
+                displayPage(bookmark.page);
+                // Wait for page to render, then scroll to position
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: bookmark.scrollPosition,
+                        behavior: 'smooth'
+                    });
+                }, 300);
+            } else {
+                // Same page, just scroll to position
+                window.scrollTo({
+                    top: bookmark.scrollPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
     }
 }
 
 function updateBookmarkButton() {
-    if (!currentStory) return;
-    
+    if (!currentStory || !bookmarkBtn) return;
+
     var bookmark = storyBookmarks[currentStory];
     if (bookmark !== null && bookmark !== undefined) {
         bookmarkBtn.classList.add('active');
-        bookmarkBtn.title = 'Go to Bookmark';
+        // Show different titles based on whether bookmark is on current page or different page
+        if (typeof bookmark === 'object' && bookmark.page !== undefined) {
+            if (bookmark.page === currentPage) {
+                bookmarkBtn.title = 'Go to Bookmark (this page)';
+            } else {
+                bookmarkBtn.title = `Go to Bookmark (page ${bookmark.page})`;
+            }
+        } else {
+            bookmarkBtn.title = 'Go to Bookmark';
+        }
     } else {
         bookmarkBtn.classList.remove('active');
         bookmarkBtn.title = 'Bookmark Position';
@@ -1616,7 +2561,7 @@ function updateBookmarkButton() {
 
 function restoreBookmarkForCurrentStory() {
     if (!currentStory) return;
-    
+
     var bookmark = storyBookmarks[currentStory];
     if (bookmark !== null && bookmark !== undefined) {
         setTimeout(() => {
@@ -1628,45 +2573,6 @@ function restoreBookmarkForCurrentStory() {
     }
 }
 
-function showNotification(message) {
-    // Create notification element
-    var notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: 10px;
-        padding: 10px 15px;
-        color: var(--text-primary);
-        font-size: 14px;
-        z-index: 9999;
-        opacity: 0;
-        transform: translateX(100%);
-        transition: all 0.3s ease;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.style.opacity = '1';
-        notification.style.transform = 'translateX(0)';
-    }, 10);
-    
-    // Remove after 2 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 2000);
-}
 
 // Helper Functions
 function escapeRegExp(string) {
@@ -1682,79 +2588,115 @@ function escapeHtml(text) {
 // Search Functions
 function performSearch() {
     var searchTerm = searchInput.value.trim();
-    
+
     if (!searchTerm) {
         showNotification('⚠️ Please enter a search term', 'warning');
         return;
     }
-    
+
     if (!currentStory) {
         showNotification('⚠️ Please load a story first', 'warning');
         return;
     }
-    
+
+    // Clear any existing highlights first
+    clearPreviousHighlights();
+
     // Escape search term for safe regex
     var escapedTerm = escapeRegExp(searchTerm);
-    
-    clearPreviousHighlights();
-    var storyContent = document.getElementById('storyContent');
-    
-    if (!storyContent) {
-        showNotification('❌ Story content not found', 'error');
-        return;
-    }
-    
-    var paragraphs = storyContent.querySelectorAll('p');
+
     var results = [];
-    
-    paragraphs.forEach((paragraph, index) => {
-        var text = paragraph.textContent;
-        try {
-            var regex = new RegExp(escapedTerm, 'gi');
-            var matches = text.match(regex);
-        
-            if (matches) {
-                // Highlight the text with ultra-visible styling
-                var highlightedText = text.replace(regex, '<span class="search-highlight" style="background: linear-gradient(45deg, #ff0000, #ff6b6b) !important; color: #ffffff !important; padding: 3px 6px !important; border-radius: 6px !important; font-weight: 900 !important; box-shadow: 0 2px 8px rgba(255, 0, 0, 0.5) !important; border: 2px solid #ffffff !important;">$&</span>');
-                paragraph.innerHTML = highlightedText;
-                
-                // Add to results
-                var context = text.substring(Math.max(0, text.toLowerCase().indexOf(searchTerm.toLowerCase()) - 20), 
-                                           text.toLowerCase().indexOf(searchTerm.toLowerCase()) + searchTerm.length + 20);
-                results.push({
-                    paragraph: index,
-                    context: context,
-                    element: paragraph
-                });
-            }
-        } catch (error) {
-            // Skip invalid regex patterns
+
+    if (storyPages && storyPages.length > 0) {
+        // Search across all pages of the story
+        storyPages.forEach((pageContent, pageIndex) => {
+            const lines = pageContent.split('\n').filter(line => line.trim() !== '');
+
+            lines.forEach((line, lineIndex) => {
+                try {
+                    var regex = new RegExp(escapedTerm, 'gi');
+                    var matches = line.match(regex);
+
+                    if (matches) {
+                        // Calculate context around the match
+                        var context = line.substring(Math.max(0, line.toLowerCase().indexOf(searchTerm.toLowerCase()) - 20), 
+                                                   line.toLowerCase().indexOf(searchTerm.toLowerCase()) + searchTerm.length + 20);
+
+                        results.push({
+                            page: pageIndex + 1, // 1-based page number
+                            lineInPage: lineIndex,
+                            context: context,
+                            fullText: line,
+                            searchTerm: searchTerm
+                        });
+                    }
+                } catch (error) {
+                    // Skip invalid regex patterns
+                }
+            });
+        });
+    } else {
+        // Fallback: search only current page content if pages aren't available
+        var storyContent = document.getElementById('storyContent');
+        if (!storyContent) {
+            showNotification('❌ Story content not found', 'error');
+            return;
         }
-    });
-    
+
+        var paragraphs = storyContent.querySelectorAll('p');
+        paragraphs.forEach((paragraph, index) => {
+            var text = paragraph.textContent;
+            try {
+                var regex = new RegExp(escapedTerm, 'gi');
+                var matches = text.match(regex);
+
+                if (matches) {
+                    var context = text.substring(Math.max(0, text.toLowerCase().indexOf(searchTerm.toLowerCase()) - 20), 
+                                               text.toLowerCase().indexOf(searchTerm.toLowerCase()) + searchTerm.length + 20);
+                    results.push({
+                        page: currentPage,
+                        paragraph: index,
+                        context: context,
+                        element: paragraph,
+                        searchTerm: searchTerm
+                    });
+                }
+            } catch (error) {
+                // Skip invalid regex patterns
+            }
+        });
+    }
+
     // Show notification with results
     if (results.length > 0) {
-        showNotification(`🔍 Found ${results.length} matches highlighted in red`, 'success');
-        
-        // Don't auto-scroll so user can see all highlights
-        // Just show the search results list for navigation
+        showNotification(`🔍 Found ${results.length} matches across all pages`, 'success');
+
+        // If the first result is on a different page, ask user if they want to jump to it
+        if (results[0].page !== currentPage) {
+            setTimeout(() => {
+                showNotification(`📄 First result is on page ${results[0].page}. Click on a result to navigate.`, 'info');
+            }, 2000);
+        }
     } else {
-        showNotification(`❌ No matches found for "${searchTerm}"`, 'error');
+        showNotification(`❌ No matches found for "${searchTerm}" in entire story`, 'error');
     }
-    
+
     displaySearchResults(results, searchTerm);
+
+    // Highlight matches on current page if any
+    highlightCurrentPageMatches(searchTerm, results);
 }
 
 function clearSearch() {
-    
+
     if (searchInput) {
         searchInput.value = '';
     }
-    
+
     if (searchResults) {
         searchResults.innerHTML = '';
     }
-    
+
     clearPreviousHighlights();
     showNotification('🗑️ Search cleared', 'success');
 }
@@ -1762,7 +2704,7 @@ function clearSearch() {
 function clearPreviousHighlights() {
     var storyContent = document.getElementById('storyContent');
     if (!storyContent) return;
-    
+
     var highlights = storyContent.querySelectorAll('.search-highlight');
     highlights.forEach(highlight => {
         var parent = highlight.parentNode;
@@ -1778,62 +2720,316 @@ function displaySearchResults(results, searchTerm) {
         searchResults.innerHTML = '<div class="search-result-item">No results found</div>';
         return;
     }
-    
+
     var html = '<div class="search-result-item"><strong>' + results.length + ' result(s) found for "' + escapeHtml(searchTerm) + '"</strong></div>';
-    
+
+    // Calculate per-page occurrence indices
+    const pageOccurrenceCounts = {};
+
     results.forEach((result, index) => {
-        html += '<div class="search-result-item" onclick="scrollToSearchResult(' + result.paragraph + ')">' +
-                (index + 1) + '. ...' + escapeHtml(result.context) + '...' +
+        // Handle both new format (with page numbers) and old format
+        var pageInfo = result.page ? `Page ${result.page}: ` : '';
+
+        if (result.page) {
+            // Calculate the occurrence index within this specific page
+            if (!pageOccurrenceCounts[result.page]) {
+                pageOccurrenceCounts[result.page] = 0;
+            }
+            const pageOccurrenceIndex = pageOccurrenceCounts[result.page];
+            pageOccurrenceCounts[result.page]++;
+
+            var clickHandler = `navigateToSearchResult(${result.page}, ${pageOccurrenceIndex})`;
+        } else {
+            var clickHandler = `scrollToSearchResult(${result.paragraph})`;
+        }
+
+        html += '<div class="search-result-item" onclick="' + clickHandler + '">' +
+                (index + 1) + '. ' + pageInfo + '...' + escapeHtml(result.context) + '...' +
                 '</div>';
     });
-    
+
     searchResults.innerHTML = html;
 }
 
 function scrollToSearchResult(paragraphIndex) {
-    
     var storyContent = document.getElementById('storyContent');
     if (!storyContent) {
         return;
     }
-    
+
     var paragraphs = storyContent.querySelectorAll('p');
-    
+
     if (paragraphs[paragraphIndex]) {
-        paragraphs[paragraphIndex].scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        });
-        
+        // First, check if there are highlighted search terms in this paragraph
+        const searchHighlight = paragraphs[paragraphIndex].querySelector('.search-highlight');
+
+        if (searchHighlight) {
+            // Scroll to the specific highlighted word
+            searchHighlight.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        } else {
+            // Fallback to scrolling to the paragraph
+            paragraphs[paragraphIndex].scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+
         // Add temporary visual indicator
         var paragraph = paragraphs[paragraphIndex];
         paragraph.style.border = '2px solid #ff6b6b';
         paragraph.style.borderRadius = '8px';
         paragraph.style.padding = '10px';
-        
+
         // Remove indicator after 3 seconds
         setTimeout(() => {
             paragraph.style.border = '';
             paragraph.style.borderRadius = '';
             paragraph.style.padding = '';
         }, 3000);
-        
+
         showNotification('📍 Jumped to search result', 'success');
     } else {
         showNotification('❌ Search result not found', 'error');
     }
 }
 
+// Function to highlight matches on the current page
+function highlightCurrentPageMatches(searchTerm, allResults) {
+    const currentPageResults = allResults.filter(result => result.page === currentPage);
+
+    if (currentPageResults.length === 0) return;
+
+    const storyContent = document.getElementById('storyContent');
+    if (!storyContent) return;
+
+    const paragraphs = storyContent.querySelectorAll('p');
+    const escapedTerm = escapeRegExp(searchTerm);
+
+    paragraphs.forEach(paragraph => {
+        const text = paragraph.textContent;
+        try {
+            const regex = new RegExp(escapedTerm, 'gi');
+            if (text.match(regex)) {
+                const highlightedText = text.replace(regex, '<span class="search-highlight" style="background: linear-gradient(45deg, #ff0000, #ff6b6b) !important; color: #ffffff !important; padding: 3px 6px !important; border-radius: 6px !important; font-weight: 900 !important; box-shadow: 0 2px 8px rgba(255, 0, 0, 0.5) !important; border: 2px solid #ffffff !important;">$&</span>');
+                paragraph.innerHTML = highlightedText;
+            }
+        } catch (error) {
+            // Skip invalid regex patterns
+        }
+    });
+}
+
+// Function to navigate to a search result on a specific page
+function navigateToSearchResult(targetPage, resultIndex) {
+    const searchTerm = searchInput.value.trim();
+    if (!searchTerm) return;
+
+    // Clear any existing highlights first
+    clearPreviousHighlights();
+
+    if (targetPage !== currentPage) {
+        // Navigate to the target page first
+        displayPage(targetPage);
+
+        // Wait longer for page content to be fully ready, then highlight the search term
+        setTimeout(() => {
+            waitForStoryContentReady(() => {
+                // Additional small delay to ensure DOM is fully rendered
+                setTimeout(() => {
+                    highlightAndScrollToResult(resultIndex, searchTerm);
+                    showNotification(`📍 Jumped to page ${targetPage} search result`, 'success');
+                }, 200);
+            }, 3000); // Increased timeout
+        }, 500); // Initial delay for page navigation
+    } else {
+        // Same page, highlight and scroll to the specific result
+        highlightAndScrollToResult(resultIndex, searchTerm);
+        showNotification('📍 Jumped to search result', 'success');
+    }
+}
+
+// Helper function to wait for story content to be ready
+function waitForStoryContentReady(callback, timeout = 3000) {
+    const startTime = Date.now();
+    let checkCount = 0;
+
+    function checkReady() {
+        const storyContent = document.getElementById('storyContent');
+        const paragraphs = storyContent ? storyContent.querySelectorAll('p') : [];
+        const hasContent = storyContent && paragraphs.length > 0;
+        
+        checkCount++;
+
+        if (hasContent && checkCount > 3) { // Ensure multiple checks pass
+            // Content is ready and stable, execute callback
+            callback();
+        } else if (Date.now() - startTime < timeout) {
+            // Keep checking with longer intervals for stability
+            setTimeout(checkReady, 100);
+        } else {
+            // Timeout reached, execute callback anyway
+            console.warn('Story content readiness check timed out, proceeding anyway');
+            callback();
+        }
+    }
+
+    checkReady();
+}
+
+// Helper function to highlight search terms and scroll to specific result
+function highlightAndScrollToResult(resultIndex, searchTerm) {
+    if (!searchTerm) return;
+
+    const storyContent = document.getElementById('storyContent');
+    if (!storyContent) return;
+
+    const paragraphs = storyContent.querySelectorAll('p');
+    if (paragraphs.length === 0) {
+        console.warn('No paragraphs found in story content');
+        return;
+    }
+
+    const escapedTerm = escapeRegExp(searchTerm);
+    let allHighlights = [];
+    let matchCount = 0;
+
+    // Highlight all matches and collect them in order
+    paragraphs.forEach((paragraph, paragraphIndex) => {
+        const text = paragraph.textContent;
+        try {
+            const regex = new RegExp(escapedTerm, 'gi');
+            const matches = text.match(regex);
+            
+            if (matches) {
+                // Replace text with highlighted version
+                const highlightedText = text.replace(regex, '<span class="search-highlight" data-match-index="' + matchCount + '" style="background: linear-gradient(45deg, #ff0000, #ff6b6b) !important; color: #ffffff !important; padding: 3px 6px !important; border-radius: 6px !important; font-weight: 900 !important; box-shadow: 0 2px 8px rgba(255, 0, 0, 0.5) !important; border: 2px solid #ffffff !important;">$&</span>');
+                paragraph.innerHTML = highlightedText;
+
+                // Collect highlights from this paragraph
+                const paragraphHighlights = paragraph.querySelectorAll('.search-highlight');
+                paragraphHighlights.forEach(highlight => {
+                    highlight.setAttribute('data-paragraph', paragraphIndex);
+                    highlight.setAttribute('data-global-index', allHighlights.length);
+                    allHighlights.push(highlight);
+                });
+
+                matchCount++;
+            }
+        } catch (error) {
+            console.warn('Regex error:', error);
+        }
+    });
+
+    console.log(`Found ${allHighlights.length} highlights, looking for index ${resultIndex}`);
+
+    // Scroll to the specific result based on index
+    if (allHighlights.length > 0) {
+        // Ensure resultIndex is within bounds, default to 0 if invalid
+        const safeIndex = Math.max(0, Math.min(resultIndex || 0, allHighlights.length - 1));
+        const targetHighlight = allHighlights[safeIndex];
+
+        if (targetHighlight) {
+            console.log(`Scrolling to highlight ${safeIndex} of ${allHighlights.length}`);
+            
+            // Scroll to the target highlight with proper timing
+            setTimeout(() => {
+                targetHighlight.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest'
+                });
+
+                // Add temporary focus indicator to the target highlight
+                targetHighlight.style.outline = '4px solid #00ff00 !important';
+                targetHighlight.style.outlineOffset = '3px !important';
+                targetHighlight.style.zIndex = '1000 !important';
+                
+                setTimeout(() => {
+                    targetHighlight.style.outline = '';
+                    targetHighlight.style.outlineOffset = '';
+                    targetHighlight.style.zIndex = '';
+                }, 3000);
+            }, 100);
+        } else {
+            console.warn('Target highlight not found');
+        }
+    } else {
+        console.warn('No highlights found for search term:', searchTerm);
+        // Fallback: scroll to top of story content
+        storyContent.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+
 // Export to global scope for inline onclick handlers
 window.scrollToSearchResult = scrollToSearchResult;
+window.navigateToSearchResult = navigateToSearchResult;
 
-// Handle visibility change (pause music when tab is not active)
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden && !audioPlayer.paused) {
-        // Optionally pause music when tab is not visible
-        // audioPlayer.pause();
+// Function to load story from card click
+function loadStoryFromCard(storyFileOrId) {
+    // Handle both filename format (e.g., 'bissash.txt') and ID format (e.g., 'bissash')
+    let storyFile = storyFileOrId;
+
+    // If it doesn't end with .txt, try to find it in the database by ID
+    if (!storyFileOrId.endsWith('.txt')) {
+        // Look for story by ID
+        const foundStory = Object.keys(storyDatabase).find(filename => {
+            return storyDatabase[filename].id === storyFileOrId;
+        });
+
+        if (foundStory) {
+            storyFile = foundStory;
+        } else {
+            storyFile = storyFileOrId + '.txt'; // fallback
+        }
     }
-});
+
+    // Check if the story exists in the database
+    if (storyDatabase[storyFile]) {
+        // Switch to reader view first
+        showReaderView();
+        // Then load the story
+        loadStory(storyFile);
+        // Update cover image in reader
+        updateReaderCoverImage(storyFile);
+    } else {
+        showNotification('❌ Story not found', 'error');
+        console.error('Story not found:', storyFileOrId, 'Tried:', storyFile);
+    }
+}
+
+// Ensure functions are available globally for HTML onclick handlers immediately
+window.loadStoryFromCard = loadStoryFromCard;
+window.loadStoryFromSuggestion = loadStoryFromSuggestion;
+window.returnToLibrary = returnToLibrary;
+window.displayPage = displayPage;
+window.scrollToSearchResult = scrollToSearchResult;
+
+// Also ensure they're available immediately after function definition
+if (typeof window !== 'undefined') {
+    window.loadStoryFromCard = loadStoryFromCard;
+    window.loadStoryFromSuggestion = loadStoryFromSuggestion;
+}
+
+
+// Also ensure they're available immediately after function definition
+if (typeof window !== 'undefined') {
+    window.loadStoryFromCard = loadStoryFromCard;
+    window.loadStoryFromSuggestion = loadStoryFromSuggestion;
+}
+
+// Ensure all functions are globally available for HTML onclick handlers
+window.loadStoryFromCard = loadStoryFromCard;
+window.loadStoryFromSuggestion = loadStoryFromSuggestion;
+window.returnToLibrary = returnToLibrary;
+window.displayPage = displayPage;
+window.scrollToSearchResult = scrollToSearchResult;
+window.closeNotification = closeNotification;
 
 // === OFFLINE READING SUPPORT ===
 
@@ -1846,9 +3042,9 @@ async function initializeOfflineSupport() {
             serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js', {
                 scope: '/'
             });
-            
+
             console.log('Service Worker registered successfully');
-            
+
             // Listen for service worker updates
             serviceWorkerRegistration.addEventListener('updatefound', () => {
                 const newWorker = serviceWorkerRegistration.installing;
@@ -1861,17 +3057,17 @@ async function initializeOfflineSupport() {
                 }
             });
         }
-        
+
         // Setup online/offline event listeners
         window.addEventListener('online', handleOnlineStatusChange);
         window.addEventListener('offline', handleOnlineStatusChange);
-        
+
         // Initialize offline status
         handleOnlineStatusChange();
-        
+
         // Load cached stories list
         loadCachedStoriesList();
-        
+
     } catch (error) {
         console.warn('Failed to initialize offline support:', error);
     }
@@ -1881,7 +3077,7 @@ async function initializeOfflineSupport() {
 function handleOnlineStatusChange() {
     isOnline = navigator.onLine;
     updateOfflineIndicator();
-    
+
     if (isOnline) {
         showNotification('🌐 Back online!', 'success');
     } else {
@@ -1900,13 +3096,13 @@ function setupOfflineIndicators() {
             <i class="fas fa-wifi"></i>
             <span class="status-text">Online</span>
         `;
-        
+
         // Add to navigation
         const navRight = document.querySelector('.nav-right');
         if (navRight) {
             navRight.appendChild(offlineIndicator);
         }
-        
+
         // Add offline indicator styles if not present
         if (!document.querySelector('#offlineIndicatorStyles')) {
             const style = document.createElement('style');
@@ -1924,24 +3120,24 @@ function setupOfflineIndicators() {
                     transition: all 0.3s ease;
                     cursor: pointer;
                 }
-                
+
                 .offline-indicator.offline {
                     background: rgba(255, 107, 107, 0.2);
                     border-color: rgba(255, 107, 107, 0.4);
                     color: #ff6b6b;
                 }
-                
+
                 .offline-indicator.online {
                     background: rgba(76, 175, 80, 0.2);
                     border-color: rgba(76, 175, 80, 0.4);
                     color: #4caf50;
                 }
-                
+
                 .offline-indicator:hover {
                     transform: translateY(-1px);
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 }
-                
+
                 @media (max-width: 768px) {
                     .offline-indicator .status-text {
                         display: none;
@@ -1950,13 +3146,13 @@ function setupOfflineIndicators() {
             `;
             document.head.appendChild(style);
         }
-        
+
         // Add click handler for offline indicator
         offlineIndicator.addEventListener('click', showOfflineStatus);
-        
+
         // Initial update
         updateOfflineIndicator();
-        
+
     } catch (error) {
         console.warn('Failed to setup offline indicators:', error);
     }
@@ -1965,10 +3161,10 @@ function setupOfflineIndicators() {
 // Update offline indicator appearance
 function updateOfflineIndicator() {
     if (!offlineIndicator) return;
-    
+
     const icon = offlineIndicator.querySelector('i');
     const text = offlineIndicator.querySelector('.status-text');
-    
+
     if (isOnline) {
         offlineIndicator.className = 'offline-indicator online';
         icon.className = 'fas fa-wifi';
@@ -1986,17 +3182,17 @@ function updateOfflineIndicator() {
 function showOfflineStatus() {
     const cachedCount = cachedStories.size;
     const totalStories = Object.keys(storyDatabase).length;
-    
+
     let message = isOnline ? 
         `🌐 Online - All ${totalStories} stories available` :
         `📴 Offline - ${cachedCount}/${totalStories} stories cached`;
-    
+
     if (!isOnline && cachedCount > 0) {
         message += `\n\nCached stories:\n${Array.from(cachedStories).join(', ')}`;
     } else if (!isOnline && cachedCount === 0) {
         message += `\n\nNo stories cached yet. Read stories while online to cache them.`;
     }
-    
+
     showNotification(message, isOnline ? 'success' : 'warning');
 }
 
@@ -2006,23 +3202,23 @@ async function cacheStoryForOffline(storyFile) {
         console.warn('Service worker not available for caching');
         return false;
     }
-    
+
     try {
         const storyUrl = `/stories/${storyFile}`;
-        
+
         // Send message to service worker to cache the story
         const messageChannel = new MessageChannel();
         const response = await new Promise((resolve) => {
             messageChannel.port1.onmessage = (event) => {
                 resolve(event.data);
             };
-            
+
             serviceWorkerRegistration.active.postMessage({
                 action: 'CACHE_STORY',
                 data: { url: storyUrl }
             }, [messageChannel.port2]);
         });
-        
+
         if (response.success) {
             cachedStories.add(storyFile);
             saveCachedStoriesList();
@@ -2031,7 +3227,7 @@ async function cacheStoryForOffline(storyFile) {
         } else {
             throw new Error(response.error);
         }
-        
+
     } catch (error) {
         console.error('Failed to cache story:', error);
         showNotification('❌ Failed to cache story for offline reading', 'error');
@@ -2087,7 +3283,7 @@ function withErrorRecovery(operation, fallback = null, context = 'operation') {
             }
         } catch (error) {
             console.error(`Error in ${context}:`, error);
-            
+
             if (fallback && typeof fallback === 'function') {
                 try {
                     return await fallback(...args);
@@ -2098,7 +3294,7 @@ function withErrorRecovery(operation, fallback = null, context = 'operation') {
             } else {
                 showNotification(`❌ ${context} failed`, 'error');
             }
-            
+
             return null;
         }
     };
@@ -2111,7 +3307,7 @@ function safeDOM(operation, element, context = 'DOM operation') {
             console.warn(`${context}: Element not found`);
             return false;
         }
-        
+
         return operation(element);
     } catch (error) {
         console.error(`${context} error:`, error);
@@ -2130,7 +3326,7 @@ const safeStorage = {
             return defaultValue;
         }
     },
-    
+
     set: (key, value) => {
         try {
             localStorage.setItem(key, JSON.stringify(value));
@@ -2141,7 +3337,7 @@ const safeStorage = {
             return false;
         }
     },
-    
+
     remove: (key) => {
         try {
             localStorage.removeItem(key);
@@ -2160,7 +3356,7 @@ class NetworkManager {
         this.maxRetries = 3;
         this.baseDelay = 1000;
     }
-    
+
     async fetchWithRetry(url, options = {}) {
         for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
             try {
@@ -2168,28 +3364,28 @@ class NetworkManager {
                     ...options,
                     signal: AbortSignal.timeout(10000) // 10 second timeout
                 });
-                
+
                 if (response.ok) {
                     return response;
                 }
-                
+
                 if (response.status >= 400 && response.status < 500) {
                     // Client error, don't retry
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+
                 // Server error, retry
                 throw new Error(`Server error: ${response.status}`);
-                
+
             } catch (error) {
                 if (attempt === this.maxRetries) {
                     throw error;
                 }
-                
+
                 if (error.name === 'AbortError') {
                     throw new Error('Request timeout');
                 }
-                
+
                 // Exponential backoff
                 const delay = this.baseDelay * Math.pow(2, attempt);
                 await new Promise(resolve => setTimeout(resolve, delay));
@@ -2200,101 +3396,153 @@ class NetworkManager {
 
 const networkManager = new NetworkManager();
 
-// Enhanced notification system
-function showNotification(message, type = 'info', duration = 4000) {
+// Enhanced Professional Notification System
+function showNotification(message, type = 'info', duration = 4000, options = {}) {
     try {
-        // Remove existing notifications to prevent spam
-        const existingNotifications = document.querySelectorAll('.golpo-notification');
-        existingNotifications.forEach(notification => {
-            notification.remove();
-        });
-        
-        const notification = document.createElement('div');
-        notification.className = `golpo-notification notification-${type}`;
-        notification.textContent = message;
-        
-        // Add styles if not present
-        if (!document.querySelector('#notificationStyles')) {
-            const style = document.createElement('style');
-            style.id = 'notificationStyles';
-            style.textContent = `
-                .golpo-notification {
-                    position: fixed;
-                    top: 80px;
-                    right: 20px;
-                    z-index: 10000;
-                    padding: 12px 20px;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    max-width: 350px;
-                    word-wrap: break-word;
-                    animation: slideInRight 0.3s ease-out;
-                }
-                
-                .notification-success {
-                    background: rgba(76, 175, 80, 0.9);
-                    color: white;
-                }
-                
-                .notification-error {
-                    background: rgba(244, 67, 54, 0.9);
-                    color: white;
-                }
-                
-                .notification-warning {
-                    background: rgba(255, 152, 0, 0.9);
-                    color: white;
-                }
-                
-                .notification-info {
-                    background: rgba(33, 150, 243, 0.9);
-                    color: white;
-                }
-                
-                @keyframes slideInRight {
-                    from {
-                        transform: translateX(100%);
-                        opacity: 0;
+        console.log('Showing notification:', message, type);
+
+        // Remove existing notifications if not stackable
+        if (!options.stackable) {
+            const existingNotifications = document.querySelectorAll('.golpo-notification');
+            existingNotifications.forEach(notification => {
+                notification.style.animation = 'toastOut 150ms ease-out';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
                     }
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-                
-                @media (max-width: 768px) {
-                    .golpo-notification {
-                        top: 70px;
-                        left: 20px;
-                        right: 20px;
-                        max-width: none;
-                    }
-                }
-            `;
-            document.head.appendChild(style);
+                }, 150);
+            });
         }
+
+        const notification = document.createElement('div');
+        const notificationId = 'notification-' + Date.now() + Math.random().toString(36).substr(2, 9);
+        notification.id = notificationId;
+        notification.className = `golpo-notification notification-${type}`;
         
-        document.body.appendChild(notification);
+        // Enhanced notification content with icon and actions
+        const icon = getNotificationIcon(type);
+        const actionButtons = options.actions ? createActionButtons(options.actions, notificationId) : '';
         
-        // Auto-remove after duration
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.style.animation = 'slideInRight 0.3s ease-out reverse';
-                setTimeout(() => notification.remove(), 300);
+        notification.innerHTML = `
+            <div class="notification-icon">
+                <i class="${icon}"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-message">${message}</div>
+                ${options.subtitle ? `<div class="notification-subtitle">${options.subtitle}</div>` : ''}
+            </div>
+            ${actionButtons}
+            <div class="notification-close" onclick="closeNotification('${notificationId}')">
+                <i class="fas fa-times"></i>
+            </div>
+        `;
+
+        // Create notification stack container if it doesn't exist
+        let notificationStack = document.querySelector('.notification-stack');
+        if (!notificationStack) {
+            notificationStack = document.createElement('div');
+            notificationStack.className = 'notification-stack';
+            document.body.appendChild(notificationStack);
+            console.log('Created notification stack');
+        }
+
+        notificationStack.appendChild(notification);
+        console.log('Added notification to stack');
+
+        // Force a reflow to ensure the element is rendered
+        notification.offsetHeight;
+
+        // Auto-remove after duration (unless persistent)
+        if (!options.persistent && duration > 0) {
+            setTimeout(() => {
+                closeNotification(notificationId);
+            }, duration);
+        }
+
+        // Add click handler to close (but not for the close button)
+        notification.addEventListener('click', (e) => {
+            if (!e.target.closest('.notification-close') && !e.target.closest('.notification-action') && !options.persistent) {
+                closeNotification(notificationId);
             }
-        }, duration);
-        
+        });
+
+        console.log('Notification created successfully:', notificationId);
+        return notificationId;
+
     } catch (error) {
         console.error('Failed to show notification:', error);
         // Fallback to alert for critical messages
         if (type === 'error') {
             alert(message);
         }
+        return null;
     }
+}
+
+// Add a test notification function for debugging
+function testNotification() {
+    console.log('Testing notification...');
+    showNotification('🔧 Test notification - System is working!', 'success', 5000);
+    console.log('Test notification called');
+}
+
+// Test notification on startup complete (removed automatic test)
+// You can call testNotification() from the console to test
+
+// Helper function to get notification icons
+function getNotificationIcon(type) {
+    const icons = {
+        success: 'fas fa-check-circle',
+        error: 'fas fa-exclamation-triangle',
+        warning: 'fas fa-exclamation-circle',
+        info: 'fas fa-info-circle',
+        music: 'fas fa-music'
+    };
+    return icons[type] || icons.info;
+}
+
+// Helper function to create action buttons
+function createActionButtons(actions, notificationId) {
+    if (!actions || actions.length === 0) return '';
+    
+    return `<div class="notification-actions">
+        ${actions.map(action => 
+            `<button class="notification-action" onclick="${action.callback}('${notificationId}')">${action.label}</button>`
+        ).join('')}
+    </div>`;
+}
+
+// Function to close notification
+function closeNotification(notificationId) {
+    console.log('Closing notification:', notificationId);
+    const notification = document.getElementById(notificationId);
+    if (notification) {
+        notification.style.animation = 'toastOut 150ms ease-out';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+                console.log('Notification removed:', notificationId);
+            }
+            // Clean up stack if empty
+            const stack = document.querySelector('.notification-stack');
+            if (stack && stack.children.length === 0) {
+                stack.remove();
+                console.log('Notification stack cleaned up');
+            }
+        }, 150);
+    } else {
+        console.warn('Notification not found for closing:', notificationId);
+    }
+}
+
+// Music-specific notification function
+function showMusicNotification(message, songTitle, options = {}) {
+    return showNotification(message, 'music', options.duration || 3000, {
+        subtitle: songTitle ? `♪ ${songTitle}` : '',
+        stackable: options.stackable || false,
+        persistent: options.persistent || false,
+        ...options
+    });
 }
 
 // === PERFORMANCE OPTIMIZATION SYSTEM ===
@@ -2306,7 +3554,7 @@ function getCachedElement(selector, useCache = true) {
     if (!useCache) {
         return document.querySelector(selector);
     }
-    
+
     if (!elementCache.has(selector)) {
         const element = document.querySelector(selector);
         if (element) {
@@ -2314,14 +3562,14 @@ function getCachedElement(selector, useCache = true) {
         }
         return element;
     }
-    
+
     const cached = elementCache.get(selector);
-    
+
     // Verify element is still in DOM
     if (cached && document.contains(cached)) {
         return cached;
     }
-    
+
     // Re-cache if element was removed
     const fresh = document.querySelector(selector);
     if (fresh) {
@@ -2329,7 +3577,7 @@ function getCachedElement(selector, useCache = true) {
     } else {
         elementCache.delete(selector);
     }
-    
+
     return fresh;
 }
 
@@ -2360,30 +3608,81 @@ function throttle(func, limit) {
     };
 }
 
-// Performance-optimized scroll handler
+// Performance-optimized scroll handler (updated for per-page progress)
 const optimizedScrollHandler = throttle(() => {
     // Update reading progress with cached elements
     try {
-        const storyContent = getCachedElement('#storyContent');
         const progressFill = getCachedElement('#progressFill');
         const progressPercentage = getCachedElement('#progressPercentage');
-        
-        if (!storyContent || !progressFill || !progressPercentage) return;
-        
-        const scrollTop = window.pageYOffset;
-        const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
-        
-        if (documentHeight <= 0) return;
-        
-        const progress = Math.min(100, Math.max(0, (scrollTop / documentHeight) * 100));
-        const roundedProgress = Math.round(progress);
-        
-        progressFill.style.width = `${roundedProgress}%`;
-        progressPercentage.textContent = `${roundedProgress}%`;
-        
-        // Auto-save scroll position for current story
-        if (currentStory) {
-            safeStorage.set(`scroll_${currentStory}`, scrollTop);
+
+        if (!progressFill || !progressPercentage) return;
+
+        // For paginated content, show progress within current page (1-100% per page)
+        if (storyPages.length > 0 && totalPages > 0) {
+            // Calculate scroll progress within the current page content
+            const storyContent = document.getElementById('storyContent');
+            if (storyContent) {
+                const contentRect = storyContent.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const scrollTop = window.pageYOffset;
+
+                // Calculate visible area of story content
+                const contentTop = contentRect.top + scrollTop;
+                const contentHeight = contentRect.height;
+                const contentBottom = contentTop + contentHeight;
+
+                // Calculate how much of the current page content is viewed
+                let pageProgress = 0;
+                if (scrollTop >= contentTop) {
+                    const scrolledIntoContent = scrollTop - contentTop;
+                    const maxScrollInContent = Math.max(0, contentHeight - viewportHeight);
+
+                    if (maxScrollInContent > 0) {
+                        pageProgress = Math.min(100, (scrolledIntoContent / maxScrollInContent) * 100);
+                    } else {
+                        pageProgress = scrollTop >= contentBottom - viewportHeight ? 100 : 0;
+                    }
+                }
+
+                const roundedProgress = Math.round(Math.max(0, Math.min(100, pageProgress)));
+
+                progressFill.style.width = `${roundedProgress}%`;
+                progressPercentage.textContent = `${roundedProgress}%`;
+
+                // Update focus exit button progress if in focus mode
+                if (isFocusMode) {
+                    updateFocusExitButtonProgress();
+                }
+            }
+
+            // Auto-save current page and scroll position for current story
+            if (currentStory) {
+                safeStorage.set(`page_${currentStory}`, currentPage);
+                // Debounce the reading session save to avoid excessive calls
+                if (window.saveSessionTimeout) {
+                    clearTimeout(window.saveSessionTimeout);
+                }
+                window.saveSessionTimeout = setTimeout(() => {
+                    saveReadingSession(currentStory, window.pageYOffset);
+                }, 1000);
+            }
+        } else {
+            // Fallback to scroll-based progress for non-paginated content
+            const scrollTop = window.pageYOffset;
+            const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+            if (documentHeight <= 0) return;
+
+            const progress = Math.min(100, Math.max(0, (scrollTop / documentHeight) * 100));
+            const roundedProgress = Math.round(progress);
+
+            progressFill.style.width = `${roundedProgress}%`;
+            progressPercentage.textContent = `${roundedProgress}%`;
+
+            // Auto-save scroll position for current story
+            if (currentStory) {
+                safeStorage.set(`scroll_${currentStory}`, scrollTop);
+            }
         }
     } catch (error) {
         console.warn('Error in scroll handler:', error);
@@ -2396,19 +3695,19 @@ class ContentManager {
         this.maxCachedStories = 3;
         this.storyContentCache = new Map();
     }
-    
+
     cacheStoryContent(storyId, content) {
         if (this.storyContentCache.size >= this.maxCachedStories) {
             const oldestKey = this.storyContentCache.keys().next().value;
             this.storyContentCache.delete(oldestKey);
         }
-        
+
         this.storyContentCache.set(storyId, {
             content,
             timestamp: Date.now()
         });
     }
-    
+
     getCachedStoryContent(storyId) {
         const cached = this.storyContentCache.get(storyId);
         if (cached) {
@@ -2418,7 +3717,7 @@ class ContentManager {
         }
         return null;
     }
-    
+
     clearCache() {
         this.storyContentCache.clear();
     }
@@ -2431,20 +3730,20 @@ function initializePerformanceOptimizations() {
     try {
         // Add optimized event listeners
         window.addEventListener('scroll', optimizedScrollHandler, { passive: true });
-        
+
         // Optimize resize handling
         const optimizedResizeHandler = debounce(() => {
             elementCache.clear();
             updateResponsiveElements();
         }, 250);
-        
+
         window.addEventListener('resize', optimizedResizeHandler);
-        
+
         // Initial setup
         updateResponsiveElements();
-        
+
         console.log('Performance optimizations initialized');
-        
+
     } catch (error) {
         console.warn('Failed to initialize performance optimizations:', error);
     }
@@ -2468,13 +3767,13 @@ function performCleanup() {
     try {
         contentManager.clearCache();
         elementCache.clear();
-        
+
         // Clear old scroll positions
         const scrollKeys = Object.keys(localStorage).filter(key => key.startsWith('scroll_'));
         if (scrollKeys.length > 10) {
             scrollKeys.slice(0, -5).forEach(key => localStorage.removeItem(key));
         }
-        
+
     } catch (error) {
         console.warn('Error during cleanup:', error);
     }

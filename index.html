@@ -145,6 +145,7 @@
     <!-- Focus Mode Exit Button -->
     <button id="focusExitBtn" class="focus-exit-btn" title="Exit Focus Mode" style="display: none;">
         <i class="fas fa-times"></i>
+        <span class="progress-text">0%</span>
     </button>
 
     <!-- Main Content Area -->
@@ -225,16 +226,7 @@
                 </div>
 
                 <footer class="story-footer">
-                    <div class="story-navigation">
-                        <button class="nav-btn prev-btn" id="prevStoryBtn" onclick="loadPreviousStory()" disabled aria-label="Load previous story" title="Previous Story">
-                            <i class="fas fa-chevron-left"></i>
-                            <span>Previous Story</span>
-                        </button>
-                        <button class="nav-btn next-btn" id="nextStoryBtn" onclick="loadNextStory()" disabled aria-label="Load next story" title="Next Story">
-                            <span>Next Story</span>
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
+                    <!-- Story navigation buttons removed - now only appear on last page of story -->
                 </footer>
             </article>
         </div>
@@ -273,100 +265,11 @@
             <div class="song-playlist">
                 <div class="playlist-header">
                     <div class="playlist-info">
-                        <div class="playlist-count">5 songs available</div>
+                        <div class="playlist-count" id="playlistCount">Loading songs...</div>
                     </div>
                 </div>
-                <div class="song-list">
-                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/orvJCBTodiY?autoplay=1&loop=1&playlist=orvJCBTodiY">
-                        <div class="song-play-btn">
-                            <i class="fas fa-play"></i>
-                        </div>
-                        <div class="song-cover">
-                            <div class="song-cover-placeholder">
-                                <i class="fas fa-star"></i>
-                            </div>
-                        </div>
-                        <div class="song-details">
-                            <div class="song-title">Tare ami chuye dekhini</div>
-                            <div class="song-artist">MBI FAVORITE</div>
-                        </div>
-                        <div class="song-duration">4:10</div>
-                        <div class="song-options">
-                            <i class="fas fa-heart song-like"></i>
-                        </div>
-                    </div>
-                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/vzvz0LtMrCQ?autoplay=1&loop=1&playlist=vzvz0LtMrCQ">
-                        <div class="song-play-btn">
-                            <i class="fas fa-play"></i>
-                        </div>
-                        <div class="song-cover">
-                            <div class="song-cover-placeholder">
-                                <i class="fas fa-music"></i>
-                            </div>
-                        </div>
-                        <div class="song-details">
-                            <div class="song-title">Qusad Einy</div>
-                            <div class="song-artist">Arabic Song</div>
-                        </div>
-                        <div class="song-duration">4:24</div>
-                        <div class="song-options">
-                            <i class="fas fa-heart song-like"></i>
-                        </div>
-                    </div>
-                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/kMU97_dBg_U?autoplay=1&loop=1&playlist=kMU97_dBg_U">
-                        <div class="song-play-btn">
-                            <i class="fas fa-play"></i>
-                        </div>
-                        <div class="song-cover">
-                            <div class="song-cover-placeholder">
-                                <i class="fas fa-music"></i>
-                            </div>
-                        </div>
-                        <div class="song-details">
-                            <div class="song-title">Batman ansak</div>
-                            <div class="song-artist">Arabic Song</div>
-                        </div>
-                        <div class="song-duration">3:15</div>
-                        <div class="song-options">
-                            <i class="fas fa-heart song-like"></i>
-                        </div>
-                    </div>
-                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/5s0Mujwa-r8?autoplay=1&loop=1&playlist=5s0Mujwa-r8">
-                        <div class="song-play-btn">
-                            <i class="fas fa-play"></i>
-                        </div>
-                        <div class="song-cover">
-                            <div class="song-cover-placeholder">
-                                <i class="fas fa-music"></i>
-                            </div>
-                        </div>
-                        <div class="song-details">
-                            <div class="song-title">Tumi chaile </div>
-                            <div class="song-artist">Bengala song</div>
-                        </div>
-                        <div class="song-duration">6:14</div>
-                        <div class="song-options">
-                            <i class="fas fa-heart song-like"></i>
-                        </div>
-                    </div>
-                    <div class="song-item music-card" data-music="https://www.youtube.com/embed/dvawR63DnqE?autoplay=1&loop=1&playlist=dvawR63DnqE">
-                        <div class="song-play-btn">
-                            <i class="fas fa-play"></i>
-                        </div>
-                        <div class="song-cover">
-                            <div class="song-cover-placeholder">
-                                <i class="fas fa-music"></i>
-                            </div>
-                        </div>
-                        <div class="song-details">
-                            <div class="song-title">Pal Pal x Jhol</div>
-                            <div class="song-artist">Hindi Mashup</div>
-                        </div>
-                        <div class="song-duration">4:51</div>
-                        <div class="song-options">
-                            <i class="fas fa-heart song-like"></i>
-                        </div>
-                    </div>
+                <div class="song-list" id="songList">
+                    <!-- Songs will be generated dynamically from JavaScript musicPlaylist array -->
                 </div>
             </div>
         </div>
