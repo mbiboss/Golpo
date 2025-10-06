@@ -189,6 +189,27 @@
                     </div>
                 </div>
 
+                <!-- Category Filter Section -->
+                <div class="category-filter-section" id="categoryFilterSection">
+                    <div class="category-filters">
+                        <button class="category-filter-btn active" data-category="all" onclick="filterByCategory('all')">
+                            <i class="fas fa-list"></i> All Stories
+                        </button>
+                        <button class="category-filter-btn" data-category="Romance" onclick="filterByCategory('Romance')">
+                            <i class="fas fa-heart"></i> Romance
+                        </button>
+                        <button class="category-filter-btn" data-category="Horror" onclick="filterByCategory('Horror')">
+                            <i class="fas fa-ghost"></i> Horror
+                        </button>
+                        <button class="category-filter-btn" data-category="Drama" onclick="filterByCategory('Drama')">
+                            <i class="fas fa-theater-masks"></i> Drama
+                        </button>
+                        <button class="category-filter-btn" data-category="Mystery" onclick="filterByCategory('Mystery')">
+                            <i class="fas fa-search"></i> Mystery
+                        </button>
+                    </div>
+                </div>
+
                 <div class="story-grid" data-stories="bissash,Obisaperonontochaya,Valobasha,upcoming">
                     <!-- Story cards will be automatically generated from JavaScript based on the data-stories attribute -->
                     <!-- To add new stories: 1) Add story metadata to storyDatabase in script.js, 2) Add story ID to data-stories above -->
@@ -202,6 +223,10 @@
                 <button class="back-btn" onclick="returnToLibrary()" aria-label="Return to story library" title="Back to Library">
                     <i class="fas fa-arrow-left"></i>
                     <span>Library</span>
+                </button>
+                <button class="toc-btn" id="tocBtn" onclick="toggleTOC()" aria-label="Table of Contents" title="Table of Contents" style="display: none;">
+                    <i class="fas fa-list-ul"></i>
+                    <span>Contents</span>
                 </button>
             </div>
 
@@ -298,3 +323,110 @@
     <script src="script.js" defer></script>
 </body>
 </html>
+
+
+    <!-- Reading Statistics Modal -->
+    <div class="selection-modal" id="statsModal">
+        <div class="modal-overlay" id="statsModalOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-chart-bar"></i> Reading Statistics</h3>
+                <button class="modal-close" id="closeStatsModal">&times;</button>
+            </div>
+            <div class="stats-container" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-book-reader"></i></div>
+                    <div class="stat-value" id="storiesRead">0</div>
+                    <div class="stat-label">Stories Completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-value" id="totalReadingTime">0h 0m</div>
+                    <div class="stat-label">Total Reading Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+                    <div class="stat-value" id="pagesRead">0</div>
+                    <div class="stat-label">Pages Read</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-fire"></i></div>
+                    <div class="stat-value" id="readingStreak">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table of Contents Modal -->
+    <div class="selection-modal" id="tocModal">
+        <div class="modal-overlay" id="tocModalOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-list-ul"></i> Table of Contents</h3>
+                <button class="modal-close" id="closeTocModal">&times;</button>
+            </div>
+            <div class="toc-container" id="tocContainer">
+                <p class="toc-empty english-text">No table of contents available for this story.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secret Analytics Dashboard -->
+    <div class="selection-modal" id="analyticsModal">
+        <div class="modal-overlay" id="analyticsModalOverlay"></div>
+        <div class="modal-content analytics-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-lock"></i> Secret Analytics Dashboard</h3>
+                <button class="modal-close" id="closeAnalyticsModal">&times;</button>
+            </div>
+            <div class="analytics-dashboard" id="analyticsDashboard">
+                <div class="analytics-section">
+                    <h4 class="analytics-title english-text">Reading Behavior</h4>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <div class="analytics-value" id="avgReadingSpeed">0</div>
+                            <div class="analytics-label">Words/Min</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-icon"><i class="fas fa-hourglass-half"></i></div>
+                            <div class="analytics-value" id="avgSessionTime">0</div>
+                            <div class="analytics-label">Avg Session</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="analytics-value" id="completionRate">0%</div>
+                            <div class="analytics-label">Completion Rate</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="analytics-section">
+                    <h4 class="analytics-title english-text">Preferences</h4>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-icon"><i class="fas fa-heart"></i></div>
+                            <div class="analytics-value" id="favCategory">-</div>
+                            <div class="analytics-label">Favorite Genre</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-icon"><i class="fas fa-palette"></i></div>
+                            <div class="analytics-value" id="favTheme">-</div>
+                            <div class="analytics-label">Preferred Theme</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-icon"><i class="fas fa-text-height"></i></div>
+                            <div class="analytics-value" id="favFontSize">100%</div>
+                            <div class="analytics-label">Font Size</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="analytics-section">
+                    <h4 class="analytics-title english-text">Activity Timeline</h4>
+                    <div class="analytics-timeline" id="analyticsTimeline">
+                        <p class="english-text" style="text-align: center; color: var(--text-muted);">Recent reading activity will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

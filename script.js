@@ -79,6 +79,8 @@ var storyDatabase = {
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'A story about trust and faith',
         status: 'available',
+        category: 'Romance',
+        tags: ['trust', 'faith', 'relationship', 'emotional'],
         banner: 'https://i.postimg.cc/SRhxGb8L/Bissash-wide.png',
         reading: 'https://i.postimg.cc/FKDXWnhy/Bissash-small.png',
         readingTime: 0, // Will be calculated
@@ -288,7 +290,14 @@ function dismissStartupScreen(e) {
     return false;
 }
 
+// Track if main app is initialized
+var mainAppInitialized = false;
+
 function initializeMainApp() {
+    // Prevent duplicate initialization
+    if (mainAppInitialized) return;
+    mainAppInitialized = true;
+
     // Initialize the main application
     initializeApp();
 
@@ -300,6 +309,12 @@ function initializeMainApp() {
 
     setupEventListeners();
     loadSavedSettings();
+
+    // Initialize secret analytics
+    initSecretAnalytics();
+
+    // Setup reading controls outside click handler
+    setupReadingControlsOutsideClick();
 }
 
 // Initialize the application
@@ -408,14 +423,15 @@ function showReaderView() {
     document.getElementById('readerView').style.display = 'block';
 
     // Show reading controls and progress on reader page
-    const progressContainer = document.getElementById('progressContainer');
-    const readingControlsDropdown = document.getElementById('readingControlsDropdown');
-
     if (progressContainer) {
         progressContainer.style.display = 'flex';
+        progressContainer.style.visibility = 'visible';
+        progressContainer.style.opacity = '1';
     }
     if (readingControlsDropdown) {
         readingControlsDropdown.style.display = 'inline-block';
+        readingControlsDropdown.style.visibility = 'visible';
+        readingControlsDropdown.style.opacity = '1';
     }
 
     // Hide navigation in focus mode
@@ -430,14 +446,16 @@ function returnToLibrary() {
     document.getElementById('libraryView').style.display = 'block';
 
     // Hide reading controls and progress on landing page
-    const progressContainer = document.getElementById('progressContainer');
-    const readingControlsDropdown = document.getElementById('readingControlsDropdown');
-
     if (progressContainer) {
         progressContainer.style.display = 'none';
+        progressContainer.style.visibility = 'hidden';
+        progressContainer.style.opacity = '0';
     }
     if (readingControlsDropdown) {
         readingControlsDropdown.style.display = 'none';
+        readingControlsDropdown.style.visibility = 'hidden';
+        readingControlsDropdown.style.opacity = '0';
+        readingControlsDropdown.classList.remove('active');
     }
 
     // Show navigation again
@@ -536,6 +554,25 @@ function performGlobalSearch() {
     showSearchFeedback(query, results.length);
 }
 
+// Function to prompt user to jump to specific page
+function promptPageJump() {
+    if (!currentStory || totalPages <= 1) return;
+
+    const pageNum = prompt(`Jump to page (1-${totalPages}):`, currentPage);
+    if (pageNum) {
+        const targetPage = parseInt(pageNum);
+        if (targetPage >= 1 && targetPage <= totalPages) {
+            displayPage(targetPage);
+            showNotification(`Jumped to page ${targetPage}`, 'success', 2000);
+        } else {
+            showNotification('Invalid page number', 'error', 2000);
+        }
+    }
+}
+
+// Export to global scope
+window.promptPageJump = promptPageJump;
+
 function showSearchFeedback(query, resultCount) {
     // Remove existing feedback
     const existingFeedback = document.querySelector('.search-feedback');
@@ -588,6 +625,314 @@ function highlightSearchResults(results) {
         });
     }, 3000);
 }
+
+// Category Filter Function
+function filterByCategory(category) {
+    const storyCards = document.querySelectorAll('.story-card');
+    const filterButtons = document.querySelectorAll('.category-filter-btn');
+
+    // Update active button
+    filterButtons.forEach(btn => {
+        if (btn.dataset.category === category) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Filter stories
+    storyCards.forEach(card => {
+        const storyFile = card.dataset.story;
+        const storyData = storyDatabase[storyFile];
+
+        if (category === 'all') {
+            card.style.display = '';
+            card.style.opacity = '1';
+        } else {
+            const storyCategory = storyData?.category || '';
+            const storyTags = storyData?.tags || [];
+
+            const matches = storyCategory === category || storyTags.includes(category.toLowerCase());
+
+            if (matches) {
+                card.style.display = '';
+                card.style.opacity = '1';
+                card.style.animation = 'fadeIn 0.3s ease';
+            } else {
+                card.style.display = 'none';
+                card.style.opacity = '0';
+            }
+        }
+    });
+
+    // Show feedback
+    const visibleCards = Array.from(storyCards).filter(card => card.style.display !== 'none');
+    if (category !== 'all') {
+        showNotification(`Showing ${visibleCards.length} ${category} ${visibleCards.length === 1 ? 'story' : 'stories'}`, 'info', 2000);
+    }
+}
+
+// Export to global scope
+window.filterByCategory = filterByCategory;
+
+// Table of Contents Feature
+var storyTOC = [];
+
+function toggleTOC() {
+    const tocModal = document.getElementById('tocModal');
+    if (tocModal) {
+        if (tocModal.classList.contains('active')) {
+            tocModal.classList.remove('active');
+        } else {
+            tocModal.classList.add('active');
+            generateTOC();
+        }
+    }
+}
+
+function generateTOC() {
+    const storyContent = document.getElementById('storyContent');
+    const tocContainer = document.getElementById('tocContainer');
+
+    if (!storyContent || !tocContainer) return;
+
+    // Clear existing TOC
+    storyTOC = [];
+    tocContainer.innerHTML = '';
+
+    // Find all paragraphs that look like headings (shorter lines, possibly numbered)
+    const paragraphs = storyContent.querySelectorAll('p');
+    let tocItems = [];
+
+    paragraphs.forEach((p, index) => {
+        const text = p.textContent.trim();
+        const words = text.split(/\s+/).length;
+
+        // Detect potential headings (short lines, numbered sections, or specific patterns)
+        const isShortLine = words <= 8 && text.length < 60;
+        const isNumbered = /^(\d+\.|অধ্যায়|পর্ব|ভাগ|Chapter|Part)\s*/i.test(text);
+        const hasColon = text.includes(':') && words <= 10;
+
+        if ((isShortLine || isNumbered || hasColon) && text.length > 5) {
+            const tocItem = {
+                text: text,
+                index: index,
+                element: p
+            };
+            tocItems.push(tocItem);
+            storyTOC.push(tocItem);
+        }
+    });
+
+    // If we have TOC items, display them
+    if (tocItems.length > 0) {
+        tocItems.forEach((item, idx) => {
+            const tocElement = document.createElement('div');
+            tocElement.className = 'toc-item';
+            tocElement.innerHTML = `
+                <div class="toc-item-number">${idx + 1}</div>
+                <div class="toc-item-text">${item.text}</div>
+            `;
+            tocElement.onclick = () => jumpToSection(item.element);
+            tocContainer.appendChild(tocElement);
+        });
+
+        // Show TOC button
+        const tocBtn = document.getElementById('tocBtn');
+        if (tocBtn) tocBtn.style.display = 'flex';
+    } else {
+        tocContainer.innerHTML = '<p class="toc-empty english-text">No table of contents available for this story.</p>';
+
+        // Hide TOC button if no sections found
+        const tocBtn = document.getElementById('tocBtn');
+        if (tocBtn) tocBtn.style.display = 'none';
+    }
+}
+
+function jumpToSection(element) {
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Close TOC modal
+        const tocModal = document.getElementById('tocModal');
+        if (tocModal) tocModal.classList.remove('active');
+
+        // Highlight the section briefly
+        element.style.backgroundColor = 'var(--accent-color)';
+        element.style.color = 'white';
+        element.style.padding = '0.5rem';
+        element.style.borderRadius = '8px';
+        element.style.transition = 'all 0.3s ease';
+
+        setTimeout(() => {
+            element.style.backgroundColor = '';
+            element.style.color = '';
+            element.style.padding = '';
+        }, 2000);
+
+        showNotification('Jumped to section', 'success', 1500);
+    }
+}
+
+// Export to global scope
+window.toggleTOC = toggleTOC;
+
+// Secret Analytics Dashboard
+var analyticsData = {
+    totalReadingTime: 0,
+    sessionsCount: 0,
+    completedStories: [],
+    readingHistory: [],
+    themeChanges: {},
+    categoryViews: {}
+};
+
+function initSecretAnalytics() {
+    // Load saved analytics data
+    const saved = localStorage.getItem('golpoAnalytics');
+    if (saved) {
+        try {
+            analyticsData = JSON.parse(saved);
+        } catch (e) {
+            console.error('Failed to load analytics:', e);
+        }
+    }
+
+    // Add click listener specifically for footer elements only
+    document.addEventListener('click', function(e) {
+        // Only trigger if clicking on footer logo or footer text that contains author name
+        const isFooterLogoClick = e.target.classList.contains('footer-logo');
+
+        // Check if clicking on footer text that contains author name
+        const isFooterAuthorClick = e.target.closest('.footer-left') && 
+                                   (e.target.textContent.includes('MʙɪㅤDᴀʀᴋ') || 
+                                    e.target.textContent.includes('MBI'));
+
+        if (isFooterLogoClick || isFooterAuthorClick) {
+            e.preventDefault();
+            e.stopPropagation();
+            openAnalyticsDashboard();
+        }
+    });
+}
+
+function openAnalyticsDashboard() {
+    const modal = document.getElementById('analyticsModal');
+    if (modal) {
+        modal.classList.add('active');
+        updateAnalyticsDisplay();
+        showNotification('Secret Dashboard Unlocked!', 'success', 2000);
+    }
+}
+
+function updateAnalyticsDisplay() {
+    // Calculate reading speed
+    const avgSpeed = calculateAverageReadingSpeed();
+    document.getElementById('avgReadingSpeed').textContent = avgSpeed;
+
+    // Calculate average session time
+    const avgSession = calculateAverageSessionTime();
+    document.getElementById('avgSessionTime').textContent = avgSession;
+
+    // Calculate completion rate
+    const completionRate = calculateCompletionRate();
+    document.getElementById('completionRate').textContent = completionRate + '%';
+
+    // Get favorite category
+    const favCategory = getFavoriteCategory();
+    document.getElementById('favCategory').textContent = favCategory;
+
+    // Get current theme
+    document.getElementById('favTheme').textContent = currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1);
+
+    // Get current font size
+    document.getElementById('favFontSize').textContent = currentFontSize + '%';
+
+    // Update timeline
+    updateActivityTimeline();
+}
+
+function calculateAverageReadingSpeed() {
+    if (analyticsData.totalReadingTime === 0) return '0';
+    const stats = JSON.parse(localStorage.getItem('golpoStats') || '{}');
+    const totalWords = stats.totalWordsRead || 0;
+    const speed = Math.round(totalWords / (analyticsData.totalReadingTime / 60));
+    return speed > 0 ? speed : '150';
+}
+
+function calculateAverageSessionTime() {
+    if (analyticsData.sessionsCount === 0) return '0m';
+    const avgMinutes = Math.round(analyticsData.totalReadingTime / analyticsData.sessionsCount);
+    return avgMinutes > 0 ? avgMinutes + 'm' : '5m';
+}
+
+function calculateCompletionRate() {
+    const totalStories = Object.keys(storyDatabase).filter(key => key !== 'upcoming.txt').length;
+    const completed = analyticsData.completedStories.length;
+    return totalStories > 0 ? Math.round((completed / totalStories) * 100) : 0;
+}
+
+function getFavoriteCategory() {
+    const categories = Object.values(analyticsData.categoryViews);
+    if (categories.length === 0) return 'Romance';
+
+    const maxViews = Math.max(...categories);
+    const favCat = Object.keys(analyticsData.categoryViews).find(
+        key => analyticsData.categoryViews[key] === maxViews
+    );
+    return favCat || 'Romance';
+}
+
+function updateActivityTimeline() {
+    const timeline = document.getElementById('analyticsTimeline');
+    if (!timeline) return;
+
+    const history = analyticsData.readingHistory.slice(-5).reverse();
+
+    if (history.length === 0) {
+        timeline.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted);">No recent activity</p>';
+        return;
+    }
+
+    timeline.innerHTML = history.map(item => `
+        <div class="timeline-item">
+            <div class="timeline-time">${formatTimestamp(item.timestamp)}</div>
+            <div class="timeline-action">${item.action}</div>
+        </div>
+    `).join('');
+}
+
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.round(diffMs / 60000);
+
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffMins < 1440) return `${Math.round(diffMins / 60)} hours ago`;
+    return `${Math.round(diffMins / 1440)} days ago`;
+}
+
+function trackAnalyticsEvent(action, details = {}) {
+    const event = {
+        action: action,
+        details: details,
+        timestamp: Date.now()
+    };
+
+    analyticsData.readingHistory.push(event);
+
+    // Keep only last 50 events
+    if (analyticsData.readingHistory.length > 50) {
+        analyticsData.readingHistory = analyticsData.readingHistory.slice(-50);
+    }
+
+    // Save to localStorage
+    localStorage.setItem('golpoAnalytics', JSON.stringify(analyticsData));
+}
+
+// Export to global scope
+window.openAnalyticsDashboard = openAnalyticsDashboard;
 
 function updateReaderCoverImage(filename) {
     const readerCoverImage = document.getElementById('readerCoverImage');
@@ -702,8 +1047,15 @@ function updateStoryDetails(filename, content) {
     }
 }
 
+// Track if app is initialized
+var appInitialized = false;
+
 // Initialize application
 function initializeApp() {
+    // Prevent duplicate initialization
+    if (appInitialized) return;
+    appInitialized = true;
+
     // Set default theme
     document.body.setAttribute('data-theme', currentTheme);
     updateThemeIcon();
@@ -742,6 +1094,18 @@ function initializeApp() {
             }
         });
     }
+
+    // Initialize advanced visual effects after DOM is fully loaded
+    setTimeout(() => {
+        try {
+            if (typeof initializeAdvancedEffects !== 'undefined') {
+                initializeAdvancedEffects();
+                console.log('Advanced visual effects initialized');
+            }
+        } catch (error) {
+            console.log('Advanced visual effects not available:', error.message);
+        }
+    }, 500);
 }
 
 // Setup reading progress tracking for reader view
@@ -828,6 +1192,9 @@ function displayPage(pageNumber) {
         storyContent.appendChild(p);
     });
 
+// Volume control removed - YouTube iframes don't support external volume control
+
+
     // Add pagination controls
     addPaginationControls();
 
@@ -882,11 +1249,11 @@ function addPaginationControls() {
         }
     };
 
-    // Page info
+    // Page info with jump functionality
     const pageInfo = document.createElement('div');
     pageInfo.className = 'page-info';
     pageInfo.innerHTML = `
-        <div class="page-current">Page ${currentPage}</div>
+        <div class="page-current" onclick="promptPageJump()" style="cursor: pointer;" title="Click to jump to page">Page ${currentPage}</div>
         <div class="page-total">of ${totalPages}</div>
         <div class="page-dots">
             ${Array.from({length: Math.min(5, totalPages)}, (_, i) => {
@@ -899,7 +1266,7 @@ function addPaginationControls() {
                     pageNum = start + i;
                     if (pageNum > end) return '';
                 }
-                return `<div class="page-dot ${pageNum === currentPage ? 'active' : ''}" onclick="displayPage(${pageNum})"></div>`;
+                return `<div class="page-dot ${pageNum === currentPage ? 'active' : ''}" onclick="displayPage(${pageNum})" title="Go to page ${pageNum}"></div>`;
             }).join('')}
         </div>
     `;
@@ -1105,43 +1472,108 @@ function updateContinueReadingVisibility() {
     }
 }
 
+// Track if event listeners are already set up
+var eventListenersInitialized = false;
+
 // Setup all event listeners
 function setupEventListeners() {
+    // Prevent duplicate initialization
+    if (eventListenersInitialized) return;
+    eventListenersInitialized = true;
+
     // New modal-based selection
-    musicSelector.addEventListener('click', openMusicModal);
+    if (musicSelector) {
+        musicSelector.addEventListener('click', openMusicModal);
+    }
 
     // Modal close events
-    closeStoryModal.addEventListener('click', closeStoryModalFunc);
-    closeMusicModal.addEventListener('click', closeMusicModalFunc);
-    storyModalOverlay.addEventListener('click', closeStoryModalFunc);
-    musicModalOverlay.addEventListener('click', closeMusicModalFunc);
+    if (closeStoryModal) {
+        closeStoryModal.addEventListener('click', closeStoryModalFunc);
+    }
+    if (closeMusicModal) {
+        closeMusicModal.addEventListener('click', closeMusicModalFunc);
+    }
+    if (storyModalOverlay) {
+        storyModalOverlay.addEventListener('click', closeStoryModalFunc);
+    }
+    if (musicModalOverlay) {
+        musicModalOverlay.addEventListener('click', closeMusicModalFunc);
+    }
+
+    // TOC modal events
+    const closeTocModal = document.getElementById('closeTocModal');
+    const tocModalOverlay = document.getElementById('tocModalOverlay');
+    if (closeTocModal) {
+        closeTocModal.addEventListener('click', () => {
+            const tocModal = document.getElementById('tocModal');
+            if (tocModal) tocModal.classList.remove('active');
+        });
+    }
+    if (tocModalOverlay) {
+        tocModalOverlay.addEventListener('click', () => {
+            const tocModal = document.getElementById('tocModal');
+            if (tocModal) tocModal.classList.remove('active');
+        });
+    }
+
+    // Analytics modal events
+    const closeAnalyticsModal = document.getElementById('closeAnalyticsModal');
+    const analyticsModalOverlay = document.getElementById('analyticsModalOverlay');
+    if (closeAnalyticsModal) {
+        closeAnalyticsModal.addEventListener('click', () => {
+            const analyticsModal = document.getElementById('analyticsModal');
+            if (analyticsModal) analyticsModal.classList.remove('active');
+        });
+    }
+    if (analyticsModalOverlay) {
+        analyticsModalOverlay.addEventListener('click', () => {
+            const analyticsModal = document.getElementById('analyticsModal');
+            if (analyticsModal) analyticsModal.classList.remove('active');
+        });
+    }
 
     // Story and music card clicks
     setupCardListeners();
 
     // Music controls
-    playPauseBtn.addEventListener('click', togglePlayPause);
+    if (playPauseBtn) {
+        playPauseBtn.addEventListener('click', togglePlayPause);
+    }
 
     // Theme toggle
-    themeToggle.addEventListener('click', toggleTheme);
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
 
     // Audio player events
-    audioPlayer.addEventListener('loadeddata', onAudioLoaded);
-    audioPlayer.addEventListener('error', onAudioError);
-    audioPlayer.addEventListener('play', onAudioPlay);
-    audioPlayer.addEventListener('pause', onAudioPause);
-    audioPlayer.addEventListener('ended', onAudioEnded);
+    if (audioPlayer) {
+        audioPlayer.addEventListener('loadeddata', onAudioLoaded);
+        audioPlayer.addEventListener('error', onAudioError);
+        audioPlayer.addEventListener('play', onAudioPlay);
+        audioPlayer.addEventListener('pause', onAudioPause);
+        audioPlayer.addEventListener('ended', onAudioEnded);
+    }
 
-    // Reading controls
-    readingControlsBtn.addEventListener('click', toggleReadingControls);
-    decreaseFontBtn.addEventListener('click', decreaseFontSize);
-    increaseFontBtn.addEventListener('click', increaseFontSize);
-    focusModeBtn.addEventListener('click', toggleFocusMode);
-    scrollTopBtn.addEventListener('click', scrollToTop);
+    // Reading controls - single event listener with proper handling
+    if (readingControlsBtn) {
+        readingControlsBtn.addEventListener('click', toggleReadingControls);
+    }
+
+    if (decreaseFontBtn) {
+        decreaseFontBtn.addEventListener('click', decreaseFontSize);
+    }
+    if (increaseFontBtn) {
+        increaseFontBtn.addEventListener('click', increaseFontSize);
+    }
+    if (focusModeBtn) {
+        focusModeBtn.addEventListener('click', toggleFocusMode);
+    }
+    if (scrollTopBtn) {
+        scrollTopBtn.addEventListener('click', scrollToTop);
+    }
 
     if (bookmarkBtn) {
         bookmarkBtn.addEventListener('click', toggleBookmark);
-    } else {
     }
 
     // Focus mode exit button
@@ -1151,18 +1583,21 @@ function setupEventListeners() {
     }
 
     // Search functionality
-    searchBtn.addEventListener('click', performSearch);
+    if (searchBtn) {
+        searchBtn.addEventListener('click', performSearch);
+    }
 
     if (clearSearchBtn) {
         clearSearchBtn.addEventListener('click', clearSearch);
-    } else {
     }
 
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            performSearch();
-        }
-    });
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    }
 
     // ESC key to close modals
     document.addEventListener('keydown', function(e) {
@@ -1236,6 +1671,11 @@ function displayStory(filename, content) {
     // Display first page
     displayPage(1);
 
+    // Generate Table of Contents
+    setTimeout(() => {
+        generateTOC();
+    }, 500);
+
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -1259,7 +1699,7 @@ function displayStory(filename, content) {
 function showLoadingState() {
     const storyContent = document.getElementById('storyContent');
     if (storyContent) {
-        storyContent.innerHTML = '<div class="welcome-text"><p>Loading story... 📖</p></div>';
+        storyContent.innerHTML = '<div class="welcome-text"><p><i class="fas fa-spinner fa-spin"></i> Loading story...</p></div>';
     }
 }
 
@@ -1342,8 +1782,15 @@ function initializeStoryGrid() {
 
 
 
+// Track if music system is initialized
+var musicSystemInitialized = false;
+
 // Music System Initialization
 function initializeMusicSystem() {
+    // Prevent duplicate initialization
+    if (musicSystemInitialized) return;
+    musicSystemInitialized = true;
+
     // Generate music list dynamically
     generateMusicList();
 
@@ -1406,13 +1853,15 @@ function setupMusicModalListeners() {
 function startAutoplay() {
     if (!autoplayEnabled || musicPlaylist.length === 0) return;
 
-    const firstSong = musicPlaylist[0];
-    currentMusicIndex = 0;
+    // Select a random song from the playlist
+    const randomIndex = Math.floor(Math.random() * musicPlaylist.length);
+    const randomSong = musicPlaylist[randomIndex];
+    currentMusicIndex = randomIndex;
 
     try {
-        // Set the first song source
-        setMusicSource(firstSong.url, true);
-        updateSelectorText(musicSelector, firstSong.title, 'music');
+        // Set the random song source
+        setMusicSource(randomSong.url, true);
+        updateSelectorText(musicSelector, randomSong.title, 'music');
 
         // Auto-start playback with proper error handling
         setTimeout(() => {
@@ -1427,10 +1876,10 @@ function startAutoplay() {
                 isYouTubePlaying = true;
                 updatePlayPauseButton(false);
 
-                // Set up playlist looping for the first song
+                // Set up playlist looping for the random song
                 setupYouTubePlaylistLoop();
 
-                showMusicNotification('Auto-playing', firstSong.title, { duration: 3000 });
+                showMusicNotification('Auto-playing random song', randomSong.title, { duration: 3000 });
             }
         }, 1000);
     } catch (error) {
@@ -1472,7 +1921,7 @@ function cleanupMusicSystem() {
 function toggleAutoplay() {
     autoplayEnabled = !autoplayEnabled;
     saveSettings();
-    showNotification(`🎵 Autoplay ${autoplayEnabled ? 'enabled' : 'disabled'}`, 'info');
+    showNotification(`Autoplay ${autoplayEnabled ? 'enabled' : 'disabled'}`, 'info');
     return autoplayEnabled;
 }
 
@@ -1584,17 +2033,32 @@ function updateThemeIcon() {
     }
 }
 
-// Settings Management
+// Enhanced Settings Management
 function saveSettings() {
     var settings = {
         theme: currentTheme,
         currentStory: currentStory,
         fontSize: currentFontSize,
         focusMode: isFocusMode,
-        bookmarks: storyBookmarks
+        bookmarks: storyBookmarks,
+        // Enhanced preferences
+        currentPage: currentPage,
+        currentMusicIndex: currentMusicIndex,
+        autoplayEnabled: autoplayEnabled,
+        lastCategoryFilter: document.querySelector('.category-filter-btn.active')?.dataset.category || 'all',
+        lastVisit: Date.now(),
+        readingPreferences: {
+            linesPerPage: linesPerPage,
+            scrollPosition: window.pageYOffset
+        }
     };
 
     localStorage.setItem('golpoSettings', JSON.stringify(settings));
+
+    // Track settings change in analytics
+    if (typeof trackAnalyticsEvent === 'function') {
+        trackAnalyticsEvent('Settings saved', { theme: currentTheme, fontSize: currentFontSize });
+    }
 }
 
 function loadSavedSettings() {
@@ -1637,9 +2101,40 @@ function loadSavedSettings() {
             }
         }
 
-        // Story selection now handled by modal system
+        // Restore enhanced preferences
+        if (settings.currentMusicIndex !== undefined) {
+            currentMusicIndex = settings.currentMusicIndex;
+        }
+
+        if (settings.autoplayEnabled !== undefined) {
+            autoplayEnabled = settings.autoplayEnabled;
+        }
+
+        if (settings.lastCategoryFilter && settings.lastCategoryFilter !== 'all') {
+            // Restore last category filter on page load
+            setTimeout(() => {
+                filterByCategory(settings.lastCategoryFilter);
+            }, 500);
+        }
+
+        if (settings.readingPreferences) {
+            if (settings.readingPreferences.linesPerPage) {
+                linesPerPage = settings.readingPreferences.linesPerPage;
+            }
+        }
+
+        // Track session start
+        if (typeof trackAnalyticsEvent === 'function') {
+            const daysSinceLastVisit = settings.lastVisit ? 
+                Math.floor((Date.now() - settings.lastVisit) / (1000 * 60 * 60 * 24)) : 0;
+            trackAnalyticsEvent('Session started', { 
+                daysSinceLastVisit: daysSinceLastVisit,
+                theme: currentTheme 
+            });
+        }
 
     } catch (error) {
+        console.error('Error loading settings:', error);
     }
 }
 
@@ -1666,10 +2161,10 @@ document.addEventListener('keydown', function(e) {
     // Don't trigger shortcuts when typing in input fields
     const isInputActive = ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName) || 
                           e.target.contentEditable === 'true';
-    
+
     // Don't trigger if modal is open
     const isModalOpen = document.querySelector('.selection-modal.active');
-    
+
     if (isInputActive || isModalOpen) return;
 
     // Music Controls (with Alt modifier for safety)
@@ -1682,7 +2177,7 @@ document.addEventListener('keydown', function(e) {
                     duration: 2000
                 });
                 break;
-                
+
             case 'KeyP': // Alt + P: Play/Pause
                 e.preventDefault();
                 togglePlayPause();
@@ -1691,7 +2186,7 @@ document.addEventListener('keydown', function(e) {
                     duration: 2000
                 });
                 break;
-                
+
             case 'KeyN': // Alt + N: Next Song
                 e.preventDefault();
                 playNextSong();
@@ -1699,7 +2194,7 @@ document.addEventListener('keydown', function(e) {
                     duration: 2500
                 });
                 break;
-                
+
             case 'KeyB': // Alt + B: Previous Song (Back)
                 e.preventDefault();
                 playPreviousSong();
@@ -1717,14 +2212,14 @@ document.addEventListener('keydown', function(e) {
             e.preventDefault();
             togglePlayPause();
             break;
-            
+
         case 'KeyT': // T: Toggle Theme
             e.preventDefault();
             toggleTheme();
             const themeName = currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1).replace('-', ' ');
             showNotification(`Theme changed to ${themeName}`, 'info', 2000);
             break;
-            
+
         case 'KeyF': // F: Toggle Focus Mode
             e.preventDefault();
             toggleFocusMode();
@@ -1733,17 +2228,17 @@ document.addEventListener('keydown', function(e) {
                 subtitle: isFocusMode ? 'Press F again to exit' : 'Distraction-free reading'
             });
             break;
-            
+
         case 'KeyB': // B: Toggle Bookmark
             e.preventDefault();
             toggleBookmark();
             break;
-            
+
         case 'KeyS': // S: Scroll to Top
             e.preventDefault();
             scrollToTop();
             break;
-            
+
         case 'Escape': // Escape: Close modals or exit focus mode
             e.preventDefault();
             if (isFocusMode) {
@@ -1754,12 +2249,12 @@ document.addEventListener('keydown', function(e) {
                 closeMusicModalFunc();
             }
             break;
-            
+
         case 'KeyH': // H: Show help/shortcuts
             e.preventDefault();
             showKeyboardShortcuts();
             break;
-            
+
         case 'ArrowLeft': // Left Arrow: Previous page (in reader)
             if (currentStory && currentPage > 1) {
                 e.preventDefault();
@@ -1767,7 +2262,7 @@ document.addEventListener('keydown', function(e) {
                 showNotification(`Page ${currentPage}`, 'info', 1500);
             }
             break;
-            
+
         case 'ArrowRight': // Right Arrow: Next page (in reader)
             if (currentStory && currentPage < totalPages) {
                 e.preventDefault();
@@ -1775,7 +2270,7 @@ document.addEventListener('keydown', function(e) {
                 showNotification(`Page ${currentPage}`, 'info', 1500);
             }
             break;
-            
+
         case 'Home': // Home: First page
             if (currentStory && currentPage > 1) {
                 e.preventDefault();
@@ -1783,7 +2278,7 @@ document.addEventListener('keydown', function(e) {
                 showNotification('First page', 'info', 1500);
             }
             break;
-            
+
         case 'End': // End: Last page
             if (currentStory && currentPage < totalPages) {
                 e.preventDefault();
@@ -1791,7 +2286,7 @@ document.addEventListener('keydown', function(e) {
                 showNotification('Last page', 'info', 1500);
             }
             break;
-            
+
         case 'Equal': // + key: Increase font size
             if (e.shiftKey) { // Shift + = (which is +)
                 e.preventDefault();
@@ -1799,7 +2294,7 @@ document.addEventListener('keydown', function(e) {
                 showNotification(`Font size: ${currentFontSize}%`, 'info', 1500);
             }
             break;
-            
+
         case 'Minus': // - key: Decrease font size
             e.preventDefault();
             decreaseFontSize();
@@ -1847,13 +2342,13 @@ function playPreviousSong() {
 function showKeyboardShortcuts() {
     const shortcuts = `
         <div style="line-height: 1.6; font-size: 13px;">
-            <strong>🎵 Music Controls (with Alt):</strong><br>
+            <strong><i class="fas fa-music"></i> Music Controls (with Alt):</strong><br>
             Alt + M → Open music selector<br>
             Alt + P → Play/Pause<br>
             Alt + N → Next song<br>
             Alt + B → Previous song<br><br>
-            
-            <strong>⌨️ General Shortcuts:</strong><br>
+
+            <strong><i class="fas fa-keyboard"></i> General Shortcuts:</strong><br>
             Space → Play/Pause<br>
             T → Toggle theme<br>
             F → Focus mode<br>
@@ -1861,8 +2356,8 @@ function showKeyboardShortcuts() {
             S → Scroll to top<br>
             H → Show this help<br>
             Esc → Close modals/Exit focus<br><br>
-            
-            <strong>📖 Reading Navigation:</strong><br>
+
+            <strong><i class="fas fa-book-reader"></i> Reading Navigation:</strong><br>
             ← → Previous page<br>
             → → Next page<br>
             Home → First page<br>
@@ -1889,6 +2384,33 @@ window.addEventListener('resize', debounce(() => {
         nav.classList.remove('mobile');
     }
 }, 250));
+
+// Prevent YouTube playback from stopping when tab/window becomes hidden
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && isYouTubePlaying && youtubeFrame) {
+        // Force YouTube to continue playing by sending play command
+        try {
+            youtubeFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        } catch (e) {
+            console.log('Could not send play command to iframe');
+        }
+    }
+    console.log('Visibility changed:', document.visibilityState);
+});
+
+// Additional handler to prevent auto-pause
+window.addEventListener('blur', () => {
+    if (isYouTubePlaying && youtubeFrame && currentYouTubeUrl) {
+        // Keep music playing when window loses focus
+        setTimeout(() => {
+            try {
+                youtubeFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            } catch (e) {
+                console.log('Could not maintain playback on blur');
+            }
+        }, 100);
+    }
+});
 
 // Update reading progress based on story content scroll
 function updateReadingProgress() {
@@ -1931,16 +2453,95 @@ function setupReadingProgress() {
 }
 
 // Reading Controls Functions
-function toggleReadingControls() {
+function toggleReadingControls(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    if (!readingControlsDropdown) {
+        return;
+    }
+
     readingControlsDropdown.classList.toggle('active');
 }
 
-// Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-    if (!readingControlsDropdown.contains(e.target)) {
-        readingControlsDropdown.classList.remove('active');
+// Setup reading controls close on outside click (called once)
+function setupReadingControlsOutsideClick() {
+    // Click outside to close
+    document.addEventListener('click', function(e) {
+        if (!readingControlsDropdown) return;
+
+        // Check if click is outside the entire dropdown component
+        if (!readingControlsDropdown.contains(e.target)) {
+            if (readingControlsDropdown.classList.contains('active')) {
+                readingControlsDropdown.classList.remove('active');
+            }
+        }
+    });
+
+    // Stop propagation for clicks inside the menu to keep it open
+    // BUT allow input fields and buttons to work normally
+    if (readingControlsMenu) {
+        readingControlsMenu.addEventListener('click', function(e) {
+            // Allow input fields to receive all events
+            if (e.target.tagName === 'INPUT' || 
+                e.target.id === 'searchInput') {
+                return; // Don't stop propagation for input fields
+            }
+            
+            // Don't stop propagation if clicking on buttons
+            if (e.target.tagName === 'BUTTON' ||
+                e.target.classList.contains('control-btn') ||
+                e.target.closest('.control-btn')) {
+                return;
+            }
+            
+            // Don't stop propagation if clicking on the search container
+            if (e.target.classList.contains('search-container') ||
+                e.target.closest('.search-container')) {
+                return;
+            }
+            
+            e.stopPropagation();
+        });
     }
-});
+
+    // Stop propagation for the button itself to prevent immediate closure
+    if (readingControlsBtn) {
+        readingControlsBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+    
+    // Ensure search input can receive focus and keyboard events
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        // Remove any existing event listeners that might be blocking
+        searchInput.addEventListener('focus', function(e) {
+            e.stopPropagation();
+            this.style.pointerEvents = 'auto';
+        }, true);
+        
+        searchInput.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.focus();
+        }, true);
+        
+        // Ensure keyboard events work
+        searchInput.addEventListener('keydown', function(e) {
+            e.stopPropagation();
+        }, true);
+        
+        searchInput.addEventListener('keyup', function(e) {
+            e.stopPropagation();
+        }, true);
+        
+        searchInput.addEventListener('input', function(e) {
+            e.stopPropagation();
+        }, true);
+    }
+}
 
 // Modal Functions
 function openStoryModal() {
@@ -2031,7 +2632,7 @@ async function loadStory(filename) {
         try {
             // Check if we're offline and have cached version
             if (!isOnline && cachedStories.has(filename)) {
-                showNotification('📖 Loading cached story (offline mode)', 'info');
+                showNotification('Loading cached story (offline mode)', 'info');
             }
 
             const response = await fetch('stories/' + filename);
@@ -2066,7 +2667,7 @@ async function loadStory(filename) {
             if (retryCount < maxRetries && isOnline && 
                 (error.name === 'TypeError' || error.message.includes('Server error'))) {
                 retryCount++;
-                showNotification(`⏳ Retrying... (${retryCount}/${maxRetries})`, 'warning');
+                showNotification(`Retrying... (${retryCount}/${maxRetries})`, 'warning');
 
                 // Exponential backoff delay
                 const delay = Math.pow(2, retryCount) * 1000;
@@ -2146,15 +2747,15 @@ function setMusicSource(url, fromPlaylist = false) {
                     const separator = url.includes('?') ? '&' : '?';
                     formattedUrl = `${url}${separator}enablejsapi=1&origin=${window.location.origin}&rel=0&controls=1`;
                 }
-                
+
                 currentYouTubeUrl = formattedUrl;
                 console.log('YouTube URL set:', currentYouTubeUrl);
 
                 // Don't auto-setup loop here - let the calling function decide when to play
-                showNotification('🎵 YouTube music ready', 'success', 2000);
-                
+                showNotification('YouTube music ready', 'success', 2000);
+
             } catch (error) {
-                showNotification('❌ Failed to set YouTube music', 'error');
+                showNotification('Failed to set YouTube music', 'error');
                 console.error('YouTube setup error:', error);
             }
         } else {
@@ -2171,7 +2772,7 @@ function setMusicSource(url, fromPlaylist = false) {
                 };
 
                 const loadHandler = () => {
-                    showNotification('🎵 Audio track loaded successfully', 'success');
+                    showNotification('Audio track loaded successfully', 'success');
                     audioPlayer.removeEventListener('loadeddata', loadHandler);
                     audioPlayer.removeEventListener('error', errorHandler);
                 };
@@ -2224,22 +2825,25 @@ function playNextSong() {
         try {
             if (currentYouTubeUrl && youtubeFrame) {
                 console.log('Starting next YouTube song:', currentYouTubeUrl);
-                
+
                 // Clear any existing frame first
                 youtubeFrame.src = '';
-                
+
                 // Small delay to ensure frame is cleared
                 setTimeout(() => {
                     youtubeFrame.src = currentYouTubeUrl;
                     isYouTubePlaying = true;
                     updatePlayPauseButton(false);
 
+                    // Track song start time for duration-based fallback
+                    window.youtubeSongStartTime = Date.now();
+
                     // Set up automatic progression for the new song
                     setTimeout(() => {
                         setupYouTubePlaylistLoop();
                     }, 500);
                 }, 200);
-                
+
             } else if (audioPlayer && audioPlayer.src) {
                 console.log('Starting next audio track');
                 audioPlayer.play();
@@ -2298,7 +2902,7 @@ function setupYouTubePlaylistLoop() {
 
             if (data && typeof data.info !== 'undefined') {
                 console.log('YouTube player state:', data.info);
-                
+
                 // State 0 = ended, 1 = playing, 2 = paused, 3 = buffering, 5 = cued
                 if (data.info === 0) {
                     // Video ended, play next song after a brief delay
@@ -2306,6 +2910,16 @@ function setupYouTubePlaylistLoop() {
                     setTimeout(() => {
                         if (isPlaylistMode && musicPlaylist.length > 1) {
                             playNextSong();
+                        } else if (musicPlaylist.length === 1) {
+                            // Single song - replay it
+                            if (youtubeFrame && currentYouTubeUrl) {
+                                youtubeFrame.src = '';
+                                setTimeout(() => {
+                                    youtubeFrame.src = currentYouTubeUrl;
+                                    isYouTubePlaying = true;
+                                    updatePlayPauseButton(false);
+                                }, 200);
+                            }
                         }
                     }, 1000);
                 } else if (data.info === 1) {
@@ -2313,9 +2927,12 @@ function setupYouTubePlaylistLoop() {
                     isYouTubePlaying = true;
                     updatePlayPauseButton(false);
                 } else if (data.info === 2) {
-                    // Video is paused
-                    isYouTubePlaying = false;
-                    updatePlayPauseButton(true);
+                    // Video is paused - don't update state if tab/window is not visible
+                    // This prevents pause on tab switch
+                    if (document.visibilityState === 'visible') {
+                        isYouTubePlaying = false;
+                        updatePlayPauseButton(true);
+                    }
                 }
             }
         } catch (e) {
@@ -2338,20 +2955,25 @@ function setupYouTubePlaylistLoop() {
         clearInterval(window.youtubeCheckInterval);
     }
 
-    // More aggressive fallback - check every 30 seconds if playing
+    // Track song start time for duration-based fallback
+    window.youtubeSongStartTime = Date.now();
+
+    // More aggressive fallback - check every 5 seconds for song completion
     window.youtubeCheckInterval = setInterval(() => {
         if (isYouTubePlaying && isPlaylistMode && musicPlaylist.length > 1) {
-            // Estimate if song should have ended (most songs are 3-6 minutes)
-            // This is a fallback in case the message event fails
+            // Check if song should have ended based on duration
             const songDuration = musicPlaylist[currentMusicIndex]?.duration || "4:00";
             const [minutes, seconds] = songDuration.split(':').map(Number);
             const totalSeconds = (minutes * 60) + seconds;
-            
-            // Add 10 seconds buffer and check if enough time has passed
-            // This is just a safety net - the message event should handle progression
-            console.log('Fallback check - song should auto-advance via message events');
+            const elapsedSeconds = (Date.now() - (window.youtubeSongStartTime || 0)) / 1000;
+
+            // If elapsed time exceeds song duration by 5 seconds, force next song
+            if (elapsedSeconds > totalSeconds + 5) {
+                console.log('Fallback triggered: Song duration exceeded, playing next song');
+                playNextSong();
+            }
         }
-    }, 30000);
+    }, 5000);
 }
 
 function updateFontSize() {
@@ -2484,7 +3106,7 @@ function toggleBookmark() {
             } else {
                 // Go to bookmark if we have one
                 goToBookmark();
-                showNotification('📖 Jumped to bookmark', 'success');
+                showNotification('Jumped to bookmark', 'success');
             }
         } else {
             // Save current position as bookmark for this story
@@ -2619,8 +3241,10 @@ function performSearch() {
 
                     if (matches) {
                         // Calculate context around the match
-                        var context = line.substring(Math.max(0, line.toLowerCase().indexOf(searchTerm.toLowerCase()) - 20), 
-                                                   line.toLowerCase().indexOf(searchTerm.toLowerCase()) + searchTerm.length + 20);
+                        const matchIndex = line.toLowerCase().indexOf(searchTerm.toLowerCase());
+                        const contextStart = Math.max(0, matchIndex - 30);
+                        const contextEnd = Math.min(line.length, matchIndex + searchTerm.length + 30);
+                        var context = line.substring(contextStart, contextEnd);
 
                         results.push({
                             page: pageIndex + 1, // 1-based page number
@@ -2631,7 +3255,7 @@ function performSearch() {
                         });
                     }
                 } catch (error) {
-                    // Skip invalid regex patterns
+                    console.warn('Search regex error:', error);
                 }
             });
         });
@@ -2651,8 +3275,11 @@ function performSearch() {
                 var matches = text.match(regex);
 
                 if (matches) {
-                    var context = text.substring(Math.max(0, text.toLowerCase().indexOf(searchTerm.toLowerCase()) - 20), 
-                                               text.toLowerCase().indexOf(searchTerm.toLowerCase()) + searchTerm.length + 20);
+                    const matchIndex = text.toLowerCase().indexOf(searchTerm.toLowerCase());
+                    const contextStart = Math.max(0, matchIndex - 30);
+                    const contextEnd = Math.min(text.length, matchIndex + searchTerm.length + 30);
+                    var context = text.substring(contextStart, contextEnd);
+
                     results.push({
                         page: currentPage,
                         paragraph: index,
@@ -2662,23 +3289,23 @@ function performSearch() {
                     });
                 }
             } catch (error) {
-                // Skip invalid regex patterns
+                console.warn('Search regex error:', error);
             }
         });
     }
 
     // Show notification with results
     if (results.length > 0) {
-        showNotification(`🔍 Found ${results.length} matches across all pages`, 'success');
+        showNotification(`🔍 Found ${results.length} match${results.length > 1 ? 'es' : ''} across all pages`, 'success', 3000);
 
-        // If the first result is on a different page, ask user if they want to jump to it
+        // If the first result is on a different page, inform user
         if (results[0].page !== currentPage) {
             setTimeout(() => {
-                showNotification(`📄 First result is on page ${results[0].page}. Click on a result to navigate.`, 'info');
+                showNotification(`📄 First result is on page ${results[0].page}. Click on a result to navigate.`, 'info', 3000);
             }, 2000);
         }
     } else {
-        showNotification(`❌ No matches found for "${searchTerm}" in entire story`, 'error');
+        showNotification(`❌ No matches found for "${searchTerm}"`, 'error', 3000);
     }
 
     displaySearchResults(results, searchTerm);
@@ -2688,7 +3315,6 @@ function performSearch() {
 }
 
 function clearSearch() {
-
     if (searchInput) {
         searchInput.value = '';
     }
@@ -2698,7 +3324,7 @@ function clearSearch() {
     }
 
     clearPreviousHighlights();
-    showNotification('🗑️ Search cleared', 'success');
+    showNotification('🗑️ Search cleared', 'success', 2000);
 }
 
 function clearPreviousHighlights() {
@@ -2714,6 +3340,72 @@ function clearPreviousHighlights() {
         }
     });
 }
+
+function displaySearchResults(results, searchTerm) {
+    if (results.length === 0) {
+        searchResults.innerHTML = '<div class="search-result-item">No results found</div>';
+        return;
+    }
+
+    var html = '<div class="search-result-item"><strong>' + results.length + ' result(s) found for "' + escapeHtml(searchTerm) + '"</strong></div>';
+
+    // Calculate per-page occurrence indices
+    const pageOccurrenceCounts = {};
+
+    results.forEach((result, index) => {
+        // Handle both new format (with page numbers) and old format
+        var pageInfo = result.page ? `Page ${result.page}: ` : '';
+
+        if (result.page) {
+            // Calculate the occurrence index within this specific page
+            if (!pageOccurrenceCounts[result.page]) {
+                pageOccurrenceCounts[result.page] = 0;
+            }
+            const pageOccurrenceIndex = pageOccurrenceCounts[result.page];
+            pageOccurrenceCounts[result.page]++;
+
+            var clickHandler = `navigateToSearchResult(${result.page}, ${pageOccurrenceIndex})`;
+        } else {
+            var clickHandler = `scrollToSearchResult(${result.paragraph})`;
+        }
+
+        html += '<div class="search-result-item" onclick="' + clickHandler + '">' +
+                (index + 1) + '. ' + pageInfo + '...' + escapeHtml(result.context) + '...' +
+                '</div>';
+    });
+
+    searchResults.innerHTML = html;
+}
+
+// Social Sharing System
+function shareStory(storyFile) {
+    const story = getStoryMetadata(storyFile);
+    const shareData = {
+        title: `${story.name} - Golpo`,
+        text: `Read "${story.name}" by ${story.writer} on Golpo - Bengali Story Platform`,
+        url: window.location.href
+    };
+
+    if (navigator.share) {
+        navigator.share(shareData)
+            .then(() => showNotification('Story shared successfully! 🎉', 'success'))
+            .catch(() => copyShareLink(shareData));
+    } else {
+        copyShareLink(shareData);
+    }
+}
+
+function copyShareLink(shareData) {
+    const link = shareData.url;
+    navigator.clipboard.writeText(link).then(() => {
+        showNotification('Link copied to clipboard! 📋', 'success', 3000);
+    }).catch(() => {
+        showNotification('Failed to copy link', 'error');
+    });
+}
+
+// Export to global scope
+window.shareStory = shareStory;
 
 function displaySearchResults(results, searchTerm) {
     if (results.length === 0) {
@@ -2860,7 +3552,7 @@ function waitForStoryContentReady(callback, timeout = 3000) {
         const storyContent = document.getElementById('storyContent');
         const paragraphs = storyContent ? storyContent.querySelectorAll('p') : [];
         const hasContent = storyContent && paragraphs.length > 0;
-        
+
         checkCount++;
 
         if (hasContent && checkCount > 3) { // Ensure multiple checks pass
@@ -2902,7 +3594,7 @@ function highlightAndScrollToResult(resultIndex, searchTerm) {
         try {
             const regex = new RegExp(escapedTerm, 'gi');
             const matches = text.match(regex);
-            
+
             if (matches) {
                 // Replace text with highlighted version
                 const highlightedText = text.replace(regex, '<span class="search-highlight" data-match-index="' + matchCount + '" style="background: linear-gradient(45deg, #ff0000, #ff6b6b) !important; color: #ffffff !important; padding: 3px 6px !important; border-radius: 6px !important; font-weight: 900 !important; box-shadow: 0 2px 8px rgba(255, 0, 0, 0.5) !important; border: 2px solid #ffffff !important;">$&</span>');
@@ -2933,7 +3625,7 @@ function highlightAndScrollToResult(resultIndex, searchTerm) {
 
         if (targetHighlight) {
             console.log(`Scrolling to highlight ${safeIndex} of ${allHighlights.length}`);
-            
+
             // Scroll to the target highlight with proper timing
             setTimeout(() => {
                 targetHighlight.scrollIntoView({
@@ -2946,7 +3638,7 @@ function highlightAndScrollToResult(resultIndex, searchTerm) {
                 targetHighlight.style.outline = '4px solid #00ff00 !important';
                 targetHighlight.style.outlineOffset = '3px !important';
                 targetHighlight.style.zIndex = '1000 !important';
-                
+
                 setTimeout(() => {
                     targetHighlight.style.outline = '';
                     targetHighlight.style.outlineOffset = '';
@@ -3009,6 +3701,7 @@ window.loadStoryFromSuggestion = loadStoryFromSuggestion;
 window.returnToLibrary = returnToLibrary;
 window.displayPage = displayPage;
 window.scrollToSearchResult = scrollToSearchResult;
+window.closeNotification = closeNotification;
 
 // Also ensure they're available immediately after function definition
 if (typeof window !== 'undefined') {
@@ -3029,7 +3722,6 @@ window.loadStoryFromSuggestion = loadStoryFromSuggestion;
 window.returnToLibrary = returnToLibrary;
 window.displayPage = displayPage;
 window.scrollToSearchResult = scrollToSearchResult;
-window.closeNotification = closeNotification;
 
 // === OFFLINE READING SUPPORT ===
 
@@ -3079,9 +3771,9 @@ function handleOnlineStatusChange() {
     updateOfflineIndicator();
 
     if (isOnline) {
-        showNotification('🌐 Back online!', 'success');
+        showNotification('Back online!', 'success');
     } else {
-        showNotification('📴 You\'re offline. Cached stories available', 'warning');
+        showNotification('You\'re offline. Cached stories available', 'warning');
     }
 }
 
@@ -3184,8 +3876,8 @@ function showOfflineStatus() {
     const totalStories = Object.keys(storyDatabase).length;
 
     let message = isOnline ? 
-        `🌐 Online - All ${totalStories} stories available` :
-        `📴 Offline - ${cachedCount}/${totalStories} stories cached`;
+        `Online - All ${totalStories} stories available` :
+        `Offline - ${cachedCount}/${totalStories} stories cached`;
 
     if (!isOnline && cachedCount > 0) {
         message += `\n\nCached stories:\n${Array.from(cachedStories).join(', ')}`;
@@ -3418,11 +4110,11 @@ function showNotification(message, type = 'info', duration = 4000, options = {})
         const notificationId = 'notification-' + Date.now() + Math.random().toString(36).substr(2, 9);
         notification.id = notificationId;
         notification.className = `golpo-notification notification-${type}`;
-        
+
         // Enhanced notification content with icon and actions
         const icon = getNotificationIcon(type);
         const actionButtons = options.actions ? createActionButtons(options.actions, notificationId) : '';
-        
+
         notification.innerHTML = `
             <div class="notification-icon">
                 <i class="${icon}"></i>
@@ -3504,7 +4196,7 @@ function getNotificationIcon(type) {
 // Helper function to create action buttons
 function createActionButtons(actions, notificationId) {
     if (!actions || actions.length === 0) return '';
-    
+
     return `<div class="notification-actions">
         ${actions.map(action => 
             `<button class="notification-action" onclick="${action.callback}('${notificationId}')">${action.label}</button>`
@@ -3514,24 +4206,19 @@ function createActionButtons(actions, notificationId) {
 
 // Function to close notification
 function closeNotification(notificationId) {
-    console.log('Closing notification:', notificationId);
     const notification = document.getElementById(notificationId);
-    if (notification) {
+    if (notification && notification.parentNode) {
         notification.style.animation = 'toastOut 150ms ease-out';
         setTimeout(() => {
-            if (notification.parentNode) {
+            if (notification && notification.parentNode) {
                 notification.remove();
-                console.log('Notification removed:', notificationId);
             }
             // Clean up stack if empty
             const stack = document.querySelector('.notification-stack');
             if (stack && stack.children.length === 0) {
                 stack.remove();
-                console.log('Notification stack cleaned up');
             }
         }, 150);
-    } else {
-        console.warn('Notification not found for closing:', notificationId);
     }
 }
 
@@ -3582,17 +4269,7 @@ function getCachedElement(selector, useCache = true) {
 }
 
 // Debounce utility for performance
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+// Already defined above
 
 // Throttle utility for performance
 function throttle(func, limit) {
@@ -3781,3 +4458,206 @@ function performCleanup() {
 
 // Auto cleanup every 5 minutes
 setInterval(performCleanup, 5 * 60 * 1000);
+
+// === ADVANCED VISUAL EFFECTS SYSTEM ===
+
+function initializeAdvancedEffects() {
+    try {
+        // Initialize magnetic particles
+        setupMagneticParticles();
+
+        // Setup 3D card tilt effects
+        setup3DCardEffects();
+
+        // Initialize mouse trail effect
+        setupMouseTrail();
+
+        // Setup holographic effects
+        setupHolographicEffects();
+
+        console.log('Advanced visual effects initialized');
+    } catch (error) {
+        console.warn('Failed to initialize advanced effects:', error);
+    }
+}
+
+// Magnetic particle system
+function setupMagneticParticles() {
+    const particles = document.querySelectorAll('.particle');
+    let mouseX = 0;
+    let mouseY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    particles.forEach((particle, index) => {
+        // Randomize particle properties
+        const size = Math.random() * 10 + 5;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+
+        // Animate particles with mouse attraction
+        setInterval(() => {
+            const rect = particle.getBoundingClientRect();
+            const particleX = rect.left + rect.width / 2;
+            const particleY = rect.top + rect.height / 2;
+
+            const dx = mouseX - particleX;
+            const dy = mouseY - particleY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Magnetic attraction within 200px
+            if (distance < 200 && distance > 0) {
+                const force = (200 - distance) / 200;
+                const angle = Math.atan2(dy, dx);
+                const offsetX = Math.cos(angle) * force * 20;
+                const offsetY = Math.sin(angle) * force * 20;
+
+                particle.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${1 + force * 0.5})`;
+                particle.style.opacity = Math.min(1, 0.6 + force * 0.4);
+            } else {
+                particle.style.transform = 'translate(0, 0) scale(1)';
+                particle.style.opacity = '0.6';
+            }
+        }, 50);
+    });
+}
+
+// 3D card tilt effect
+function setup3DCardEffects() {
+    const storyCards = document.querySelectorAll('.story-card');
+
+    storyCards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rotateX = (y - centerY) / 10;
+            const rotateY = (centerX - x) / 10;
+
+            card.style.transform = `
+                perspective(1000px)
+                translateY(-12px)
+                rotateX(${rotateX}deg)
+                rotateY(${rotateY}deg)
+                scale3d(1.03, 1.03, 1.03)
+            `;
+
+            // Update mouse position for holographic effect
+            card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
+            card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(1000px) translateY(0) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+        });
+    });
+}
+
+// Mouse trail effect
+function setupMouseTrail() {
+    const trail = [];
+    const trailLength = 20;
+
+    for (let i = 0; i < trailLength; i++) {
+        const dot = document.createElement('div');
+        dot.style.cssText = `
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, rgba(100, 181, 246, ${1 - i / trailLength}) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: all 0.1s ease;
+            box-shadow: 0 0 10px rgba(100, 181, 246, ${1 - i / trailLength});
+        `;
+        document.body.appendChild(dot);
+        trail.push({ element: dot, x: 0, y: 0 });
+    }
+
+    let mouseX = 0;
+    let mouseY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    function animateTrail() {
+        let x = mouseX;
+        let y = mouseY;
+
+        trail.forEach((dot, index) => {
+            dot.element.style.left = x + 'px';
+            dot.element.style.top = y + 'px';
+
+            const nextDot = trail[index + 1] || trail[0];
+            x += (nextDot.x - x) * 0.5;
+            y += (nextDot.y - y) * 0.5;
+
+            dot.x = x;
+            dot.y = y;
+        });
+
+        requestAnimationFrame(animateTrail);
+    }
+
+    animateTrail();
+}
+
+// Holographic effects
+function setupHolographicEffects() {
+    // Add holographic shimmer to navigation
+    const navIsland = document.querySelector('.nav-island');
+    if (navIsland) {
+        navIsland.addEventListener('mousemove', (e) => {
+            const rect = navIsland.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+            navIsland.style.background = `
+                radial-gradient(circle at ${x}% ${y}%, 
+                    rgba(100, 181, 246, 0.15) 0%, 
+                    var(--glass-bg) 50%)
+            `;
+        });
+
+        navIsland.addEventListener('mouseleave', () => {
+            navIsland.style.background = 'var(--glass-bg)';
+        });
+    }
+}
+
+// Smooth scroll with easing
+function smoothScrollTo(target, duration = 1000) {
+    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
+    const startPosition = window.pageYOffset;
+    const distance = targetPosition - startPosition;
+    let startTime = null;
+
+    function animation(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+
+        // Easing function (easeInOutCubic)
+        const ease = progress < 0.5
+            ? 4 * progress * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+        window.scrollTo(0, startPosition + distance * ease);
+
+        if (timeElapsed < duration) {
+            requestAnimationFrame(animation);
+        }
+    }
+
+    requestAnimationFrame(animation);
+}
