@@ -51,7 +51,7 @@ var musicPlaylist = [
     {
         title: "Meri Duniya Tu",
         artist: "Hindi song",
-        url: "https://www.youtube.com/nyRJXc6YqpM?autoplay=1",
+        url: "https://www.youtube.com/KOm2EG3ZjWI?autoplay=1",
         duration: "4:01",
         icon: "fas fa-music"
     },
