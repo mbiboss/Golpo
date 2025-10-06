@@ -1,92 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Animated README Preview</title>
-  <style>
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(10px);}
-      to {opacity: 1; transform: translateY(0);}
-    }
-    @keyframes float {
-      0%,100% {transform: translateY(0);}
-      50% {transform: translateY(-4px);}
-    }
-    @keyframes glow {
-      0%,100% {filter: drop-shadow(0 0 0px #00ffe0);}
-      50% {filter: drop-shadow(0 0 8px #00ffe0);}
-    }
-    @keyframes pulse {
-      0%,100% {opacity: 1;}
-      50% {opacity: 0.6;}
-    }
-    @keyframes gradientShift {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
+<h1 align="center">🩶 MBI DARK 🩶</h1>
 
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      animation: fadeIn 1.2s ease-in-out;
-      background: radial-gradient(circle at top, #0a0a0a, #000);
-      color: #e0e0e0;
-      font-family: "Poppins", sans-serif;
-      text-align: center;
-      overflow: hidden;
-    }
+<p align="center">
+  <b>Creative Developer | Storyteller | Designer</b><br>
+  <i>“Code with style, Create with soul.”</i>
+</p>
 
-    h1, h2, h3 {
-      animation: fadeIn 1.4s ease-in-out, glow 4s infinite ease-in-out;
-      background: linear-gradient(90deg, #6dd5fa, #2980b9, #6dd5fa);
-      background-size: 300% 300%;
-      -webkit-background-clip: text;
-      color: transparent;
-      animation: gradientShift 6s infinite ease-in-out, glow 4s infinite ease-in-out;
-    }
+---
 
-    p, a, li {
-      animation: fadeIn 1.4s ease-in-out;
-    }
+### 🌙 About Me
+- 🎬 I create short films and emotional stories that connect with people.  
+- 💻 I love building unique UI experiences with pure HTML, CSS, and JS.  
+- 🎮 I also experiment with mobile gaming setups and hardware tools.  
+- 🧠 Always learning something new — from storytelling to animation.
 
-    a {
-      color: #6dd5fa;
-      text-decoration: none;
-      transition: 0.3s;
-    }
+---
 
-    a:hover {
-      color: #00ffe0;
-      text-shadow: 0 0 8px #00ffe0;
-    }
+### 🧰 Tech & Tools I Use
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=html,css,js,python,github,vscode,photoshop,premierepro,aftereffects" />
+</p>
 
-    .badge {
-      animation: float 3s infinite ease-in-out;
-      display:inline-block;
-      margin:3px;
-      background: rgba(255,255,255,0.1);
-      padding: 8px 16px;
-      border-radius: 8px;
-    }
+---
 
-    .emoji {
-      animation: pulse 2s infinite ease-in-out;
-      font-size: 1.5rem;
-    }
-  </style>
-</head>
-<body>
-  <h1>✨ Welcome to My Animated README ✨</h1>
-  <h3 class="badge">💻 MBI DARK</h3>
-  <p>This is how your animated README would look if GitHub allowed CSS animations.</p>
-  <p>Check out my projects → <a href="https://github.com/yourusername">GitHub Profile</a></p>
-  <p class="emoji">🚀</p>
-</body>
-</html>
+### 🎥 Featured Project
+🎞️ **“ভুল ছিল অতীত”** – A short emotional film about friendship, regret, and redemption.  
+📍Set in a rural village — filled with laughter, pain, and powerful lessons.  
+🎭 Cast: ইসমাইল, আতিক, নাঈম, নাসিম, সোহান  
+📺 [Watch on YouTube](https://youtube.com/@yourchannel)
+
+---
+
+### ⚡ Stats
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=yourusername&show_icons=true&theme=radical" height="150"/>
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=yourusername&layout=compact&theme=radical" height="150"/>
+</p>
+
+---
+
+### 🌐 Connect With Me
+<p align="center">
+  <a href="https://youtube.com/@yourchannel"><img src="https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white" /></a>
+  <a href="https://github.com/yourusername"><img src="https://img.shields.io/badge/GitHub-%23000000.svg?style=for-the-badge&logo=github&logoColor=white" /></a>
+  <a href="https://facebook.com/yourprofile"><img src="https://img.shields.io/badge/Facebook-%231877F2.svg?style=for-the-badge&logo=facebook&logoColor=white" /></a>
+</p>
+
+---
+
+<p align="center"><i>✨ Designed with care by MBI DARK ✨</i></p>
