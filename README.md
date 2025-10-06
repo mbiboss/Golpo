@@ -1,266 +1,105 @@
+<style>
+@keyframes fadeIn { from {opacity: 0; transform: translateY(10px);} to {opacity: 1; transform: translateY(0);} }
+@keyframes float { 0%,100% {transform: translateY(0);} 50% {transform: translateY(-4px);} }
+@keyframes glow { 0%,100% {filter: drop-shadow(0 0 0px #00ffe0);} 50% {filter: drop-shadow(0 0 8px #00ffe0);} }
+@keyframes pulse { 0%,100% {opacity: 1;} 50% {opacity: 0.6;} }
+@keyframes gradientShift {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+body {
+  animation: fadeIn 1.2s ease-in-out;
+  background: radial-gradient(circle at top, #0a0a0a, #000);
+  color: #e0e0e0;
+  font-family: "Poppins", sans-serif;
+  text-align: center;
+}
+h1, h2, h3 {
+  animation: fadeIn 1.4s ease-in-out, glow 4s infinite ease-in-out;
+  background: linear-gradient(90deg, #6dd5fa, #2980b9, #6dd5fa);
+  background-size: 300% 300%;
+  animation: gradientShift 6s infinite ease-in-out;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+table, a, p, li { animation: fadeIn 1.4s ease-in-out; }
+a:hover { color: #00ffe0; text-shadow: 0 0 8px #00ffe0; transition: 0.3s; }
+.badge { animation: float 3s infinite ease-in-out; display:inline-block; margin:3px; }
+.emoji { animation: pulse 2s infinite ease-in-out; }
+</style>
 
 <div align="center">
 
-# 🌟 Golpo - গল্প
-### Bengali Story Reading Experience
+<h1>🌌 <span class="emoji">Golpo – গল্প</span></h1>
+<h3><i>Bengali Story Reading Reimagined</i></h3>
 
-[![Made with ❤️](https://img.shields.io/badge/Made%20with-❤️-ff69b4.svg?style=for-the-badge)](https://github.com/mbidark)
-[![Bengali Stories](https://img.shields.io/badge/Bengali-Stories-success?style=for-the-badge&logo=book)](https://replit.com)
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=replit)](https://replit.com/@yourusername/golpo)
-
-*An immersive Bengali storytelling platform with ambient music and elegant design*
-
----
-
+<div class="badges">
+  <a href="#"><img src="https://img.shields.io/badge/Made_with-❤️-ff69b4.svg?style=for-the-badge" class="badge"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Bengali-Stories-success?style=for-the-badge&logo=book" class="badge"></a>
+  <a href="https://mbiboss.github.io/Golpo"><img src="https://img.shields.io/badge/Live-Demo-007bff?style=for-the-badge&logo=replit" class="badge"></a>
 </div>
 
-## ✨ **Features**
+<p><i>💫 Where stories breathe, music moves, and silence speaks.</i></p>
 
-<div align="center">
-
-| 🎨 **Design** | 🎵 **Music** | 📱 **Experience** | 🌐 **Technology** |
-|:-------------:|:------------:|:----------------:|:-----------------:|
-| Glassmorphism UI | YouTube Integration | Mobile Responsive | Offline Reading |
-| Dark/Sepia Themes | Background Playlists | Reading Progress | Service Worker |
-| Particle Effects | Auto-play Music | Focus Mode | Progressive Web App |
-| Bengali Typography | Ambient Soundscapes | Bookmarking | Local Storage |
-
+<hr>
 </div>
 
-## 🚀 **Live Demo**
+<h2>✨ Features</h2>
+<ul>
+<li>🎨 Glassmorphism UI with floating motion</li>
+<li>🎵 Ambient Music synced with story mood</li>
+<li>📱 Mobile-first, clean and responsive</li>
+<li>🌙 Multi-theme: Dark, Light, Sepia, and more</li>
+<li>📖 Reading Progress + Bookmark system</li>
+<li>⚙️ Offline Ready (PWA) for smooth reading</li>
+</ul>
 
-Experience the magic of Bengali storytelling at: **[Golpo Live](https://mbiboss.github.io/Golpo/)**
-
-<div align="center">
-
-![Golpo Screenshot](https://via.placeholder.com/800x400/1a1a1a/64B5F6?text=Golpo+Screenshot)
-
-</div>
-
-## 📚 **Story Collection**
+<h2>📚 Featured Stories</h2>
 
 <table align="center">
-<tr>
-<th>📖 Story</th>
-<th>👤 Author</th>
-<th>⏱️ Read Time</th>
-<th>📊 Status</th>
-</tr>
-<tr>
-<td><strong>বিশ্বাস (Trust)</strong></td>
-<td>✿ㅤ"MʙɪㅤDᴀʀᴋ"</td>
-<td>~25 min</td>
-<td>🟢 Available</td>
-</tr>
-<tr>
-<td><strong>অভিশাপের অনন্ত ছায়া</strong></td>
-<td>✿ㅤ"MʙɪㅤDᴀʀᴋ"</td>
-<td>~15 min</td>
-<td>🟢 Available</td>
-</tr>
-<tr>
-<td><strong>ভালোবাসা : এক অন্তহীন মহাবৃত্ত</strong></td>
-<td>✿ㅤ"MʙɪㅤDᴀʀᴋ"</td>
-<td>~20 min</td>
-<td>🟢 Available</td>
-</tr>
-<tr>
-<td><strong>More Stories</strong></td>
-<td>✿ㅤ"MʙɪㅤDᴀʀᴋ"</td>
-<td>Soon</td>
-<td>🟡 Coming Soon</td>
-</tr>
+<tr><th>Title</th><th>Author</th><th>Time</th></tr>
+<tr><td><b>বিশ্বাস (Trust)</b></td><td>✿ Mʙɪ Dᴀʀᴋ</td><td>~25 min</td></tr>
+<tr><td><b>অভিশাপের অনন্ত ছায়া</b></td><td>✿ Mʙɪ Dᴀʀᴋ</td><td>~15 min</td></tr>
+<tr><td><b>ভালোবাসা : এক মহাবৃত্ত</b></td><td>✿ Mʙɪ Dᴀʀᴋ</td><td>~20 min</td></tr>
 </table>
 
-## 🎯 **Getting Started**
+<p>🟡 <i>More stories coming soon...</i></p>
 
-### Prerequisites
-- Modern web browser
-- Internet connection (for music streaming)
+<hr>
 
-### Quick Setup
-1. **Fork this Repl** or clone the repository
-2. **Run the project** - Click the Run button
-3. **Open in browser** - Navigate to the preview URL
-4. **Start reading** - Choose a story and enjoy!
+<h2>🎨 Design Vision</h2>
+<p><i>“গল্প শুধু শব্দ নয় — এটা এক নীরব অনুভব।”</i></p>
+<ul>
+<li>Soft motion & glow</li>
+<li>Clean typography</li>
+<li>Gentle gradient transitions</li>
+<li>Emotion through simplicity</li>
+</ul>
 
-```bash
-# Clone the repository
-git clone https://github.com/mbiboss/Golpo.git
+<hr>
 
-# Navigate to directory
-cd golpo
+<h2>🛠️ Tech Stack</h2>
+<p><b>HTML5 · CSS3 · JavaScript · PWA</b></p>
+<p>Minimal. Fast. Emotionally intelligent design.</p>
 
-# Serve locally
-python3 -m http.server 5000
-```
+<hr>
 
-## 🎨 **Design Philosophy**
+<h2>🧑‍💻 Author</h2>
+<p><b>✿ Mʙɪ Dᴀʀᴋ</b><br>
+<i>Bengali Storyteller • Designer • Developer</i></p>
 
-<div align="center">
+<p>
+<a href="https://www.youtube.com/@Bekar_Golpo">🎬 YouTube</a> • 
+<a href="https://facebook.com/mbiboss.1">🌐 Facebook</a> • 
+<a href="https://discord.com/users/731544517542674443">💬 Discord</a>
+</p>
 
-> *"গল্প শুধু শব্দ নয়, এক জীবন্ত অভিজ্ঞতা"*  
-> *"Stories are not just words, but living experiences"*
+<p><i>“আমার গল্প হৃদয় থেকে লেখা, হৃদয়েই পৌঁছায়।”</i></p>
 
-</div>
-
-### UI/UX Principles
-- **🎭 Immersive Experience**: Glassmorphism design with particle effects
-- **🎵 Ambient Integration**: Curated background music for each story
-- **📖 Reading Comfort**: Multiple themes and focus modes
-- **🌍 Cultural Authenticity**: Native Bengali typography and aesthetics
-
-## 🛠️ **Technology Stack**
+<hr>
 
 <div align="center">
-
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)
-
-</div>
-
-### Core Technologies
-- **Frontend**: Vanilla JavaScript, CSS3, HTML5
-- **Design**: Glassmorphism, CSS Grid, Flexbox
-- **Audio**: YouTube Embed API
-- **Storage**: LocalStorage, Service Workers
-- **Hosting**: Replit Static Deployment
-
-### Features Implementation
-- **📱 Responsive Design**: Mobile-first approach
-- **🎨 Theme System**: CSS custom properties
-- **💾 Offline Support**: Service Worker caching
-- **🔖 Bookmarking**: LocalStorage persistence
-- **🎵 Music Integration**: YouTube playlist management
-
-## 🌟 **Key Features Deep Dive**
-
-### 🎨 **Visual Experience**
-- **Glassmorphism UI** with blur effects and transparency
-- **Particle Animation System** for ambient background effects
-- **Dynamic Island Navigation** inspired by modern mobile design
-- **Multiple Theme Support** (Dark, Light, Sepia, Dark-Sepia)
-
-### 📖 **Reading Experience**
-- **Paginated Stories** with smooth navigation
-- **Focus Mode** for distraction-free reading
-- **Adjustable Font Size** for comfortable reading
-- **Progress Tracking** with visual indicators
-- **Bookmark System** to save reading position
-
-### 🎵 **Audio Integration**
-- **Curated Playlists** for each story atmosphere
-- **Auto-play Functionality** with user control
-- **Background Music** that complements the narrative
-- **Playlist Management** with skip/previous controls
-
-### 🌐 **Progressive Web App**
-- **Offline Reading** with cached stories
-- **Service Worker** for background sync
-- **Mobile Installation** as native app
-- **Performance Optimization** with lazy loading
-
-## 🎭 **Author**
-
-<div align="center">
-
-### ✿ㅤ"MʙɪㅤDᴀʀᴋ"
-*Bengali Storyteller & Developer*
-
-[![Facebook](https://img.shields.io/badge/Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/mbiboss.1/)
-[![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@Bekar_Golpo)
-[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/users/731544517542674443)
-[![WhatsApp](https://img.shields.io/badge/WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://wa.me/8801317460865)
-[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:ooismailforajioo@gmail.com)
-
-*"আমার গল্পগুলি হৃদয় থেকে আসে, হৃদয়েই পৌঁছায়"*
-
-</div>
-
-## 📋 **Usage Guide**
-
-### 🚀 **For Readers**
-1. **Choose Your Story** from the elegant story grid
-2. **Select Background Music** from the curated playlist
-3. **Customize Your Experience** with themes and font size
-4. **Track Your Progress** with the built-in bookmark system
-5. **Focus Mode** for distraction-free reading
-
-### 👨‍💻 **For Developers**
-1. **Fork the Project** on Replit
-2. **Add New Stories** to the `/stories` directory
-3. **Update Story Database** in `script.js`
-4. **Customize Themes** in `style.css`
-5. **Deploy** using Replit's static hosting
-
-## 📱 **Browser Support**
-
-<div align="center">
-
-| Browser | Version | Support |
-|---------|---------|---------|
-| Chrome | 80+ | ✅ Full |
-| Firefox | 75+ | ✅ Full |
-| Safari | 13+ | ✅ Full |
-| Edge | 80+ | ✅ Full |
-| Mobile | Modern | ✅ Full |
-
-</div>
-
-## 🔧 **Contributing**
-
-We welcome contributions to make Golpo even better!
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/AmazingFeature`)
-3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** to the branch (`git push origin feature/AmazingFeature`)
-5. **Open** a Pull Request
-
-### 📝 **Adding New Stories**
-1. Create a `.txt` file in the `/stories` directory
-2. Add story metadata to `storyDatabase` in `script.js`
-3. Add story ID to the `data-stories` attribute in `index.html`
-4. Upload cover images and update the metadata
-
-## 🎉 **Roadmap**
-
-<div align="center">
-
-### 🚀 **Coming Soon**
-
-| Feature | Status | Priority |
-|---------|--------|----------|
-| 🔊 Text-to-Speech | 🟡 Planned | High |
-| 💬 Comment System | 🟡 Planned | Medium |
-| 🌍 Multi-language | 🟡 Planned | Medium |
-| 📚 Story Collections | 🟡 Planned | Low |
-| 🤖 AI Recommendations | 🟡 Planned | Low |
-
-</div>
-
-## 📄 **License**
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-### 🌟 **Show Your Support**
-
-If you enjoyed Golpo, please consider:
-- ⭐ **Starring** this repository
-- 🐛 **Reporting** bugs or issues
-- 💡 **Suggesting** new features
-- 📱 **Sharing** with friends and family
-
----
-
-**Made with ❤️ for Bengali literature lovers**
-
-*© 2025 Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ". All rights reserved.*
-
+<p><b>Made with ❤️ for Bengali Souls</b><br>
+© 2025 Golpo by ✿ Mʙɪ Dᴀʀᴋ</p>
 </div>
