@@ -39,7 +39,7 @@ var musicPlaylist = [
         artist: "Arabic Song",
         url: "https://www.youtube.com/embed/kMU97_dBg_U?autoplay=1",
         duration: "3:15",
-        icon: "fas fa-star"
+        icon: "fas fa-musicr"
     },
     {
         title: "Tumi chaile",
