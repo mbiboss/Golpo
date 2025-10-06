@@ -1,50 +1,90 @@
-<h1 align="center">🩶 MBI DARK 🩶</h1>
+<div align="center">
 
-<p align="center">
-  <b>Creative Developer | Storyteller | Designer</b><br>
-  <i>“Code with style, Create with soul.”</i>
-</p>
+# 🌟 Golpo - গল্প  
+### Bengali Story Reading Experience  
 
----
+[![Made with ❤️](https://img.shields.io/badge/Made%20with-❤️-ff69b4.svg?style=for-the-badge)](https://github.com/mbiboss)
+[![Bengali Stories](https://img.shields.io/badge/Bengali-Stories-success?style=for-the-badge&logo=book)](https://replit.com)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=replit)](https://mbiboss.github.io/Golpo/)
 
-### 🌙 About Me
-- 🎬 I create short films and emotional stories that connect with people.  
-- 💻 I love building unique UI experiences with pure HTML, CSS, and JS.  
-- 🎮 I also experiment with mobile gaming setups and hardware tools.  
-- 🧠 Always learning something new — from storytelling to animation.
+*An immersive Bengali storytelling platform with ambient music and elegant design*
 
 ---
 
-### 🧰 Tech & Tools I Use
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=html,css,js,python,github,vscode,photoshop,premierepro,aftereffects" />
-</p>
+</div>
+
+## ✨ Features
+
+<div align="center">
+
+| 🎨 **Design** | 🎵 **Music** | 📱 **Experience** | 🌐 **Technology** |
+|:-------------:|:------------:|:----------------:|:-----------------:|
+| Glassmorphism UI | YouTube Integration | Mobile Responsive | Offline Reading |
+| Dark/Sepia Themes | Background Playlists | Reading Progress | Service Worker |
+| Particle Effects | Auto-play Music | Focus Mode | Progressive Web App |
+| Bengali Typography | Ambient Soundscapes | Bookmarking | Local Storage |
+
+</div>
 
 ---
 
-### 🎥 Featured Project
-🎞️ **“ভুল ছিল অতীত”** – A short emotional film about friendship, regret, and redemption.  
-📍Set in a rural village — filled with laughter, pain, and powerful lessons.  
-🎭 Cast: ইসমাইল, আতিক, নাঈম, নাসিম, সোহান  
-📺 [Watch on YouTube](https://youtube.com/@yourchannel)
+## 🚀 Live Demo
+
+Experience the magic of Bengali storytelling here:  
+🎧 **[Golpo Live](https://mbiboss.github.io/Golpo/)**
 
 ---
 
-### ⚡ Stats
-<p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=yourusername&show_icons=true&theme=radical" height="150"/>
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=yourusername&layout=compact&theme=radical" height="150"/>
-</p>
+## 📚 Story Collection
+
+<table align="center">
+<tr>
+<th>📖 Story</th>
+<th>👤 Author</th>
+<th>⏱️ Read Time</th>
+<th>📊 Status</th>
+</tr>
+<tr>
+<td><strong>বিশ্বাস (Trust)</strong></td>
+<td>✿ㅤ"MʙɪㅤDᴀʀᴋ"</td>
+<td>~25 min</td>
+<td>🟢 Available</td>
+</tr>
+<tr>
+<td><strong>অভিশাপের অনন্ত ছায়া</strong></td>
+<td>✿ㅤ"MʙɪㅤDᴀʀᴋ"</td>
+<td>~15 min</td>
+<td>🟢 Available</td>
+</tr>
+<tr>
+<td><strong>ভালোবাসা : এক অন্তহীন মহাবৃত্ত</strong></td>
+<td>✿ㅤ"MʙɪㅤDᴀʀᴋ"</td>
+<td>~20 min</td>
+<td>🟢 Available</td>
+</tr>
+<tr>
+<td><strong>More Stories</strong></td>
+<td>✿ㅤ"MʙɪㅤDᴀʀᴋ"</td>
+<td>Soon</td>
+<td>🟡 Coming Soon</td>
+</tr>
+</table>
 
 ---
 
-### 🌐 Connect With Me
-<p align="center">
-  <a href="https://youtube.com/@yourchannel"><img src="https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white" /></a>
-  <a href="https://github.com/yourusername"><img src="https://img.shields.io/badge/GitHub-%23000000.svg?style=for-the-badge&logo=github&logoColor=white" /></a>
-  <a href="https://facebook.com/yourprofile"><img src="https://img.shields.io/badge/Facebook-%231877F2.svg?style=for-the-badge&logo=facebook&logoColor=white" /></a>
-</p>
+## 🎯 Getting Started
 
----
+### 🧩 Prerequisites
+- Modern web browser  
+- Internet connection (for music streaming)
 
-<p align="center"><i>✨ Designed with care by MBI DARK ✨</i></p>
+### ⚙️ Quick Setup
+```bash
+# Clone the repository
+git clone https://github.com/mbiboss/Golpo.git
+
+# Navigate to directory
+cd golpo
+
+# Serve locally
+python3 -m http.server 5000
