@@ -49,6 +49,20 @@ var musicPlaylist = [
         icon: "fas fa-music"
     },
     {
+        title: "Meri Duniya Tu",
+        artist: "Hindi song",
+        url: "https://www.youtube.com/RyDmg6aTMUbuTBXF?autoplay=1",
+        duration: "4:01",
+        icon: "fas fa-music"
+    },
+    {
+        title: "Tu",
+        artist: "Hindi song",
+        url: "https://www.youtube.com/embed/HyWbONaF4r1XYhtH?autoplay=1",
+        duration: "2:12",
+        icon: "fas fa-music"
+    },
+    {
         title: "Pal Pal x Jhol",
         artist: "Hindi Mashup",
         url: "https://www.youtube.com/embed/dvawR63DnqE?autoplay=1",
