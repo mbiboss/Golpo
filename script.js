@@ -49,10 +49,17 @@ var musicPlaylist = [
         icon: "fas fa-music"
     },
     {
-        title: "Meri Duniya Tu",
+        title: "Ehsaas",
         artist: "Hindi song",
-        url: "https://www.youtube.com/KOm2EG3ZjWI?autoplay=1",
-        duration: "4:01",
+        url: "https://www.youtube.com/ORAEex_uZG8?autoplay=1",
+        duration: "4:16",
+        icon: "fas fa-music"
+    },
+    {
+        title: "Maula Mere Maula",
+        artist: "Hindi song",
+        url: "https://www.youtube.com/SmZpCs4QlY0?autoplay=1",
+        duration: "6:23",
         icon: "fas fa-music"
     },
     {
@@ -104,10 +111,11 @@ var storyDatabase = {
         id: 'Obisaperonontochaya',
         name: 'অভিশাপের অনন্ত ছায়া',
         location: 'Kathora,Shalna,Gazipur',
-        writer:'✿ㅤ"MʙɪㅤDᴀʀᴋ"',
+        writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'About My Curse',
         status: 'available',
-        category: 'Mystry',
+        category: 'Mystery',
+        tags: ['mystery', 'curse', 'supernatural'],
         banner: 'https://i.postimg.cc/qMyzHwD1/Obisaperonontochayacover.png',
         reading: 'https://i.postimg.cc/YC7jrFJM/20250918-011638.png',
         readingTime: 0,
@@ -120,7 +128,8 @@ var storyDatabase = {
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'About love',
         status: 'available',
-        category: 'Mystry',
+        category: 'Mystery',
+        tags: ['mystery', 'love', 'emotional'],
         banner: 'https://i.postimg.cc/gkcPhzjf/Valobashawide.png',
         reading: 'https://i.postimg.cc/sXpRY1pR/Valobashasmall.png',
         readingTime: 0,
@@ -260,7 +269,7 @@ function setupStartupScreen() {
 
         // Add keyboard support (Enter or Space to continue)
         document.addEventListener('keydown', function(e) {
-            if (!startupDismissed && startupScreen && startupScreen.style.display !== 'none' && 
+            if (!startupDismissed && startupScreen && startupScreen.style.display !== 'none' &&
                 (e.key === 'Enter' || e.key === ' ')) {
                 e.preventDefault();
                 dismissStartupScreen(e);
@@ -404,6 +413,15 @@ function createStorySuggestions(currentStoryFile) {
         const statusClass = story.status === 'upcoming' ? 'upcoming' : '';
         // Get reading image for this specific story
         const suggestionImage = getReadingImageForStory(story.id);
+        
+        // Get category icon
+        const categoryIcons = {
+            'Romance': 'fas fa-heart',
+            'Horror': 'fas fa-ghost',
+            'Drama': 'fas fa-theater-masks',
+            'Mystery': 'fas fa-search'
+        };
+        const categoryIcon = categoryIcons[story.category] || 'fas fa-book';
 
         suggestionsHTML += `
             <div class="suggestion-card ${statusClass}" onclick="loadStoryFromSuggestion('${story.file}')">
@@ -420,6 +438,7 @@ function createStorySuggestions(currentStoryFile) {
                         <span class="author">${story.writer}</span>
                         <span class="status ${story.status}">${story.status === 'upcoming' ? 'Coming Soon' : 'Read Now'}</span>
                     </div>
+                    ${story.category ? `<div class="suggestion-category-badge"><i class="${categoryIcon}"></i> ${story.category}</div>` : ''}
                 </div>
             </div>
         `;
@@ -559,8 +578,8 @@ function performGlobalSearch() {
         const searchableText = `${metadata.title} ${metadata.description} ${metadata.keywords.join(' ')}`.toLowerCase();
 
         // Check if query matches title, description, or keywords
-        return searchableText.includes(query) || 
-               metadata.keywords.some(keyword => keyword.toLowerCase().includes(query));
+        return searchableText.includes(query) ||
+            metadata.keywords.some(keyword => keyword.toLowerCase().includes(query));
     });
 
     // Highlight matching story cards
@@ -602,10 +621,10 @@ function showSearchFeedback(query, resultCount) {
     feedback.className = 'search-feedback';
     feedback.innerHTML = `
         <p class="english-text">
-            ${resultCount > 0 
-                ? `Found ${resultCount} story${resultCount > 1 ? 's' : ''} matching "${query}"` 
-                : `No stories found matching "${query}"`
-            }
+            ${resultCount > 0
+            ? `Found ${resultCount} story${resultCount > 1 ? 's' : ''} matching "${query}"`
+            : `No stories found matching "${query}"`
+        }
         </p>
     `;
     searchSection.appendChild(feedback);
@@ -659,7 +678,10 @@ function filterByCategory(category) {
     // Filter stories
     storyCards.forEach(card => {
         const storyFile = card.dataset.story;
-        const storyData = storyDatabase[storyFile];
+
+        // Ensure storyFile has .txt extension
+        const filename = storyFile.endsWith('.txt') ? storyFile : storyFile + '.txt';
+        const storyData = storyDatabase[filename];
 
         if (category === 'all') {
             card.style.display = '';
@@ -820,9 +842,9 @@ function initSecretAnalytics() {
         const isFooterLogoClick = e.target.classList.contains('footer-logo');
 
         // Check if clicking on footer text that contains author name
-        const isFooterAuthorClick = e.target.closest('.footer-left') && 
-                                   (e.target.textContent.includes('MʙɪㅤDᴀʀᴋ') || 
-                                    e.target.textContent.includes('MBI'));
+        const isFooterAuthorClick = e.target.closest('.footer-left') &&
+            (e.target.textContent.includes('MʙɪㅤDᴀʀᴋ') ||
+                e.target.textContent.includes('MBI'));
 
         if (isFooterLogoClick || isFooterAuthorClick) {
             e.preventDefault();
@@ -1208,7 +1230,7 @@ function displayPage(pageNumber) {
         storyContent.appendChild(p);
     });
 
-// Volume control removed - YouTube iframes don't support external volume control
+    // Volume control removed - YouTube iframes don't support external volume control
 
 
     // Add pagination controls
@@ -1272,18 +1294,18 @@ function addPaginationControls() {
         <div class="page-current" onclick="promptPageJump()" style="cursor: pointer;" title="Click to jump to page">Page ${currentPage}</div>
         <div class="page-total">of ${totalPages}</div>
         <div class="page-dots">
-            ${Array.from({length: Math.min(5, totalPages)}, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                    pageNum = i + 1;
-                } else {
-                    const start = Math.max(1, currentPage - 2);
-                    const end = Math.min(totalPages, start + 4);
-                    pageNum = start + i;
-                    if (pageNum > end) return '';
-                }
-                return `<div class="page-dot ${pageNum === currentPage ? 'active' : ''}" onclick="displayPage(${pageNum})" title="Go to page ${pageNum}"></div>`;
-            }).join('')}
+            ${Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+        let pageNum;
+        if (totalPages <= 5) {
+            pageNum = i + 1;
+        } else {
+            const start = Math.max(1, currentPage - 2);
+            const end = Math.min(totalPages, start + 4);
+            pageNum = start + i;
+            if (pageNum > end) return '';
+        }
+        return `<div class="page-dot ${pageNum === currentPage ? 'active' : ''}" onclick="displayPage(${pageNum})" title="Go to page ${pageNum}"></div>`;
+    }).join('')}
         </div>
     `;
 
@@ -1739,6 +1761,15 @@ function createStoryCardHTML(filename) {
     const story = getStoryMetadata(filename);
     const bannerImage = getBannerImageForStory(story.id);
 
+    // Get category icon
+    const categoryIcons = {
+        'Romance': 'fas fa-heart',
+        'Horror': 'fas fa-ghost',
+        'Drama': 'fas fa-theater-masks',
+        'Mystery': 'fas fa-search'
+    };
+    const categoryIcon = categoryIcons[story.category] || 'fas fa-book';
+
     return `
         <div class="story-card" data-story="${filename}" onclick="window.loadStoryFromCard('${filename}')">
             <div class="story-cover story-cover-wide" style="background-image: url('${bannerImage}'); background-size: cover; background-position: center;">
@@ -1752,6 +1783,7 @@ function createStoryCardHTML(filename) {
                     <span class="location">${story.location}</span>
                     ${story.readingTime > 0 ? `<span class="reading-time">~${story.readingTime} min read</span>` : ''}
                 </div>
+                ${story.category ? `<div class="story-category-badge"><i class="${categoryIcon}"></i> ${story.category}</div>` : ''}
             </div>
         </div>
     `;
@@ -2141,11 +2173,11 @@ function loadSavedSettings() {
 
         // Track session start
         if (typeof trackAnalyticsEvent === 'function') {
-            const daysSinceLastVisit = settings.lastVisit ? 
+            const daysSinceLastVisit = settings.lastVisit ?
                 Math.floor((Date.now() - settings.lastVisit) / (1000 * 60 * 60 * 24)) : 0;
-            trackAnalyticsEvent('Session started', { 
+            trackAnalyticsEvent('Session started', {
                 daysSinceLastVisit: daysSinceLastVisit,
-                theme: currentTheme 
+                theme: currentTheme
             });
         }
 
@@ -2175,8 +2207,8 @@ function debounce(func, wait) {
 // Enhanced Keyboard Shortcuts System
 document.addEventListener('keydown', function(e) {
     // Don't trigger shortcuts when typing in input fields
-    const isInputActive = ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName) || 
-                          e.target.contentEditable === 'true';
+    const isInputActive = ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName) ||
+        e.target.contentEditable === 'true';
 
     // Don't trigger if modal is open
     const isModalOpen = document.querySelector('.selection-modal.active');
@@ -2185,7 +2217,7 @@ document.addEventListener('keydown', function(e) {
 
     // Music Controls (with Alt modifier for safety)
     if (e.altKey) {
-        switch(e.code) {
+        switch (e.code) {
             case 'KeyM': // Alt + M: Open Music Selector
                 e.preventDefault();
                 openMusicModal();
@@ -2223,7 +2255,7 @@ document.addEventListener('keydown', function(e) {
     }
 
     // Regular shortcuts (without modifier)
-    switch(e.code) {
+    switch (e.code) {
         case 'Space': // Space: Play/Pause (classic)
             e.preventDefault();
             togglePlayPause();
@@ -2501,24 +2533,24 @@ function setupReadingControlsOutsideClick() {
     if (readingControlsMenu) {
         readingControlsMenu.addEventListener('click', function(e) {
             // Allow input fields to receive all events
-            if (e.target.tagName === 'INPUT' || 
+            if (e.target.tagName === 'INPUT' ||
                 e.target.id === 'searchInput') {
                 return; // Don't stop propagation for input fields
             }
-            
+
             // Don't stop propagation if clicking on buttons
             if (e.target.tagName === 'BUTTON' ||
                 e.target.classList.contains('control-btn') ||
                 e.target.closest('.control-btn')) {
                 return;
             }
-            
+
             // Don't stop propagation if clicking on the search container
             if (e.target.classList.contains('search-container') ||
                 e.target.closest('.search-container')) {
                 return;
             }
-            
+
             e.stopPropagation();
         });
     }
@@ -2529,7 +2561,7 @@ function setupReadingControlsOutsideClick() {
             e.stopPropagation();
         });
     }
-    
+
     // Ensure search input can receive focus and keyboard events
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -2538,21 +2570,21 @@ function setupReadingControlsOutsideClick() {
             e.stopPropagation();
             this.style.pointerEvents = 'auto';
         }, true);
-        
+
         searchInput.addEventListener('click', function(e) {
             e.stopPropagation();
             this.focus();
         }, true);
-        
+
         // Ensure keyboard events work
         searchInput.addEventListener('keydown', function(e) {
             e.stopPropagation();
         }, true);
-        
+
         searchInput.addEventListener('keyup', function(e) {
             e.stopPropagation();
         }, true);
-        
+
         searchInput.addEventListener('input', function(e) {
             e.stopPropagation();
         }, true);
@@ -2680,7 +2712,7 @@ async function loadStory(filename) {
             console.error('Story loading error:', error);
 
             // Retry mechanism for network errors
-            if (retryCount < maxRetries && isOnline && 
+            if (retryCount < maxRetries && isOnline &&
                 (error.name === 'TypeError' || error.message.includes('Server error'))) {
                 retryCount++;
                 showNotification(`Retrying... (${retryCount}/${maxRetries})`, 'warning');
@@ -2867,8 +2899,8 @@ function playNextSong() {
 
             // Show notification
             showMusicNotification(
-                `Now playing (${currentMusicIndex + 1}/${musicPlaylist.length})`, 
-                nextSong.title, 
+                `Now playing (${currentMusicIndex + 1}/${musicPlaylist.length})`,
+                nextSong.title,
                 { duration: 3000 }
             );
 
@@ -3386,8 +3418,8 @@ function displaySearchResults(results, searchTerm) {
         }
 
         html += '<div class="search-result-item" onclick="' + clickHandler + '">' +
-                (index + 1) + '. ' + pageInfo + '...' + escapeHtml(result.context) + '...' +
-                '</div>';
+            (index + 1) + '. ' + pageInfo + '...' + escapeHtml(result.context) + '...' +
+            '</div>';
     });
 
     searchResults.innerHTML = html;
@@ -3452,8 +3484,8 @@ function displaySearchResults(results, searchTerm) {
         }
 
         html += '<div class="search-result-item" onclick="' + clickHandler + '">' +
-                (index + 1) + '. ' + pageInfo + '...' + escapeHtml(result.context) + '...' +
-                '</div>';
+            (index + 1) + '. ' + pageInfo + '...' + escapeHtml(result.context) + '...' +
+            '</div>';
     });
 
     searchResults.innerHTML = html;
@@ -3891,7 +3923,7 @@ function showOfflineStatus() {
     const cachedCount = cachedStories.size;
     const totalStories = Object.keys(storyDatabase).length;
 
-    let message = isOnline ? 
+    let message = isOnline ?
         `Online - All ${totalStories} stories available` :
         `Offline - ${cachedCount}/${totalStories} stories cached`;
 
@@ -4214,9 +4246,9 @@ function createActionButtons(actions, notificationId) {
     if (!actions || actions.length === 0) return '';
 
     return `<div class="notification-actions">
-        ${actions.map(action => 
-            `<button class="notification-action" onclick="${action.callback}('${notificationId}')">${action.label}</button>`
-        ).join('')}
+        ${actions.map(action =>
+        `<button class="notification-action" onclick="${action.callback}('${notificationId}')">${action.label}</button>`
+    ).join('')}
     </div>`;
 }
 
@@ -4491,6 +4523,12 @@ function initializeAdvancedEffects() {
         // Setup holographic effects
         setupHolographicEffects();
 
+        // Initialize custom animated cursor
+        setupCustomCursor();
+
+        // Initialize enhanced particle trail
+        setupEnhancedParticleTrail();
+
         console.log('Advanced visual effects initialized');
     } catch (error) {
         console.warn('Failed to initialize advanced effects:', error);
@@ -4576,51 +4614,108 @@ function setup3DCardEffects() {
     });
 }
 
-// Mouse trail effect
+// Mouse trail effect - Only shows when mouse is detected
 function setupMouseTrail() {
-    const trail = [];
-    const trailLength = 20;
+    // Check if device has a mouse (not touch-only device)
+    const hasPointer = window.matchMedia('(pointer: fine)').matches;
 
+    if (!hasPointer) {
+        console.log('Touch device detected - skipping mouse trail effect');
+        return;
+    }
+
+    const trail = [];
+    const trailLength = 25;
+    let mouseX = 0;
+    let mouseY = 0;
+    let isMouseActive = false;
+
+    // Create particle trail elements
     for (let i = 0; i < trailLength; i++) {
         const dot = document.createElement('div');
+        const opacity = (1 - i / trailLength) * 0.8;
+        const size = 8 - (i / trailLength) * 4;
+
+        dot.className = 'mouse-trail-particle';
         dot.style.cssText = `
             position: fixed;
-            width: 6px;
-            height: 6px;
-            background: radial-gradient(circle, rgba(100, 181, 246, ${1 - i / trailLength}) 0%, transparent 70%);
+            width: ${size}px;
+            height: ${size}px;
+            background: radial-gradient(circle, rgba(100, 181, 246, ${opacity}) 0%, rgba(139, 92, 246, ${opacity * 0.5}) 50%, transparent 70%);
             border-radius: 50%;
             pointer-events: none;
             z-index: 9999;
-            transition: all 0.1s ease;
-            box-shadow: 0 0 10px rgba(100, 181, 246, ${1 - i / trailLength});
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 0 ${10 + i}px rgba(100, 181, 246, ${opacity}), 0 0 ${20 + i}px rgba(139, 92, 246, ${opacity * 0.5});
+            transform: translate(-50%, -50%);
         `;
         document.body.appendChild(dot);
-        trail.push({ element: dot, x: 0, y: 0 });
+        trail.push({ element: dot, x: 0, y: 0, targetX: 0, targetY: 0 });
     }
 
-    let mouseX = 0;
-    let mouseY = 0;
-
+    // Track mouse movement
     document.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
         mouseY = e.clientY;
+
+        if (!isMouseActive) {
+            isMouseActive = true;
+            // Fade in particles when mouse is detected
+            trail.forEach(dot => {
+                dot.element.style.opacity = '1';
+            });
+        }
     });
 
-    function animateTrail() {
-        let x = mouseX;
-        let y = mouseY;
-
-        trail.forEach((dot, index) => {
-            dot.element.style.left = x + 'px';
-            dot.element.style.top = y + 'px';
-
-            const nextDot = trail[index + 1] || trail[0];
-            x += (nextDot.x - x) * 0.5;
-            y += (nextDot.y - y) * 0.5;
-
-            dot.x = x;
-            dot.y = y;
+    // Hide particles when mouse leaves the window
+    document.addEventListener('mouseleave', () => {
+        isMouseActive = false;
+        trail.forEach(dot => {
+            dot.element.style.opacity = '0';
         });
+    });
+
+    // Re-show particles when mouse re-enters
+    document.addEventListener('mouseenter', () => {
+        if (hasPointer) {
+            isMouseActive = true;
+            trail.forEach(dot => {
+                dot.element.style.opacity = '1';
+            });
+        }
+    });
+
+    // Smooth animation loop
+    function animateTrail() {
+        if (isMouseActive) {
+            // Update first particle to follow mouse directly
+            trail[0].targetX = mouseX;
+            trail[0].targetY = mouseY;
+
+            // Each particle follows the previous one with smooth interpolation
+            trail.forEach((dot, index) => {
+                if (index === 0) {
+                    // First particle follows mouse with slight delay
+                    dot.x += (dot.targetX - dot.x) * 0.2;
+                    dot.y += (dot.targetY - dot.y) * 0.2;
+                } else {
+                    // Other particles follow previous particle
+                    const prevDot = trail[index - 1];
+                    dot.targetX = prevDot.x;
+                    dot.targetY = prevDot.y;
+
+                    // Smoother interpolation for trailing effect
+                    const lag = 0.15 - (index * 0.003);
+                    dot.x += (dot.targetX - dot.x) * lag;
+                    dot.y += (dot.targetY - dot.y) * lag;
+                }
+
+                // Update element position
+                dot.element.style.left = dot.x + 'px';
+                dot.element.style.top = dot.y + 'px';
+            });
+        }
 
         requestAnimationFrame(animateTrail);
     }
@@ -4648,6 +4743,141 @@ function setupHolographicEffects() {
         navIsland.addEventListener('mouseleave', () => {
             navIsland.style.background = 'var(--glass-bg)';
         });
+    }
+}
+
+// Custom Animated Cursor
+function setupCustomCursor() {
+    // Check if device has a mouse (not touch-only device)
+    const hasPointer = window.matchMedia('(pointer: fine)').matches;
+
+    if (!hasPointer) {
+        console.log('Touch device detected - skipping custom cursor');
+        document.body.classList.add('no-custom-cursor');
+        return;
+    }
+
+    // Create cursor element
+    const cursor = document.createElement('div');
+    cursor.className = 'custom-cursor';
+    document.body.appendChild(cursor);
+
+    let mouseX = 0;
+    let mouseY = 0;
+    let cursorX = 0;
+    let cursorY = 0;
+
+    // Track mouse movement
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        if (!cursor.classList.contains('active')) {
+            cursor.classList.add('active');
+        }
+    });
+
+    // Hide cursor when mouse leaves window
+    document.addEventListener('mouseleave', () => {
+        cursor.classList.remove('active');
+    });
+
+    // Show cursor when mouse enters window
+    document.addEventListener('mouseenter', () => {
+        if (hasPointer) {
+            cursor.classList.add('active');
+        }
+    });
+
+    // Add hover effect on interactive elements
+    const interactiveElements = document.querySelectorAll(
+        'a, button, input, textarea, select, [role="button"], [onclick], ' +
+        '.control-btn, .selection-btn, .story-card, .clickable'
+    );
+
+    interactiveElements.forEach(element => {
+        element.addEventListener('mouseenter', () => {
+            cursor.classList.add('hover');
+        });
+
+        element.addEventListener('mouseleave', () => {
+            cursor.classList.remove('hover');
+        });
+    });
+
+    // Click effect
+    document.addEventListener('mousedown', () => {
+        cursor.classList.add('click');
+    });
+
+    document.addEventListener('mouseup', () => {
+        cursor.classList.remove('click');
+    });
+
+    // Smooth cursor animation
+    function animateCursor() {
+        const speed = 0.15;
+
+        cursorX += (mouseX - cursorX) * speed;
+        cursorY += (mouseY - cursorY) * speed;
+
+        cursor.style.left = cursorX + 'px';
+        cursor.style.top = cursorY + 'px';
+
+        requestAnimationFrame(animateCursor);
+    }
+
+    animateCursor();
+}
+
+// Enhanced Particle Trail Following Cursor
+function setupEnhancedParticleTrail() {
+    // Check if device has a mouse
+    const hasPointer = window.matchMedia('(pointer: fine)').matches;
+
+    if (!hasPointer) {
+        return;
+    }
+
+    let mouseX = 0;
+    let mouseY = 0;
+    let lastTime = Date.now();
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        const currentTime = Date.now();
+
+        // Create particles at intervals based on mouse movement speed
+        if (currentTime - lastTime > 30) {
+            createParticle(mouseX, mouseY);
+            lastTime = currentTime;
+        }
+    });
+
+    function createParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.className = 'cursor-particle';
+
+        // Random size and position offset
+        const size = Math.random() * 8 + 4;
+        const offsetX = (Math.random() - 0.5) * 20;
+        const offsetY = (Math.random() - 0.5) * 20;
+
+        particle.style.cssText = `
+            left: ${x + offsetX}px;
+            top: ${y + offsetY}px;
+            width: ${size}px;
+            height: ${size}px;
+        `;
+
+        document.body.appendChild(particle);
+
+        // Remove particle after animation
+        setTimeout(() => {
+            particle.remove();
+        }, 800);
     }
 }
 
