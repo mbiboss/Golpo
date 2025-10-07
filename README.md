@@ -106,46 +106,7 @@ HTML5 × CSS3 × JavaScript
 └── Performance Optimized
 ```
 
-**Integration Stack**
-<table>
-<tr>
-<td align="center">
-  <img src="https://img.shields.io/badge/YouTube_API-FF0000?style=flat-square&logo=youtube&logoColor=white"/>
-</td>
-<td align="center">
-  <img src="https://img.shields.io/badge/Analytics-FF6B35?style=flat-square&logo=googleanalytics&logoColor=white"/>
-</td>
-<td align="center">
-  <img.shields.io/badge/PWA-5A0FC8?style=flat-square&logo=pwa&logoColor=white"/>
-</td>
-</tr>
-</table>
-
 </div>
-
----
-
-## 🗺️ Development Roadmap
-
-```mermaid
-graph LR
-    A[Completed] --> B[In Progress]
-    B --> C[Planned]
-    B --> D[Future]
-    
-    A --> A1[Core Reading]
-    A --> A2[PWA Support]
-    A --> A3[Music Integration]
-    
-    B --> B1[Analytics Dashboard]
-    B --> B2[Performance Optimization]
-    
-    C --> C1[User Authentication]
-    C --> C2[Social Features]
-    
-    D --> D1[Audio Narration]
-    D --> D2[Multi-language]
-```
 
 ---
 
