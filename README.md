@@ -73,22 +73,6 @@ Analytics Dashboard
 
 ---
 
-## 🎵 Music Integration
-
-Built-in **YouTube ambient music player** with curated Bengali playlists for the perfect reading atmosphere.
-
-```javascript
-// Easy to add new songs
-{
-  title: "Your Song",
-  artist: "Artist Name", 
-  url: "https://www.youtube.com/embed/VIDEO_ID?autoplay=1",
-  duration: "3:45"
-}
-```
-
----
-
 ## 🚀 Quick Start
 
 ```bash
@@ -100,25 +84,6 @@ cd Golpo
 
 # Open index.html in browser - that's it! 🎉
 ```
-
-**Or deploy instantly on Replit:**
-
-[![Run on Replit](https://replit.com/badge/github/mbiboss/Golpo)](https://replit.com/@mbiboss/Golpo)
-
----
-
-## 📂 Structure
-
-```
-Golpo/
-├── 📄 index.html          # Main structure
-├── 🎨 style.css           # Styling & animations  
-├── ⚡ script.js           # Core logic
-├── 🔧 sw.js               # Service Worker (PWA)
-├── 📁 assets/             # Fonts & images
-└── 📁 stories/            # Story files (.txt)
-```
-
 ---
 
 ## 🎨 Theme Gallery
@@ -135,31 +100,12 @@ Golpo/
 
 ---
 
-## 📖 Adding Stories
-
-1. **Create** `.txt` file in `/stories/`
-2. **Update** metadata in `script.js`:
-
-```javascript
-{
-  id: "story-id",
-  title: "গল্পের নাম",
-  author: "লেখক",
-  category: "Romance", // Romance | Horror | Drama | Mystery
-  file: "story-id.txt"
-}
-```
-
-3. **Update** story grid in `index.html`
-
----
-
 ## 🛠️ Tech Stack
 
 <div align="center">
 
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badzge&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)
 ![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)
@@ -187,7 +133,7 @@ We welcome contributions! Here's how:
 
 ```bash
 # Fork & clone
-git clone https://github.com/your-username/Golpo.git
+git clone https://github.com/mbiboss/Golpo.git
 
 # Create feature branch
 git checkout -b feature/amazing-feature
