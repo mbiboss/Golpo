@@ -110,36 +110,6 @@ HTML5 × CSS3 × JavaScript
 
 ---
 
-## 🗺️ Roadmap
-
-```mermaid
-graph LR
-    A[🎉 Completed] --> B[⚡ In Progress]
-    B --> C[📋 Planned]
-    B --> D[🔮 Future]
-
-    A --> A1[Core Reading Experience]
-    A --> A2[PWA & Offline Support]
-    A --> A3[Music Integration]
-
-    B --> B1[Analytics Dashboard]
-    B --> B2[Performance Optimization]
-
-    C --> C1[User Authentication]
-    C --> C2[Social Features]
-
-    D --> D1[Audio Narration]
-    D --> D2[Multi-language Support]
-    D --> D3[App Performance Enhancements]
-    D --> D4[Content Recommendations]
-    D --> D5[User Feedback Integration]
-    D --> D6[Marketing & Outreach]
-
-    C --> C3[Mobile Responsiveness]
-    C --> C4[Subscription Model]
-
----
-
 ## 🤝 Contribution Framework
 
 We welcome sophisticated contributions from developers who appreciate elegant code and beautiful user experiences.
@@ -247,3 +217,33 @@ copies or substantial portions of the Software.
 </svg>
 
 </div>
+
+## 🗺️ Roadmap
+
+```mermaid
+graph LR
+    A[🎉 Completed] --> B[⚡ In Progress]
+    B --> C[📋 Planned]
+    B --> D[🔮 Future]
+
+    A --> A1[Core Reading Experience]
+    A --> A2[PWA & Offline Support]
+    A --> A3[Music Integration]
+
+    B --> B1[Analytics Dashboard]
+    B --> B2[Performance Optimization]
+
+    C --> C1[User Authentication]
+    C --> C2[Social Features]
+
+    D --> D1[Audio Narration]
+    D --> D2[Multi-language Support]
+    D --> D3[App Performance Enhancements]
+    D --> D4[Content Recommendations]
+    D --> D5[User Feedback Integration]
+    D --> D6[Marketing & Outreach]
+
+    C --> C3[Mobile Responsiveness]
+    C --> C4[Subscription Model]
+
+---
