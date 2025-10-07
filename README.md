@@ -218,3 +218,38 @@ copies or substantial portions of the Software.
 
 </div>
 ```
+## 🗺️ Roadmap
+
+### Q1 2025
+- [x] Core reading experience
+  - Complete the basic functionality of reading stories, including navigation and text rendering.
+
+- [x] PWA & offline support  
+  - Implement service worker to enable offline capabilities and improve load times.
+
+### Q2 2025
+- [x] Music integration
+  - Integrate the YouTube ambient music player with curated playlists.
+
+- [ ] User authentication
+  - Allow users to create accounts, log in, and save their reading preferences.
+
+### Q3 2025
+- [ ] Social sharing
+  - Implement social media sharing features for users to share stories.
+
+- [ ] Audio narration
+  - Add an option for users to listen to stories through audio narration.
+
+### Q4 2025
+- [ ] Multi-language support
+  - Expand the application to support multiple languages, enhancing accessibility.
+
+### Future Plans
+- [ ] Analytics dashboard
+  - Develop a dashboard to track user engagement and story popularity.
+  
+- [ ] Enhance UI/UX
+  - Continuously improve the user interface and experience based on user feedback.
+
+---
