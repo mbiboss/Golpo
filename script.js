@@ -49,17 +49,17 @@ var musicPlaylist = [
         icon: "fas fa-music"
     },
     {
-        title: "Ishq",
+        title: "Ehsaas",
         artist: "Hindi song",
-        url: "https://www.youtube.com/hHuG7FIKgtc?autoplay=1",
-        duration: "3:48",
+        url: "https://www.youtube.com/ORAEex_uZG8?autoplay=1",
+        duration: "4:16",
         icon: "fas fa-music"
     },
     {
-        title: "Maand",
+        title: "Maula Mere Maula",
         artist: "Hindi song",
-        url: "https://www.youtube.com/JVtKEX90SZ0?autoplay=1",
-        duration: "3:06",
+        url: "https://www.youtube.com/SmZpCs4QlY0?autoplay=1",
+        duration: "6:23",
         icon: "fas fa-music"
     },
     {
