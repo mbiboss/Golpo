@@ -110,6 +110,36 @@ HTML5 × CSS3 × JavaScript
 
 ---
 
+## 🗺️ Roadmap
+
+```mermaid
+graph LR
+    A[🎉 Completed] --> B[⚡ In Progress]
+    B --> C[📋 Planned]
+    B --> D[🔮 Future]
+
+    A --> A1[Core Reading Experience]
+    A --> A2[PWA & Offline Support]
+    A --> A3[Music Integration]
+
+    B --> B1[Analytics Dashboard]
+    B --> B2[Performance Optimization]
+
+    C --> C1[User Authentication]
+    C --> C2[Social Features]
+
+    D --> D1[Audio Narration]
+    D --> D2[Multi-language Support]
+    D --> D3[App Performance Enhancements]
+    D --> D4[Content Recommendations]
+    D --> D5[User Feedback Integration]
+    D --> D6[Marketing & Outreach]
+
+    C --> C3[Mobile Responsiveness]
+    C --> C4[Subscription Model]
+
+---
+
 ## 🤝 Contribution Framework
 
 We welcome sophisticated contributions from developers who appreciate elegant code and beautiful user experiences.
@@ -217,39 +247,3 @@ copies or substantial portions of the Software.
 </svg>
 
 </div>
-```
-## 🗺️ Roadmap
-
-### Q1 2025
-- [x] Core reading experience
-  - Complete the basic functionality of reading stories, including navigation and text rendering.
-
-- [x] PWA & offline support  
-  - Implement service worker to enable offline capabilities and improve load times.
-
-### Q2 2025
-- [x] Music integration
-  - Integrate the YouTube ambient music player with curated playlists.
-
-- [ ] User authentication
-  - Allow users to create accounts, log in, and save their reading preferences.
-
-### Q3 2025
-- [ ] Social sharing
-  - Implement social media sharing features for users to share stories.
-
-- [ ] Audio narration
-  - Add an option for users to listen to stories through audio narration.
-
-### Q4 2025
-- [ ] Multi-language support
-  - Expand the application to support multiple languages, enhancing accessibility.
-
-### Future Plans
-- [ ] Analytics dashboard
-  - Develop a dashboard to track user engagement and story popularity.
-  
-- [ ] Enhance UI/UX
-  - Continuously improve the user interface and experience based on user feedback.
-
----
