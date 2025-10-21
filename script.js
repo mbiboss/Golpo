@@ -1756,12 +1756,6 @@ function displayStory(filename, content) {
 
     // Show continue reading button if user has bookmarks
     updateContinueReadingVisibility();
-
-    // Load comments for this story
-    const storyId = storyMetadata.id;
-    if (storyId && window.loadCommentsForStory) {
-        window.loadCommentsForStory(storyId);
-    }
 }
 
 // Show loading state
