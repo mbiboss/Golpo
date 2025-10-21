@@ -366,62 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
         startupScreen.setAttribute('role', 'button');
         startupScreen.setAttribute('aria-label', 'Tap to enter Golpo storytelling app');
     }
-
-    // Initialize Custom Cursor Effects
-    initializeCursorEffects();
 });
-
-// Custom Cursor Effects - Ripple and Trail
-function initializeCursorEffects() {
-    let lastTrailTime = 0;
-    const trailDelay = 50;
-
-    // Create ripple effect on click
-    document.addEventListener('click', function(e) {
-        createRipple(e.clientX, e.clientY);
-    });
-
-    // Create cursor trail on mouse move
-    document.addEventListener('mousemove', function(e) {
-        const currentTime = Date.now();
-        if (currentTime - lastTrailTime > trailDelay) {
-            createCursorTrail(e.clientX, e.clientY);
-            lastTrailTime = currentTime;
-        }
-    });
-
-    // Create ripple on touch for mobile
-    document.addEventListener('touchstart', function(e) {
-        if (e.touches.length > 0) {
-            const touch = e.touches[0];
-            createRipple(touch.clientX, touch.clientY);
-        }
-    });
-}
-
-function createRipple(x, y) {
-    const ripple = document.createElement('div');
-    ripple.className = 'cursor-ripple';
-    ripple.style.left = (x - 20) + 'px';
-    ripple.style.top = (y - 20) + 'px';
-    document.body.appendChild(ripple);
-
-    setTimeout(() => {
-        ripple.remove();
-    }, 600);
-}
-
-function createCursorTrail(x, y) {
-    const trail = document.createElement('div');
-    trail.className = 'cursor-trail';
-    trail.style.left = (x - 10) + 'px';
-    trail.style.top = (y - 10) + 'px';
-    document.body.appendChild(trail);
-
-    setTimeout(() => {
-        trail.remove();
-    }, 500);
-}
 
 // Function to load story from story card click
 function loadStoryFromCard(storyFile) {
@@ -468,7 +413,7 @@ function createStorySuggestions(currentStoryFile) {
         const statusClass = story.status === 'upcoming' ? 'upcoming' : '';
         // Get reading image for this specific story
         const suggestionImage = getReadingImageForStory(story.id);
-
+        
         // Get category icon
         const categoryIcons = {
             'Romance': 'fas fa-heart',
@@ -1312,9 +1257,6 @@ function displayPage(pageNumber) {
 
     // Update bookmark button to show correct page info
     updateBookmarkButton();
-
-    // Restore bookmark position for this story
-    restoreBookmarkForCurrentStory();
 
     // Scroll to top of content
     window.scrollTo({ top: 300, behavior: 'smooth' });
@@ -2588,7 +2530,6 @@ function setupReadingControlsOutsideClick() {
 
     // Stop propagation for clicks inside the menu to keep it open
     // BUT allow input fields and buttons to work normally
-    // BUT allow input fields and buttons to work normally
     if (readingControlsMenu) {
         readingControlsMenu.addEventListener('click', function(e) {
             // Allow input fields to receive all events
@@ -2710,7 +2651,7 @@ function updateSelectorText(selector, text, iconType) {
     }
 
     if (iconElement) {
-        iconIconElement.className = iconType === 'book' ? 'fas fa-book-open' : 'fas fa-music';
+        iconElement.className = iconType === 'book' ? 'fas fa-book-open' : 'fas fa-music';
     }
 
     // Update logo text to show smaller music name
@@ -4680,7 +4621,6 @@ function setupMouseTrail() {
 
     if (!hasPointer) {
         console.log('Touch device detected - skipping mouse trail effect');
-        document.body.classList.add('no-custom-cursor');
         return;
     }
 
@@ -4808,8 +4748,14 @@ function setupHolographicEffects() {
 
 // Custom Animated Cursor
 function setupCustomCursor() {
-    // Enable custom cursor on all devices (including mobile in desktop view)
-    // Remove touch device detection to allow cursor on mobile browsers
+    // Check if device has a mouse (not touch-only device)
+    const hasPointer = window.matchMedia('(pointer: fine)').matches;
+
+    if (!hasPointer) {
+        console.log('Touch device detected - skipping custom cursor');
+        document.body.classList.add('no-custom-cursor');
+        return;
+    }
 
     // Create cursor element
     const cursor = document.createElement('div');
@@ -4838,12 +4784,16 @@ function setupCustomCursor() {
 
     // Show cursor when mouse enters window
     document.addEventListener('mouseenter', () => {
-        cursor.classList.add('active');
+        if (hasPointer) {
+            cursor.classList.add('active');
+        }
     });
 
     // Add hover effect on interactive elements
-    const interactiveElements = document.querySelectorAll('a, button, input, textarea, select, [role="button"], [onclick], ' +
-        '.control-btn, .selection-btn, .story-card, .music-card');
+    const interactiveElements = document.querySelectorAll(
+        'a, button, input, textarea, select, [role="button"], [onclick], ' +
+        '.control-btn, .selection-btn, .story-card, .clickable'
+    );
 
     interactiveElements.forEach(element => {
         element.addEventListener('mouseenter', () => {
@@ -4882,7 +4832,12 @@ function setupCustomCursor() {
 
 // Enhanced Particle Trail Following Cursor
 function setupEnhancedParticleTrail() {
-    // Enable mouse trail on all devices (including mobile in desktop view)
+    // Check if device has a mouse
+    const hasPointer = window.matchMedia('(pointer: fine)').matches;
+
+    if (!hasPointer) {
+        return;
+    }
 
     let mouseX = 0;
     let mouseY = 0;
