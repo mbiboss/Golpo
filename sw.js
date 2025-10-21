@@ -1,6 +1,6 @@
 
-// Service Worker for Golpo App - Enhanced Offline Reading Support
-const CACHE_VERSION = 'v1.3.0';
+// Service Worker for Golpo App - Optimized v1.4.0
+const CACHE_VERSION = 'v1.4.0';
 const STATIC_CACHE = `golpo-static-${CACHE_VERSION}`;
 const STORIES_CACHE = `golpo-stories-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `golpo-dynamic-${CACHE_VERSION}`;
@@ -28,26 +28,21 @@ const CACHE_TIMEOUT = 24 * 60 * 60 * 1000;
 
 // Install event - cache core files and external resources
 self.addEventListener('install', (event) => {
-    console.log('[SW] Installing service worker...');
     
     event.waitUntil(
         Promise.all([
             // Cache core application files
             caches.open(STATIC_CACHE).then((cache) => {
-                console.log('[SW] Caching core files');
                 return cache.addAll(CORE_FILES).catch((error) => {
-                    console.warn('[SW] Failed to cache some core files:', error);
                     // Don't fail the entire install if some files can't be cached
                     return Promise.resolve();
                 });
             }),
             // Cache external resources
             caches.open(DYNAMIC_CACHE).then((cache) => {
-                console.log('[SW] Caching external resources');
                 return Promise.all(
                     EXTERNAL_RESOURCES.map(url => 
                         cache.add(url).catch(err => {
-                            console.warn('[SW] Failed to cache external resource:', url, err);
                         })
                     )
                 );
@@ -56,7 +51,6 @@ self.addEventListener('install', (event) => {
             caches.open(STORIES_CACHE),
             caches.open(IMAGES_CACHE)
         ]).then(() => {
-            console.log('[SW] Installation complete');
             // Force activation of new service worker
             return self.skipWaiting();
         })
@@ -65,7 +59,6 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating service worker...');
     
     event.waitUntil(
         Promise.all([
@@ -75,7 +68,6 @@ self.addEventListener('activate', (event) => {
                     cacheNames.map((cacheName) => {
                         // Delete caches that don't match current version
                         if (!cacheName.includes(CACHE_VERSION)) {
-                            console.log('[SW] Deleting old cache:', cacheName);
                             return caches.delete(cacheName);
                         }
                     })
@@ -84,7 +76,6 @@ self.addEventListener('activate', (event) => {
             // Take control of all pages immediately
             self.clients.claim()
         ]).then(() => {
-            console.log('[SW] Activation complete');
         })
     );
 });
@@ -154,7 +145,6 @@ async function handleStoryRequest(request) {
         // If network fails, try cache
         const cachedResponse = await getCachedResponse(cache, request);
         if (cachedResponse) {
-            console.log('[SW] Serving story from cache:', request.url);
             return cachedResponse;
         }
         
@@ -165,7 +155,6 @@ async function handleStoryRequest(request) {
         const cachedResponse = await getCachedResponse(cache, request);
         
         if (cachedResponse) {
-            console.log('[SW] Network failed, serving story from cache:', request.url);
             return cachedResponse;
         }
         
@@ -320,7 +309,6 @@ async function getCachedResponse(cache, request) {
     if (timestamp) {
         const age = Date.now() - parseInt(timestamp);
         if (age > CACHE_TIMEOUT) {
-            console.log('[SW] Cached response is stale:', request.url);
             // Still return it, but it's marked as stale
         }
     }
@@ -336,7 +324,6 @@ async function fetchAndCache(cache, request) {
             await cache.put(request, response.clone());
         }
     } catch (error) {
-        console.warn('[SW] Background fetch failed:', request.url, error);
     }
 }
 
@@ -425,7 +412,6 @@ async function cacheStory(url) {
     
     if (response.ok) {
         await cacheWithMetadata(cache, new Request(url), response);
-        console.log('[SW] Story cached successfully:', url);
     } else {
         throw new Error('Failed to fetch story for caching');
     }
@@ -443,14 +429,12 @@ async function clearStoriesCache() {
     const cache = await caches.open(STORIES_CACHE);
     const keys = await cache.keys();
     await Promise.all(keys.map(key => cache.delete(key)));
-    console.log('[SW] Stories cache cleared');
 }
 
 // Clear all caches
 async function clearAllCaches() {
     const cacheNames = await caches.keys();
     await Promise.all(cacheNames.map(name => caches.delete(name)));
-    console.log('[SW] All caches cleared');
 }
 
 // Get total cache size (estimate)
@@ -478,7 +462,6 @@ async function getCacheSize() {
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         cleanupOldCaches().then(() => {
-            console.log('[SW] Cache cleanup complete');
         })
     );
 });
@@ -496,10 +479,8 @@ async function cleanupOldCaches() {
             // Remove entries older than 30 days
             if (age > 30 * 24 * 60 * 60 * 1000) {
                 await cache.delete(request);
-                console.log('[SW] Removed old cache entry:', request.url);
             }
         }
     }
 }
 
-console.log('[SW] Service Worker loaded - Version:', CACHE_VERSION);

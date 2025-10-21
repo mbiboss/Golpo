@@ -347,6 +347,21 @@ function initializeMainApp() {
 
     // Setup reading controls outside click handler
     setupReadingControlsOutsideClick();
+    
+    // Check if there's a shared story to load
+    const sharedStoryId = sessionStorage.getItem('loadSharedStory');
+    if (sharedStoryId) {
+        sessionStorage.removeItem('loadSharedStory');
+        // Find the story file by ID
+        const storyFile = Object.keys(storyDatabase).find(filename => {
+            return storyDatabase[filename].id === sharedStoryId;
+        });
+        if (storyFile) {
+            setTimeout(() => {
+                loadStoryFromCard(storyFile);
+            }, 500);
+        }
+    }
 }
 
 // Initialize the application
@@ -372,6 +387,14 @@ document.addEventListener('DOMContentLoaded', function() {
         startupScreen.setAttribute('tabindex', '0');
         startupScreen.setAttribute('role', 'button');
         startupScreen.setAttribute('aria-label', 'Tap to enter Golpo storytelling app');
+    }
+    
+    // Check if URL has a story parameter (from shared link)
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedStoryId = urlParams.get('story');
+    if (sharedStoryId) {
+        // Store the shared story to load after startup
+        sessionStorage.setItem('loadSharedStory', sharedStoryId);
     }
 });
 
@@ -839,7 +862,6 @@ function initSecretAnalytics() {
         try {
             analyticsData = JSON.parse(saved);
         } catch (e) {
-            console.error('Failed to load analytics:', e);
         }
     }
 
@@ -987,7 +1009,6 @@ function updateReaderCoverImage(filename) {
 
         // Defensive fallback if image is undefined or empty
         if (!readingImage || readingImage === '') {
-            console.warn('No reading image found for story:', storyData.id, 'using default');
             readerCoverImage.src = defaultImages.reading;
         } else {
             readerCoverImage.src = readingImage;
@@ -1145,10 +1166,8 @@ function initializeApp() {
         try {
             if (typeof initializeAdvancedEffects !== 'undefined') {
                 initializeAdvancedEffects();
-                console.log('Advanced visual effects initialized');
             }
         } catch (error) {
-            console.log('Advanced visual effects not available:', error.message);
         }
     }, 500);
 }
@@ -1211,7 +1230,6 @@ function createPagination(content) {
     currentPage = 1;
     isStoryCompleted = false;
 
-    console.log(`Story paginated into ${totalPages} pages with exactly 100 lines per page (except last page: ${lines.length % 100} lines)`);
 
     return storyPages;
 }
@@ -1738,6 +1756,12 @@ function displayStory(filename, content) {
 
     // Show continue reading button if user has bookmarks
     updateContinueReadingVisibility();
+
+    // Load comments for this story
+    const storyId = storyMetadata.id;
+    if (storyId && window.loadCommentsForStory) {
+        window.loadCommentsForStory(storyId);
+    }
 }
 
 // Show loading state
@@ -1938,7 +1962,6 @@ function startAutoplay() {
             }
         }, 1000);
     } catch (error) {
-        console.error('Autoplay failed:', error);
         showNotification('⚠️ Autoplay failed, please start music manually', 'warning');
     }
 }
@@ -1975,7 +1998,7 @@ function cleanupMusicSystem() {
 // Toggle autoplay setting
 function toggleAutoplay() {
     autoplayEnabled = !autoplayEnabled;
-    saveSettings();
+    debouncedSaveSettings();
     showNotification(`Autoplay ${autoplayEnabled ? 'enabled' : 'disabled'}`, 'info');
     return autoplayEnabled;
 }
@@ -2066,7 +2089,7 @@ function toggleTheme() {
 
     document.body.setAttribute('data-theme', currentTheme);
     updateThemeIcon();
-    saveSettings();
+    debouncedSaveSettings();
 
     // Add a subtle animation
     document.body.style.transition = 'all 0.3s ease';
@@ -2088,31 +2111,40 @@ function updateThemeIcon() {
     }
 }
 
-// Enhanced Settings Management
+// Debounced localStorage saver for better performance
+let saveSettingsTimeout;
+function debouncedSaveSettings() {
+    clearTimeout(saveSettingsTimeout);
+    saveSettingsTimeout = setTimeout(saveSettings, 500);
+}
+
+// Enhanced Settings Management - Optimized
 function saveSettings() {
-    var settings = {
-        theme: currentTheme,
-        currentStory: currentStory,
-        fontSize: currentFontSize,
-        focusMode: isFocusMode,
-        bookmarks: storyBookmarks,
-        // Enhanced preferences
-        currentPage: currentPage,
-        currentMusicIndex: currentMusicIndex,
-        autoplayEnabled: autoplayEnabled,
-        lastCategoryFilter: document.querySelector('.category-filter-btn.active')?.dataset.category || 'all',
-        lastVisit: Date.now(),
-        readingPreferences: {
-            linesPerPage: linesPerPage,
-            scrollPosition: window.pageYOffset
+    try {
+        var settings = {
+            theme: currentTheme,
+            currentStory: currentStory,
+            fontSize: currentFontSize,
+            focusMode: isFocusMode,
+            bookmarks: storyBookmarks,
+            currentPage: currentPage,
+            currentMusicIndex: currentMusicIndex,
+            autoplayEnabled: autoplayEnabled,
+            lastCategoryFilter: document.querySelector('.category-filter-btn.active')?.dataset.category || 'all',
+            lastVisit: Date.now(),
+            readingPreferences: {
+                linesPerPage: linesPerPage,
+                scrollPosition: window.pageYOffset
+            }
+        };
+
+        localStorage.setItem('golpoSettings', JSON.stringify(settings));
+
+        if (typeof trackAnalyticsEvent === 'function') {
+            trackAnalyticsEvent('Settings saved', { theme: currentTheme, fontSize: currentFontSize });
         }
-    };
-
-    localStorage.setItem('golpoSettings', JSON.stringify(settings));
-
-    // Track settings change in analytics
-    if (typeof trackAnalyticsEvent === 'function') {
-        trackAnalyticsEvent('Settings saved', { theme: currentTheme, fontSize: currentFontSize });
+    } catch (error) {
+        // Silent fail if localStorage is full or unavailable
     }
 }
 
@@ -2189,7 +2221,6 @@ function loadSavedSettings() {
         }
 
     } catch (error) {
-        console.error('Error loading settings:', error);
     }
 }
 
@@ -2447,10 +2478,8 @@ document.addEventListener('visibilitychange', () => {
         try {
             youtubeFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
         } catch (e) {
-            console.log('Could not send play command to iframe');
         }
     }
-    console.log('Visibility changed:', document.visibilityState);
 });
 
 // Additional handler to prevent auto-pause
@@ -2461,7 +2490,6 @@ window.addEventListener('blur', () => {
             try {
                 youtubeFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
             } catch (e) {
-                console.log('Could not maintain playback on blur');
             }
         }, 100);
     }
@@ -2716,7 +2744,6 @@ async function loadStory(filename) {
             }
 
         } catch (error) {
-            console.error('Story loading error:', error);
 
             // Retry mechanism for network errors
             if (retryCount < maxRetries && isOnline &&
@@ -2756,14 +2783,12 @@ function setMusicSource(url, fromPlaylist = false) {
     }
 
     try {
-        console.log('Setting music source:', url, 'fromPlaylist:', fromPlaylist);
 
         // Find the song in playlist if not from playlist selection
         if (!fromPlaylist) {
             const playlistIndex = musicPlaylist.findIndex(song => song.url === url);
             if (playlistIndex !== -1) {
                 currentMusicIndex = playlistIndex;
-                console.log('Updated currentMusicIndex to:', currentMusicIndex);
             }
         }
 
@@ -2775,7 +2800,6 @@ function setMusicSource(url, fromPlaylist = false) {
                 audioPlayer.src = '';
             }
         } catch (audioError) {
-            console.warn('Error stopping audio:', audioError);
         }
 
         // Clean up YouTube properly
@@ -2790,7 +2814,6 @@ function setMusicSource(url, fromPlaylist = false) {
                 window.youtubeCheckInterval = null;
             }
         } catch (youtubeError) {
-            console.warn('Error stopping YouTube:', youtubeError);
         }
 
         // Set new music source with error handling
@@ -2804,14 +2827,12 @@ function setMusicSource(url, fromPlaylist = false) {
                 }
 
                 currentYouTubeUrl = formattedUrl;
-                console.log('YouTube URL set:', currentYouTubeUrl);
 
                 // Don't auto-setup loop here - let the calling function decide when to play
                 showNotification('YouTube music ready', 'success', 2000);
 
             } catch (error) {
                 showNotification('Failed to set YouTube music', 'error');
-                console.error('YouTube setup error:', error);
             }
         } else {
             try {
@@ -2842,32 +2863,27 @@ function setMusicSource(url, fromPlaylist = false) {
 
             } catch (error) {
                 showNotification('❌ Failed to set audio source', 'error');
-                console.error('Audio setup error:', error);
             }
         }
 
         updatePlayPauseButton(true);
 
     } catch (error) {
-        console.error('Music source setup error:', error);
         showNotification('❌ Failed to change music', 'error');
     }
 }
 
 function playNextSong() {
     if (!isPlaylistMode || musicPlaylist.length === 0) {
-        console.warn('Cannot play next song: playlist mode disabled or empty playlist');
         return;
     }
 
-    console.log('Playing next song from index:', currentMusicIndex);
 
     // Move to next song in playlist (loop back to start if at end)
     const oldIndex = currentMusicIndex;
     currentMusicIndex = (currentMusicIndex + 1) % musicPlaylist.length;
     const nextSong = musicPlaylist[currentMusicIndex];
 
-    console.log(`Moving from song ${oldIndex} to ${currentMusicIndex}:`, nextSong.title);
 
     // Update selector text
     updateSelectorText(musicSelector, nextSong.title, 'music');
@@ -2879,7 +2895,6 @@ function playNextSong() {
     setTimeout(() => {
         try {
             if (currentYouTubeUrl && youtubeFrame) {
-                console.log('Starting next YouTube song:', currentYouTubeUrl);
 
                 // Clear any existing frame first
                 youtubeFrame.src = '';
@@ -2900,7 +2915,6 @@ function playNextSong() {
                 }, 200);
 
             } else if (audioPlayer && audioPlayer.src) {
-                console.log('Starting next audio track');
                 audioPlayer.play();
             }
 
@@ -2912,7 +2926,6 @@ function playNextSong() {
             );
 
         } catch (error) {
-            console.error('Error playing next song:', error);
             showNotification('❌ Failed to play next song', 'error');
         }
     }, 800);
@@ -2956,12 +2969,10 @@ function setupYouTubePlaylistLoop() {
             }
 
             if (data && typeof data.info !== 'undefined') {
-                console.log('YouTube player state:', data.info);
 
                 // State 0 = ended, 1 = playing, 2 = paused, 3 = buffering, 5 = cued
                 if (data.info === 0) {
                     // Video ended, play next song after a brief delay
-                    console.log('Video ended, playing next song...');
                     setTimeout(() => {
                         if (isPlaylistMode && musicPlaylist.length > 1) {
                             playNextSong();
@@ -2992,7 +3003,6 @@ function setupYouTubePlaylistLoop() {
             }
         } catch (e) {
             // Not a valid YouTube message, ignore silently
-            console.warn('YouTube message parsing error:', e);
         }
     };
 
@@ -3024,7 +3034,6 @@ function setupYouTubePlaylistLoop() {
 
             // If elapsed time exceeds song duration by 5 seconds, force next song
             if (elapsedSeconds > totalSeconds + 5) {
-                console.log('Fallback triggered: Song duration exceeded, playing next song');
                 playNextSong();
             }
         }
@@ -3037,7 +3046,7 @@ function updateFontSize() {
         storyContent.style.fontSize = currentFontSize + '%';
     }
     fontSizeDisplay.textContent = currentFontSize + '%';
-    saveSettings();
+    debouncedSaveSettings();
 }
 
 function decreaseFontSize() {
@@ -3056,7 +3065,7 @@ function increaseFontSize() {
 
 function toggleFocusMode() {
     setFocusMode(!isFocusMode);
-    saveSettings();
+    debouncedSaveSettings();
 }
 
 function setFocusMode(enabled) {
@@ -3157,7 +3166,7 @@ function toggleBookmark() {
                 bookmarkBtn.classList.remove('active');
                 bookmarkBtn.title = 'Bookmark Position';
                 showNotification('🗑️ Bookmark deleted', 'success');
-                saveSettings();
+                debouncedSaveSettings();
             } else {
                 // Go to bookmark if we have one
                 goToBookmark();
@@ -3171,7 +3180,7 @@ function toggleBookmark() {
                 bookmarkBtn.title = 'Go to Bookmark';
             }
             showNotification('🔖 Position bookmarked', 'success');
-            saveSettings();
+            debouncedSaveSettings();
         }
     } catch (error) {
         showNotification('❌ Bookmark error', 'error');
@@ -3310,7 +3319,6 @@ function performSearch() {
                         });
                     }
                 } catch (error) {
-                    console.warn('Search regex error:', error);
                 }
             });
         });
@@ -3344,7 +3352,6 @@ function performSearch() {
                     });
                 }
             } catch (error) {
-                console.warn('Search regex error:', error);
             }
         });
     }
@@ -3450,17 +3457,70 @@ function shareStory(storyFile) {
     }
 }
 
+function shareCurrentStory() {
+    if (!currentStory) {
+        showNotification('⚠️ No story loaded to share', 'warning');
+        return;
+    }
+
+    const story = getStoryMetadata(currentStory);
+    // Create a URL with story parameter so it opens directly to the story
+    const baseUrl = window.location.origin + window.location.pathname;
+    const storyUrl = `${baseUrl}?story=${encodeURIComponent(story.id)}`;
+    
+    const shareData = {
+        title: `${story.name} - Golpo`,
+        text: `Read "${story.name}" by ${story.writer} on Golpo - Bengali Story Platform`,
+        url: storyUrl
+    };
+
+    // Always copy to clipboard first
+    copyShareLink(shareData);
+
+    // Then try native share if available
+    if (navigator.share) {
+        navigator.share(shareData)
+            .then(() => {
+                trackAnalyticsEvent('Story shared', { story: story.name });
+            })
+            .catch((error) => {
+                // Link already copied, so just ignore share cancel
+            });
+    }
+}
+
 function copyShareLink(shareData) {
     const link = shareData.url;
     navigator.clipboard.writeText(link).then(() => {
-        showNotification('Link copied to clipboard! 📋', 'success', 3000);
-    }).catch(() => {
-        showNotification('Failed to copy link', 'error');
+        showNotification('Story link copied! 📋', 'success', 2500);
+    }).catch((error) => {
+        // Fallback for older browsers or if clipboard API fails
+        try {
+            const textArea = document.createElement('textarea');
+            textArea.value = link;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            const successful = document.execCommand('copy');
+            textArea.remove();
+            
+            if (successful) {
+                showNotification('Story link copied! 📋', 'success', 2500);
+            } else {
+                showNotification('Failed to copy link', 'error', 2500);
+            }
+        } catch (err) {
+            showNotification('Failed to copy link', 'error', 2500);
+        }
     });
 }
 
 // Export to global scope
 window.shareStory = shareStory;
+window.shareCurrentStory = shareCurrentStory;
 
 function displaySearchResults(results, searchTerm) {
     if (results.length === 0) {
@@ -3618,7 +3678,6 @@ function waitForStoryContentReady(callback, timeout = 3000) {
             setTimeout(checkReady, 100);
         } else {
             // Timeout reached, execute callback anyway
-            console.warn('Story content readiness check timed out, proceeding anyway');
             callback();
         }
     }
@@ -3635,7 +3694,6 @@ function highlightAndScrollToResult(resultIndex, searchTerm) {
 
     const paragraphs = storyContent.querySelectorAll('p');
     if (paragraphs.length === 0) {
-        console.warn('No paragraphs found in story content');
         return;
     }
 
@@ -3666,11 +3724,9 @@ function highlightAndScrollToResult(resultIndex, searchTerm) {
                 matchCount++;
             }
         } catch (error) {
-            console.warn('Regex error:', error);
         }
     });
 
-    console.log(`Found ${allHighlights.length} highlights, looking for index ${resultIndex}`);
 
     // Scroll to the specific result based on index
     if (allHighlights.length > 0) {
@@ -3679,7 +3735,6 @@ function highlightAndScrollToResult(resultIndex, searchTerm) {
         const targetHighlight = allHighlights[safeIndex];
 
         if (targetHighlight) {
-            console.log(`Scrolling to highlight ${safeIndex} of ${allHighlights.length}`);
 
             // Scroll to the target highlight with proper timing
             setTimeout(() => {
@@ -3701,10 +3756,8 @@ function highlightAndScrollToResult(resultIndex, searchTerm) {
                 }, 3000);
             }, 100);
         } else {
-            console.warn('Target highlight not found');
         }
     } else {
-        console.warn('No highlights found for search term:', searchTerm);
         // Fallback: scroll to top of story content
         storyContent.scrollIntoView({
             behavior: 'smooth',
@@ -3746,7 +3799,6 @@ function loadStoryFromCard(storyFileOrId) {
         updateReaderCoverImage(storyFile);
     } else {
         showNotification('❌ Story not found', 'error');
-        console.error('Story not found:', storyFileOrId, 'Tried:', storyFile);
     }
 }
 
@@ -3790,7 +3842,6 @@ async function initializeOfflineSupport() {
                 scope: '/'
             });
 
-            console.log('Service Worker registered successfully');
 
             // Listen for service worker updates
             serviceWorkerRegistration.addEventListener('updatefound', () => {
@@ -3816,7 +3867,6 @@ async function initializeOfflineSupport() {
         loadCachedStoriesList();
 
     } catch (error) {
-        console.warn('Failed to initialize offline support:', error);
     }
 }
 
@@ -3901,7 +3951,6 @@ function setupOfflineIndicators() {
         updateOfflineIndicator();
 
     } catch (error) {
-        console.warn('Failed to setup offline indicators:', error);
     }
 }
 
@@ -3946,7 +3995,6 @@ function showOfflineStatus() {
 // Cache a story for offline reading
 async function cacheStoryForOffline(storyFile) {
     if (!serviceWorkerRegistration || !serviceWorkerRegistration.active) {
-        console.warn('Service worker not available for caching');
         return false;
     }
 
@@ -3976,7 +4024,6 @@ async function cacheStoryForOffline(storyFile) {
         }
 
     } catch (error) {
-        console.error('Failed to cache story:', error);
         showNotification('❌ Failed to cache story for offline reading', 'error');
         return false;
     }
@@ -3987,7 +4034,6 @@ function saveCachedStoriesList() {
     try {
         localStorage.setItem('cachedStories', JSON.stringify(Array.from(cachedStories)));
     } catch (error) {
-        console.warn('Failed to save cached stories list:', error);
     }
 }
 
@@ -3999,7 +4045,6 @@ function loadCachedStoriesList() {
             cachedStories = new Set(JSON.parse(saved));
         }
     } catch (error) {
-        console.warn('Failed to load cached stories list:', error);
         cachedStories = new Set();
     }
 }
@@ -4008,13 +4053,11 @@ function loadCachedStoriesList() {
 
 // Global error handler for unhandled errors
 window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error);
     showNotification('❌ Something went wrong. Please refresh if issues persist.', 'error');
 });
 
 // Global handler for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
     showNotification('❌ A background operation failed. App functionality may be limited.', 'warning');
     event.preventDefault(); // Prevent the default browser behavior
 });
@@ -4029,13 +4072,11 @@ function withErrorRecovery(operation, fallback = null, context = 'operation') {
                 throw new Error('Operation is not a function');
             }
         } catch (error) {
-            console.error(`Error in ${context}:`, error);
 
             if (fallback && typeof fallback === 'function') {
                 try {
                     return await fallback(...args);
                 } catch (fallbackError) {
-                    console.error(`Fallback failed for ${context}:`, fallbackError);
                     showNotification(`❌ ${context} failed and recovery failed`, 'error');
                 }
             } else {
@@ -4051,13 +4092,11 @@ function withErrorRecovery(operation, fallback = null, context = 'operation') {
 function safeDOM(operation, element, context = 'DOM operation') {
     try {
         if (!element) {
-            console.warn(`${context}: Element not found`);
             return false;
         }
 
         return operation(element);
     } catch (error) {
-        console.error(`${context} error:`, error);
         return false;
     }
 }
@@ -4069,7 +4108,6 @@ const safeStorage = {
             const value = localStorage.getItem(key);
             return value ? JSON.parse(value) : defaultValue;
         } catch (error) {
-            console.warn(`Failed to get ${key} from localStorage:`, error);
             return defaultValue;
         }
     },
@@ -4079,7 +4117,6 @@ const safeStorage = {
             localStorage.setItem(key, JSON.stringify(value));
             return true;
         } catch (error) {
-            console.warn(`Failed to set ${key} in localStorage:`, error);
             showNotification('⚠️ Failed to save settings', 'warning');
             return false;
         }
@@ -4090,7 +4127,6 @@ const safeStorage = {
             localStorage.removeItem(key);
             return true;
         } catch (error) {
-            console.warn(`Failed to remove ${key} from localStorage:`, error);
             return false;
         }
     }
@@ -4146,7 +4182,6 @@ const networkManager = new NetworkManager();
 // Enhanced Professional Notification System
 function showNotification(message, type = 'info', duration = 4000, options = {}) {
     try {
-        console.log('Showing notification:', message, type);
 
         // Remove existing notifications if not stackable
         if (!options.stackable) {
@@ -4190,11 +4225,9 @@ function showNotification(message, type = 'info', duration = 4000, options = {})
             notificationStack = document.createElement('div');
             notificationStack.className = 'notification-stack';
             document.body.appendChild(notificationStack);
-            console.log('Created notification stack');
         }
 
         notificationStack.appendChild(notification);
-        console.log('Added notification to stack');
 
         // Force a reflow to ensure the element is rendered
         notification.offsetHeight;
@@ -4213,11 +4246,9 @@ function showNotification(message, type = 'info', duration = 4000, options = {})
             }
         });
 
-        console.log('Notification created successfully:', notificationId);
         return notificationId;
 
     } catch (error) {
-        console.error('Failed to show notification:', error);
         // Fallback to alert for critical messages
         if (type === 'error') {
             alert(message);
@@ -4228,9 +4259,7 @@ function showNotification(message, type = 'info', duration = 4000, options = {})
 
 // Add a test notification function for debugging
 function testNotification() {
-    console.log('Testing notification...');
     showNotification('🔧 Test notification - System is working!', 'success', 5000);
-    console.log('Test notification called');
 }
 
 // Test notification on startup complete (removed automatic test)
@@ -4417,7 +4446,6 @@ const optimizedScrollHandler = throttle(() => {
             }
         }
     } catch (error) {
-        console.warn('Error in scroll handler:', error);
     }
 }, 100);
 
@@ -4474,10 +4502,8 @@ function initializePerformanceOptimizations() {
         // Initial setup
         updateResponsiveElements();
 
-        console.log('Performance optimizations initialized');
 
     } catch (error) {
-        console.warn('Failed to initialize performance optimizations:', error);
     }
 }
 
@@ -4490,7 +4516,6 @@ function updateResponsiveElements() {
             document.body.classList.remove('mobile-optimized');
         }
     } catch (error) {
-        console.warn('Error updating responsive elements:', error);
     }
 }
 
@@ -4507,7 +4532,6 @@ function performCleanup() {
         }
 
     } catch (error) {
-        console.warn('Error during cleanup:', error);
     }
 }
 
@@ -4516,9 +4540,20 @@ setInterval(performCleanup, 5 * 60 * 1000);
 
 // === ADVANCED VISUAL EFFECTS SYSTEM ===
 
+// Performance detection - disable heavy effects on low-end devices
+const isLowPerformanceDevice = (() => {
+    const memory = navigator.deviceMemory || 8;
+    const cores = navigator.hardwareConcurrency || 4;
+    return memory < 4 || cores < 4 || /Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+})();
+
 function initializeAdvancedEffects() {
     try {
-        // Initialize magnetic particles
+        if (isLowPerformanceDevice) {
+            return;
+        }
+
+        // Initialize optimized magnetic particles
         setupMagneticParticles();
 
         // Setup 3D card tilt effects
@@ -4536,31 +4571,44 @@ function initializeAdvancedEffects() {
         // Initialize enhanced particle trail
         setupEnhancedParticleTrail();
 
-        console.log('Advanced visual effects initialized');
     } catch (error) {
-        console.warn('Failed to initialize advanced effects:', error);
+        // Silent fail for non-critical effects
     }
 }
 
-// Magnetic particle system
+// Optimized magnetic particle system using requestAnimationFrame
 function setupMagneticParticles() {
+    // Performance guard - skip on low-end devices
+    if (isLowPerformanceDevice) return;
+    
     const particles = document.querySelectorAll('.particle');
+    if (particles.length === 0) return;
+    
     let mouseX = 0;
     let mouseY = 0;
+    let rafId = null;
 
     document.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
         mouseY = e.clientY;
-    });
+    }, { passive: true });
 
-    particles.forEach((particle, index) => {
-        // Randomize particle properties
+    // Randomize particle properties
+    particles.forEach((particle) => {
         const size = Math.random() * 10 + 5;
         particle.style.width = size + 'px';
         particle.style.height = size + 'px';
+    });
 
-        // Animate particles with mouse attraction
-        setInterval(() => {
+    // Single animation loop for all particles (much more efficient)
+    function animateParticles() {
+        // Additional safety check
+        if (isLowPerformanceDevice) {
+            if (rafId) cancelAnimationFrame(rafId);
+            return;
+        }
+        
+        particles.forEach((particle) => {
             const rect = particle.getBoundingClientRect();
             const particleX = rect.left + rect.width / 2;
             const particleY = rect.top + rect.height / 2;
@@ -4582,8 +4630,12 @@ function setupMagneticParticles() {
                 particle.style.transform = 'translate(0, 0) scale(1)';
                 particle.style.opacity = '0.6';
             }
-        }, 50);
-    });
+        });
+
+        rafId = requestAnimationFrame(animateParticles);
+    }
+
+    rafId = requestAnimationFrame(animateParticles);
 }
 
 // 3D card tilt effect
@@ -4613,11 +4665,11 @@ function setup3DCardEffects() {
             // Update mouse position for holographic effect
             card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
             card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
-        });
+        }, { passive: true });
 
         card.addEventListener('mouseleave', () => {
             card.style.transform = 'perspective(1000px) translateY(0) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
-        });
+        }, { passive: true });
     });
 }
 
@@ -4627,7 +4679,6 @@ function setupMouseTrail() {
     const hasPointer = window.matchMedia('(pointer: fine)').matches;
 
     if (!hasPointer) {
-        console.log('Touch device detected - skipping mouse trail effect');
         return;
     }
 
@@ -4759,7 +4810,6 @@ function setupCustomCursor() {
     const hasPointer = window.matchMedia('(pointer: fine)').matches;
 
     if (!hasPointer) {
-        console.log('Touch device detected - skipping custom cursor');
         document.body.classList.add('no-custom-cursor');
         return;
     }
