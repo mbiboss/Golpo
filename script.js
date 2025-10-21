@@ -28,6 +28,13 @@ var musicPlaylist = [
         icon: "fas fa-star"
     },
     {
+        title: "Sono Le Ke",
+        artist: "Hindi Song",
+        url: "https://www.youtube.com/embed/s3xwSi7jyPc?autoplay=1",
+        duration: "4:24",
+        icon: "fas fa-music"
+    },
+    {
         title: "Qusad Einy",
         artist: "Arabic Song",
         url: "https://www.youtube.com/embed/vzvz0LtMrCQ?autoplay=1",
