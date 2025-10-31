@@ -142,6 +142,20 @@ var storyDatabase = {
         readingTime: 0,
         wordCount: 0
     },
+    'Chaya.txt': {
+        id: 'Chaya',
+        name: 'ছায়া',
+        location: 'Kathora,Shalna,Gazipur',
+        writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
+        description: 'The Beginning of the Shadow',
+        status: 'available',
+        category: 'Mystery',
+        tags: ['mystery', 'love', 'emotional'],
+        banner: 'https://i.postimg.cc/brF6cbDd/Chaya.jpg',
+        reading: 'https://i.postimg.cc/brF6cbDd/Chaya.jpg',
+        readingTime: 0,
+        wordCount: 0
+    },
     'upcoming.txt': {
         id: 'upcoming',
         name: 'Upcoming Stories',
