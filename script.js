@@ -1195,6 +1195,10 @@ function initializeApp() {
             if (typeof initializeAdvancedEffects !== 'undefined') {
                 initializeAdvancedEffects();
             }
+            // Initialize lazy loading for images
+            if (typeof initializeLazyLoading !== 'undefined') {
+                initializeLazyLoading();
+            }
         } catch (error) {
         }
     }, 500);
@@ -4569,51 +4573,43 @@ const isLowPerformanceDevice = (() => {
     return memory < 4 || cores < 4 || /Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 })();
 
+// Feature flag for advanced effects - disabled for better performance
+const ENABLE_ADVANCED_EFFECTS = false;
+
 function initializeAdvancedEffects() {
     try {
-        if (isLowPerformanceDevice) {
+        // Disabled for optimal performance
+        if (!ENABLE_ADVANCED_EFFECTS || isLowPerformanceDevice) {
             return;
         }
 
-        // Initialize optimized magnetic particles
-        setupMagneticParticles();
+        // Initialize optimized magnetic particles - DISABLED
+        // setupMagneticParticles();
 
-        // Setup 3D card tilt effects
-        setup3DCardEffects();
+        // Setup 3D card tilt effects - DISABLED
+        // setup3DCardEffects();
 
-        // Initialize mouse trail effect
-        setupMouseTrail();
+        // Initialize mouse trail effect - DISABLED
+        // setupMouseTrail();
 
         // Setup holographic effects
         setupHolographicEffects();
 
-        // Initialize custom animated cursor
-        setupCustomCursor();
+        // Initialize custom animated cursor - DISABLED
+        // setupCustomCursor();
 
-        // Initialize enhanced particle trail
-        setupEnhancedParticleTrail();
+        // Initialize enhanced particle trail - DISABLED
+        // setupEnhancedParticleTrail();
 
     } catch (error) {
         // Silent fail for non-critical effects
     }
 }
 
-// Optimized magnetic particle system using requestAnimationFrame
+// Optimized magnetic particle system - Disabled for performance
 function setupMagneticParticles() {
-    // Performance guard - skip on low-end devices
-    if (isLowPerformanceDevice) return;
-    
-    const particles = document.querySelectorAll('.particle');
-    if (particles.length === 0) return;
-    
-    let mouseX = 0;
-    let mouseY = 0;
-    let rafId = null;
-
-    document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-    }, { passive: true });
+    // Disabled for better performance - particles are now static
+    return;
 
     // Randomize particle properties
     particles.forEach((particle) => {
@@ -4660,52 +4656,35 @@ function setupMagneticParticles() {
     rafId = requestAnimationFrame(animateParticles);
 }
 
-// 3D card tilt effect
+// 3D card tilt effect - Simplified for performance
 function setup3DCardEffects() {
+    // Skip on low-end devices
+    if (isLowPerformanceDevice) return;
+    
     const storyCards = document.querySelectorAll('.story-card');
 
     storyCards.forEach(card => {
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-
-            const rotateX = (y - centerY) / 10;
-            const rotateY = (centerX - x) / 10;
-
-            card.style.transform = `
-                perspective(1000px)
-                translateY(-12px)
-                rotateX(${rotateX}deg)
-                rotateY(${rotateY}deg)
-                scale3d(1.03, 1.03, 1.03)
-            `;
-
-            // Update mouse position for holographic effect
-            card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
-            card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-8px)';
         }, { passive: true });
 
         card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(1000px) translateY(0) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+            card.style.transform = 'translateY(0)';
         }, { passive: true });
     });
 }
 
-// Mouse trail effect - Only shows when mouse is detected
+// Mouse trail effect - Optimized for performance
 function setupMouseTrail() {
     // Check if device has a mouse (not touch-only device)
     const hasPointer = window.matchMedia('(pointer: fine)').matches;
 
-    if (!hasPointer) {
+    if (!hasPointer || isLowPerformanceDevice) {
         return;
     }
 
     const trail = [];
-    const trailLength = 25;
+    const trailLength = 10;
     let mouseX = 0;
     let mouseY = 0;
     let isMouseActive = false;
@@ -4818,11 +4797,11 @@ function setupHolographicEffects() {
                     rgba(100, 181, 246, 0.15) 0%, 
                     var(--glass-bg) 50%)
             `;
-        });
+        }, { passive: true });
 
         navIsland.addEventListener('mouseleave', () => {
             navIsland.style.background = 'var(--glass-bg)';
-        });
+        }, { passive: true });
     }
 }
 
@@ -4909,55 +4888,32 @@ function setupCustomCursor() {
     animateCursor();
 }
 
-// Enhanced Particle Trail Following Cursor
+// Enhanced Particle Trail - Disabled for performance
 function setupEnhancedParticleTrail() {
-    // Check if device has a mouse
-    const hasPointer = window.matchMedia('(pointer: fine)').matches;
+    // Disabled for better performance
+    return;
+}
 
-    if (!hasPointer) {
-        return;
-    }
-
-    let mouseX = 0;
-    let mouseY = 0;
-    let lastTime = Date.now();
-
-    document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-
-        const currentTime = Date.now();
-
-        // Create particles at intervals based on mouse movement speed
-        if (currentTime - lastTime > 30) {
-            createParticle(mouseX, mouseY);
-            lastTime = currentTime;
-        }
+// Add lazy loading for images
+function initializeLazyLoading() {
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                if (img.dataset.src) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                }
+                observer.unobserve(img);
+            }
+        });
+    }, {
+        rootMargin: '50px'
     });
 
-    function createParticle(x, y) {
-        const particle = document.createElement('div');
-        particle.className = 'cursor-particle';
-
-        // Random size and position offset
-        const size = Math.random() * 8 + 4;
-        const offsetX = (Math.random() - 0.5) * 20;
-        const offsetY = (Math.random() - 0.5) * 20;
-
-        particle.style.cssText = `
-            left: ${x + offsetX}px;
-            top: ${y + offsetY}px;
-            width: ${size}px;
-            height: ${size}px;
-        `;
-
-        document.body.appendChild(particle);
-
-        // Remove particle after animation
-        setTimeout(() => {
-            particle.remove();
-        }, 800);
-    }
+    document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+        imageObserver.observe(img);
+    });
 }
 
 // Smooth scroll with easing
