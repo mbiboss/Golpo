@@ -5,10 +5,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</title>
+  
+  <!-- Preload critical assets -->
+  <link rel="preload" href="style.css" as="style">
+  <link rel="preload" href="script.js" as="script">
+  <link rel="preload" href="assets/English_font.otf" as="font" type="font/otf" crossorigin>
+  <link rel="preload" href="assets/Bangla_font.ttf" as="font" type="font/ttf" crossorigin>
+  
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Font preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="icon" type="image/png" href="assets/logo.png">
@@ -20,7 +30,7 @@
     <div class="startup-background"></div>
     <div class="startup-content">
       <div class="startup-logo">
-        <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="startup-logo-img"
+        <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="startup-logo-img" loading="lazy"
           onerror="this.src='assets/logo.png'">
       </div>
       <div class="startup-title">
@@ -29,7 +39,6 @@
       </div>
       <div class="startup-hint">
         <p class="tap-hint">
-          <i class="fas fa-hand-pointer"></i>
           Tap anywhere to continue
         </p>
       </div>
@@ -50,22 +59,12 @@
     <div class="particle"></div>
     <div class="particle"></div>
     <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
   </div>
   <!-- Dynamic Island Style Navigation -->
   <nav class="nav-container">
     <div class="nav-island">
       <div class="nav-left">
-        <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="logo"
+        <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="logo" loading="lazy"
           onerror="this.src='assets/logo.png'">
         <span class="logo-text" id="logoText">Golpo</span>
       </div>
@@ -247,7 +246,7 @@
       <article class="story-reader">
         <header class="story-header">
           <div class="story-cover-small">
-            <img id="readerCoverImage" src="" alt="Story Cover" />
+            <img id="readerCoverImage" src="" alt="Story Cover" loading="lazy" />
           </div>
           <div class="story-title-section">
             <h1 id="readerStoryTitle" class="story-title-large">Story Title</h1>
@@ -320,7 +319,7 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-left">
-        <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="footer-logo"
+        <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="footer-logo" loading="lazy"
           onerror="this.src='assets/logo.png'">
         <p class="english-text">✿ㅤ"MʙɪㅤDᴀʀᴋ &copy; 2025 Golpo. All rights reserved.</p>
       </div>
