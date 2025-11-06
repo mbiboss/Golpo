@@ -1574,10 +1574,6 @@ var clickTexts = [
 
 // Initialize enhanced cursor effects
 function initializeCursorEffects() {
-    // Force hide default cursor on html and body
-    document.documentElement.style.cursor = 'none';
-    document.body.style.cursor = 'none';
-    
     // Create cursor elements
     customCursor = document.createElement('div');
     customCursor.className = 'custom-cursor';
