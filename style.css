@@ -442,152 +442,17 @@ button:active {
 
 /* ======================================== */
 
-/* ========================================
-   ENHANCED CURSOR SYSTEM
-   ======================================== */
-
-/* Main Cursor */
-.custom-cursor {
-    position: fixed;
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(100, 181, 246, 0.8);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 10002;
-    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
-                opacity 0.3s ease;
-    transform: translate(-50%, -50%);
-    will-change: transform;
-}
-
-/* Cursor Dot */
-.cursor-dot {
-    position: fixed;
-    width: 6px;
-    height: 6px;
-    background: linear-gradient(135deg, #64B5F6, #8B5CF6);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 10003;
-    transition: transform 0.08s ease;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 10px rgba(100, 181, 246, 0.6);
-    will-change: transform;
-}
-
-/* Cursor Glow Effect */
-.cursor-glow {
-    position: fixed;
-    width: 40px;
-    height: 40px;
-    background: radial-gradient(circle, rgba(100, 181, 246, 0.3) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001;
-    transform: translate(-50%, -50%) scale(1);
-    transition: transform 0.25s ease, opacity 0.3s ease;
-    opacity: 0.6;
-    will-change: transform, opacity;
-}
-
-/* Hover State - Expand Cursor */
-body.cursor-hover .custom-cursor {
-    transform: translate(-50%, -50%) scale(1.5);
-    border-color: rgba(139, 92, 246, 1);
-    border-width: 2px;
-}
-
-body.cursor-hover .cursor-dot {
-    transform: translate(-50%, -50%) scale(1.2);
-    background: linear-gradient(135deg, #8B5CF6, #EC4899);
-}
-
-body.cursor-hover .cursor-glow {
-    transform: translate(-50%, -50%) scale(1.5);
-    opacity: 0.8;
-}
-
-/* Click State - Pulse Effect */
-body.cursor-click .custom-cursor {
-    animation: cursorClickPulse 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-body.cursor-click .cursor-dot {
-    animation: dotClickPulse 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes cursorClickPulse {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-    }
-    50% {
-        transform: translate(-50%, -50%) scale(0.8);
-        border-width: 3px;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(1);
-    }
-}
-
-@keyframes dotClickPulse {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-    }
-    50% {
-        transform: translate(-50%, -50%) scale(0.5);
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(1);
-    }
-}
-
-/* Click Text Effect */
-.click-text {
-    position: fixed;
-    pointer-events: none;
-    z-index: 10004;
-    font-size: 14px;
-    font-weight: 700;
-    color: transparent;
-    background: linear-gradient(135deg, #64B5F6, #8B5CF6, #EC4899);
-    -webkit-background-clip: text;
-    background-clip: text;
-    text-shadow: 0 0 20px rgba(100, 181, 246, 0.8);
-    animation: clickTextFloat 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    will-change: transform, opacity;
-    font-family: 'EnglishFont', -apple-system, sans-serif;
-    user-select: none;
-}
-
-@keyframes clickTextFloat {
-    0% {
-        opacity: 1;
-        transform: translateY(0) scale(0.5);
-    }
-    50% {
-        opacity: 1;
-        transform: translateY(-40px) scale(1);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-80px) scale(1.2);
-    }
-}
-
-/* Cursor Trail Particles */
+/* Cursor Particle Effects */
 .cursor-particle {
     position: fixed;
     pointer-events: none;
-    width: 4px;
-    height: 4px;
-    background: linear-gradient(135deg, rgba(100, 181, 246, 0.8), rgba(139, 92, 246, 0.6));
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, rgba(100, 181, 246, 0.8) 0%, rgba(139, 92, 246, 0.4) 100%);
     border-radius: 50%;
-    z-index: 10000;
+    z-index: 9999;
     opacity: 1;
-    animation: particleFade 1s ease-out forwards;
-    box-shadow: 0 0 8px rgba(100, 181, 246, 0.6);
-    will-change: transform, opacity;
+    animation: particleFade 0.8s ease-out forwards;
 }
 
 @keyframes particleFade {
@@ -601,30 +466,18 @@ body.cursor-click .cursor-dot {
     }
 }
 
-/* Click Ripple Effect */
-.click-ripple {
-    position: fixed;
-    pointer-events: none;
-    border: 2px solid rgba(100, 181, 246, 0.8);
-    border-radius: 50%;
-    z-index: 10001;
-    animation: rippleExpand 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    will-would: transform, opacity;
-}
 
-@keyframes rippleExpand {
-    0% {
-        width: 10px;
-        height: 10px;
-        opacity: 1;
-        border-width: 3px;
-    }
-    100% {
-        width: 80px;
-        height: 80px;
-        opacity: 0;
-        border-width: 1px;
-    }
+.cursor-glow {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, rgba(100, 181, 246, 0.4) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%) scale(1);
+    transition: transform 0.2s ease;
+    will-change: transform;
 }
 
 /* Custom Bangla Font */
@@ -650,13 +503,16 @@ body.cursor-click .cursor-dot {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    cursor: none !important; /* Hide default cursor */
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" fill="%2364B5F6" opacity="0.3"/><circle cx="12" cy="12" r="2" fill="%2364B5F6"/></svg>') 12 12, auto;
 }
 
-/* Force cursor none on all interactive elements */
-a, button, .control-btn, .story-card, .music-card, .selection-btn, [onclick],
-input, textarea, select {
-    cursor: none !important;
+/* Cursor variations for different elements */
+a, button, .control-btn, .story-card, .music-card, .selection-btn, [onclick] {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="%2364B5F6" opacity="0.4"/><circle cx="12" cy="12" r="3" fill="%2364B5F6"/><circle cx="12" cy="12" r="1.5" fill="white"/></svg>') 12 12, pointer !important;
+}
+
+input, textarea {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="12" y1="6" x2="12" y2="18" stroke="%2364B5F6" stroke-width="2"/><line x1="10" y1="6" x2="14" y2="6" stroke="%2364B5F6" stroke-width="2"/><line x1="10" y1="18" x2="14" y2="18" stroke="%2364B5F6" stroke-width="2"/></svg>') 12 12, text !important;
 }
 
 /* Navigation Progress Container */

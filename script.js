@@ -1562,119 +1562,44 @@ function updateContinueReadingVisibility() {
     }
 }
 
-// Enhanced Cursor System Variables
-var customCursor = null;
-var cursorDot = null;
+// Cursor Effects Variables
 var cursorGlow = null;
-var lastParticleTime = 0;
-var clickTexts = [
-    "✨", "💫", "⭐", "🌟", "💎", "🎯", "🔥", "💥",
-    "Cool!", "Nice!", "Wow!", "Epic!", "Great!", "Yes!"
-];
+var particleInterval = null;
 
-// Initialize enhanced cursor effects
+// Initialize cursor effects
 function initializeCursorEffects() {
-    // Create cursor elements
-    customCursor = document.createElement('div');
-    customCursor.className = 'custom-cursor';
-    document.body.appendChild(customCursor);
-
-    cursorDot = document.createElement('div');
-    cursorDot.className = 'cursor-dot';
-    document.body.appendChild(cursorDot);
-
+    // Create cursor glow element
     cursorGlow = document.createElement('div');
     cursorGlow.className = 'cursor-glow';
     document.body.appendChild(cursorGlow);
 
-    let mouseX = 0, mouseY = 0;
-    let cursorX = 0, cursorY = 0;
-    let dotX = 0, dotY = 0;
-
-    // Smooth cursor follow
-    function updateCursor() {
-        // Smooth interpolation for cursor
-        cursorX += (mouseX - cursorX) * 0.15;
-        cursorY += (mouseY - cursorY) * 0.15;
-
-        // Faster interpolation for dot
-        dotX += (mouseX - dotX) * 0.25;
-        dotY += (mouseY - dotY) * 0.25;
-
-        customCursor.style.left = cursorX + 'px';
-        customCursor.style.top = cursorY + 'px';
-
-        cursorDot.style.left = dotX + 'px';
-        cursorDot.style.top = dotY + 'px';
-
-        cursorGlow.style.left = cursorX + 'px';
-        cursorGlow.style.top = cursorY + 'px';
-
-        requestAnimationFrame(updateCursor);
-    }
-    updateCursor();
-
-    // Track mouse movement
+    // Track mouse movement for glow and particles
+    let lastParticleTime = 0;
+    const particleInterval = 50; // Create particle every 50ms during movement
+    
     document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-
-        // Create particle trail
+        if (cursorGlow) {
+            cursorGlow.style.left = e.clientX + 'px';
+            cursorGlow.style.top = e.clientY + 'px';
+        }
+        
+        // Create particle trail with consistent timing
         const now = Date.now();
-        if (now - lastParticleTime > 50) {
+        if (now - lastParticleTime > particleInterval) {
             createCursorParticle(e.clientX, e.clientY);
             lastParticleTime = now;
         }
     });
 
-    // Hover effects for interactive elements
-    const interactiveElements = 'a, button, .control-btn, .story-card, .music-card, .selection-btn, [onclick]';
-    
-    document.addEventListener('mouseover', (e) => {
-        if (e.target.matches(interactiveElements)) {
-            document.body.classList.add('cursor-hover');
-        }
-    });
-
-    document.addEventListener('mouseout', (e) => {
-        if (e.target.matches(interactiveElements)) {
-            document.body.classList.remove('cursor-hover');
-        }
-    });
-
-    // Click effects
-    document.addEventListener('mousedown', (e) => {
-        document.body.classList.add('cursor-click');
-    });
-
-    document.addEventListener('mouseup', (e) => {
-        document.body.classList.remove('cursor-click');
-    });
-
-    // Enhanced click effect with text and ripple
+    // Click effect
     document.addEventListener('click', (e) => {
         createClickRipple(e.clientX, e.clientY);
-        createClickText(e.clientX, e.clientY);
-        
-        // Particle burst
-        for (let i = 0; i < 8; i++) {
+        // Create burst of particles on click
+        for (let i = 0; i < 6; i++) {
             setTimeout(() => {
                 createCursorParticle(e.clientX, e.clientY, true);
-            }, i * 15);
+            }, i * 20);
         }
-    });
-
-    // Hide cursor when leaving window
-    document.addEventListener('mouseleave', () => {
-        customCursor.style.opacity = '0';
-        cursorDot.style.opacity = '0';
-        cursorGlow.style.opacity = '0';
-    });
-
-    document.addEventListener('mouseenter', () => {
-        customCursor.style.opacity = '1';
-        cursorDot.style.opacity = '1';
-        cursorGlow.style.opacity = '0.6';
     });
 }
 
@@ -1683,8 +1608,9 @@ function createCursorParticle(x, y, isBurst = false) {
     const particle = document.createElement('div');
     particle.className = 'cursor-particle';
     
-    const angle = Math.random() * Math.PI * 2;
-    const distance = isBurst ? (40 + Math.random() * 60) : (15 + Math.random() * 25);
+    // Random movement direction
+    const angle = isBurst ? (Math.random() * Math.PI * 2) : (Math.random() * Math.PI * 2);
+    const distance = isBurst ? (30 + Math.random() * 40) : (10 + Math.random() * 20);
     const tx = Math.cos(angle) * distance;
     const ty = Math.sin(angle) * distance;
     
@@ -1693,56 +1619,36 @@ function createCursorParticle(x, y, isBurst = false) {
     particle.style.setProperty('--tx', tx + 'px');
     particle.style.setProperty('--ty', ty + 'px');
     
-    const size = isBurst ? (4 + Math.random() * 6) : (3 + Math.random() * 4);
+    // Random size variation
+    const size = isBurst ? (6 + Math.random() * 8) : (4 + Math.random() * 6);
     particle.style.width = size + 'px';
     particle.style.height = size + 'px';
     
     document.body.appendChild(particle);
     
+    // Remove after animation
     setTimeout(() => {
         if (particle.parentNode) {
             particle.remove();
         }
-    }, 1000);
+    }, 800);
 }
 
 // Create click ripple effect
 function createClickRipple(x, y) {
     const ripple = document.createElement('div');
     ripple.className = 'click-ripple';
-    ripple.style.left = (x - 5) + 'px';
-    ripple.style.top = (y - 5) + 'px';
+    ripple.style.left = (x - 50) + 'px';
+    ripple.style.top = (y - 50) + 'px';
     
     document.body.appendChild(ripple);
     
+    // Remove after animation
     setTimeout(() => {
         if (ripple.parentNode) {
             ripple.remove();
         }
-    }, 800);
-}
-
-// Create click text effect
-function createClickText(x, y) {
-    const text = document.createElement('div');
-    text.className = 'click-text';
-    
-    // Random text from array
-    const randomText = clickTexts[Math.floor(Math.random() * clickTexts.length)];
-    text.textContent = randomText;
-    
-    // Random horizontal offset
-    const offsetX = (Math.random() - 0.5) * 40;
-    text.style.left = (x + offsetX) + 'px';
-    text.style.top = y + 'px';
-    
-    document.body.appendChild(text);
-    
-    setTimeout(() => {
-        if (text.parentNode) {
-            text.remove();
-        }
-    }, 1500);
+    }, 600);
 }
 
 // Track if event listeners are already set up
