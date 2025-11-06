@@ -650,21 +650,12 @@ body.cursor-click .cursor-dot {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
-
-/* Hide default system cursor globally */
-html, body {
-    cursor: none !important;
-}
-
-/* Force cursor none on all elements */
-*, *::before, *::after {
-    cursor: none !important;
+    cursor: none !important; /* Hide default cursor */
 }
 
 /* Force cursor none on all interactive elements */
 a, button, .control-btn, .story-card, .music-card, .selection-btn, [onclick],
-input, textarea, select, label, .modal-overlay, .modal-content {
+input, textarea, select {
     cursor: none !important;
 }
 
