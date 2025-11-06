@@ -1190,18 +1190,13 @@ function initializeApp() {
     }
 
     // Initialize advanced visual effects after DOM is fully loaded
+    // Initialize lazy loading for images
     setTimeout(() => {
-        try {
-            if (typeof initializeAdvancedEffects !== 'undefined') {
-                initializeAdvancedEffects();
-            }
-            // Initialize lazy loading for images
-            if (typeof initializeLazyLoading !== 'undefined') {
-                initializeLazyLoading();
-            }
-        } catch (error) {
-        }
+        initializeLazyLoading();
     }, 500);
+
+    // Initialize cursor effects
+    initializeCursorEffects();
 }
 
 // Setup reading progress tracking for reader view
@@ -1227,7 +1222,7 @@ function setupReaderProgress() {
                     progressPercentage.textContent = Math.round(progress) + '%';
                 }
                 if (progressFill) {
-                    progressFill.style.width = progress + '%';
+                    progressFill.style.transform = `scaleX(${progress / 100})`;
                 }
 
                 // Check if story is completed (reached the last paragraph)
@@ -1565,6 +1560,193 @@ function updateContinueReadingVisibility() {
             }
         }
     }
+}
+
+// Enhanced Cursor System Variables
+var customCursor = null;
+var cursorDot = null;
+var cursorGlow = null;
+var lastParticleTime = 0;
+var clickTexts = [
+    "✨", "💫", "⭐", "🌟", "💎", "🎯", "🔥", "💥",
+    "Cool!", "Nice!", "Wow!", "Epic!", "Great!", "Yes!"
+];
+
+// Initialize enhanced cursor effects
+function initializeCursorEffects() {
+    // Force hide default cursor on html and body
+    document.documentElement.style.cursor = 'none';
+    document.body.style.cursor = 'none';
+    
+    // Create cursor elements
+    customCursor = document.createElement('div');
+    customCursor.className = 'custom-cursor';
+    document.body.appendChild(customCursor);
+
+    cursorDot = document.createElement('div');
+    cursorDot.className = 'cursor-dot';
+    document.body.appendChild(cursorDot);
+
+    cursorGlow = document.createElement('div');
+    cursorGlow.className = 'cursor-glow';
+    document.body.appendChild(cursorGlow);
+
+    let mouseX = 0, mouseY = 0;
+    let cursorX = 0, cursorY = 0;
+    let dotX = 0, dotY = 0;
+
+    // Smooth cursor follow
+    function updateCursor() {
+        // Smooth interpolation for cursor
+        cursorX += (mouseX - cursorX) * 0.15;
+        cursorY += (mouseY - cursorY) * 0.15;
+
+        // Faster interpolation for dot
+        dotX += (mouseX - dotX) * 0.25;
+        dotY += (mouseY - dotY) * 0.25;
+
+        customCursor.style.left = cursorX + 'px';
+        customCursor.style.top = cursorY + 'px';
+
+        cursorDot.style.left = dotX + 'px';
+        cursorDot.style.top = dotY + 'px';
+
+        cursorGlow.style.left = cursorX + 'px';
+        cursorGlow.style.top = cursorY + 'px';
+
+        requestAnimationFrame(updateCursor);
+    }
+    updateCursor();
+
+    // Track mouse movement
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        // Create particle trail
+        const now = Date.now();
+        if (now - lastParticleTime > 50) {
+            createCursorParticle(e.clientX, e.clientY);
+            lastParticleTime = now;
+        }
+    });
+
+    // Hover effects for interactive elements
+    const interactiveElements = 'a, button, .control-btn, .story-card, .music-card, .selection-btn, [onclick]';
+    
+    document.addEventListener('mouseover', (e) => {
+        if (e.target.matches(interactiveElements)) {
+            document.body.classList.add('cursor-hover');
+        }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+        if (e.target.matches(interactiveElements)) {
+            document.body.classList.remove('cursor-hover');
+        }
+    });
+
+    // Click effects
+    document.addEventListener('mousedown', (e) => {
+        document.body.classList.add('cursor-click');
+    });
+
+    document.addEventListener('mouseup', (e) => {
+        document.body.classList.remove('cursor-click');
+    });
+
+    // Enhanced click effect with text and ripple
+    document.addEventListener('click', (e) => {
+        createClickRipple(e.clientX, e.clientY);
+        createClickText(e.clientX, e.clientY);
+        
+        // Particle burst
+        for (let i = 0; i < 8; i++) {
+            setTimeout(() => {
+                createCursorParticle(e.clientX, e.clientY, true);
+            }, i * 15);
+        }
+    });
+
+    // Hide cursor when leaving window
+    document.addEventListener('mouseleave', () => {
+        customCursor.style.opacity = '0';
+        cursorDot.style.opacity = '0';
+        cursorGlow.style.opacity = '0';
+    });
+
+    document.addEventListener('mouseenter', () => {
+        customCursor.style.opacity = '1';
+        cursorDot.style.opacity = '1';
+        cursorGlow.style.opacity = '0.6';
+    });
+}
+
+// Create cursor particle
+function createCursorParticle(x, y, isBurst = false) {
+    const particle = document.createElement('div');
+    particle.className = 'cursor-particle';
+    
+    const angle = Math.random() * Math.PI * 2;
+    const distance = isBurst ? (40 + Math.random() * 60) : (15 + Math.random() * 25);
+    const tx = Math.cos(angle) * distance;
+    const ty = Math.sin(angle) * distance;
+    
+    particle.style.left = x + 'px';
+    particle.style.top = y + 'px';
+    particle.style.setProperty('--tx', tx + 'px');
+    particle.style.setProperty('--ty', ty + 'px');
+    
+    const size = isBurst ? (4 + Math.random() * 6) : (3 + Math.random() * 4);
+    particle.style.width = size + 'px';
+    particle.style.height = size + 'px';
+    
+    document.body.appendChild(particle);
+    
+    setTimeout(() => {
+        if (particle.parentNode) {
+            particle.remove();
+        }
+    }, 1000);
+}
+
+// Create click ripple effect
+function createClickRipple(x, y) {
+    const ripple = document.createElement('div');
+    ripple.className = 'click-ripple';
+    ripple.style.left = (x - 5) + 'px';
+    ripple.style.top = (y - 5) + 'px';
+    
+    document.body.appendChild(ripple);
+    
+    setTimeout(() => {
+        if (ripple.parentNode) {
+            ripple.remove();
+        }
+    }, 800);
+}
+
+// Create click text effect
+function createClickText(x, y) {
+    const text = document.createElement('div');
+    text.className = 'click-text';
+    
+    // Random text from array
+    const randomText = clickTexts[Math.floor(Math.random() * clickTexts.length)];
+    text.textContent = randomText;
+    
+    // Random horizontal offset
+    const offsetX = (Math.random() - 0.5) * 40;
+    text.style.left = (x + offsetX) + 'px';
+    text.style.top = y + 'px';
+    
+    document.body.appendChild(text);
+    
+    setTimeout(() => {
+        if (text.parentNode) {
+            text.remove();
+        }
+    }, 1500);
 }
 
 // Track if event listeners are already set up
@@ -2534,7 +2716,7 @@ function updateReadingProgress() {
     if (maxScroll <= 0) {
         progressPercentage.textContent = '100%';
         if (progressFill) {
-            progressFill.style.width = '100%';
+            progressFill.style.transform = 'scaleX(1)';
         }
         return;
     }
@@ -2544,7 +2726,7 @@ function updateReadingProgress() {
 
     progressPercentage.textContent = Math.round(scrollPercent) + '%';
     if (progressFill) {
-        progressFill.style.width = scrollPercent + '%';
+        progressFill.style.transform = `scaleX(${scrollPercent / 100})`;
     }
 }
 
@@ -4283,13 +4465,7 @@ function showNotification(message, type = 'info', duration = 4000, options = {})
     }
 }
 
-// Add a test notification function for debugging
-function testNotification() {
-    showNotification('🔧 Test notification - System is working!', 'success', 5000);
-}
 
-// Test notification on startup complete (removed automatic test)
-// You can call testNotification() from the console to test
 
 // Helper function to get notification icons
 function getNotificationIcon(type) {
@@ -4433,7 +4609,7 @@ const optimizedScrollHandler = throttle(() => {
 
                 const roundedProgress = Math.round(Math.max(0, Math.min(100, pageProgress)));
 
-                progressFill.style.width = `${roundedProgress}%`;
+                progressFill.style.transform = `scaleX(${roundedProgress / 100})`;
                 progressPercentage.textContent = `${roundedProgress}%`;
 
                 // Update focus exit button progress if in focus mode
@@ -4463,7 +4639,7 @@ const optimizedScrollHandler = throttle(() => {
             const progress = Math.min(100, Math.max(0, (scrollTop / documentHeight) * 100));
             const roundedProgress = Math.round(progress);
 
-            progressFill.style.width = `${roundedProgress}%`;
+            progressFill.style.transform = `scaleX(${roundedProgress / 100})`;
             progressPercentage.textContent = `${roundedProgress}%`;
 
             // Auto-save scroll position for current story
@@ -4564,335 +4740,7 @@ function performCleanup() {
 // Auto cleanup every 5 minutes
 setInterval(performCleanup, 5 * 60 * 1000);
 
-// === ADVANCED VISUAL EFFECTS SYSTEM ===
 
-// Performance detection - disable heavy effects on low-end devices
-const isLowPerformanceDevice = (() => {
-    const memory = navigator.deviceMemory || 8;
-    const cores = navigator.hardwareConcurrency || 4;
-    return memory < 4 || cores < 4 || /Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-})();
-
-// Feature flag for advanced effects - disabled for better performance
-const ENABLE_ADVANCED_EFFECTS = false;
-
-function initializeAdvancedEffects() {
-    try {
-        // Disabled for optimal performance
-        if (!ENABLE_ADVANCED_EFFECTS || isLowPerformanceDevice) {
-            return;
-        }
-
-        // Initialize optimized magnetic particles - DISABLED
-        // setupMagneticParticles();
-
-        // Setup 3D card tilt effects - DISABLED
-        // setup3DCardEffects();
-
-        // Initialize mouse trail effect - DISABLED
-        // setupMouseTrail();
-
-        // Setup holographic effects
-        setupHolographicEffects();
-
-        // Initialize custom animated cursor - DISABLED
-        // setupCustomCursor();
-
-        // Initialize enhanced particle trail - DISABLED
-        // setupEnhancedParticleTrail();
-
-    } catch (error) {
-        // Silent fail for non-critical effects
-    }
-}
-
-// Optimized magnetic particle system - Disabled for performance
-function setupMagneticParticles() {
-    // Disabled for better performance - particles are now static
-    return;
-
-    // Randomize particle properties
-    particles.forEach((particle) => {
-        const size = Math.random() * 10 + 5;
-        particle.style.width = size + 'px';
-        particle.style.height = size + 'px';
-    });
-
-    // Single animation loop for all particles (much more efficient)
-    function animateParticles() {
-        // Additional safety check
-        if (isLowPerformanceDevice) {
-            if (rafId) cancelAnimationFrame(rafId);
-            return;
-        }
-        
-        particles.forEach((particle) => {
-            const rect = particle.getBoundingClientRect();
-            const particleX = rect.left + rect.width / 2;
-            const particleY = rect.top + rect.height / 2;
-
-            const dx = mouseX - particleX;
-            const dy = mouseY - particleY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            // Magnetic attraction within 200px
-            if (distance < 200 && distance > 0) {
-                const force = (200 - distance) / 200;
-                const angle = Math.atan2(dy, dx);
-                const offsetX = Math.cos(angle) * force * 20;
-                const offsetY = Math.sin(angle) * force * 20;
-
-                particle.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${1 + force * 0.5})`;
-                particle.style.opacity = Math.min(1, 0.6 + force * 0.4);
-            } else {
-                particle.style.transform = 'translate(0, 0) scale(1)';
-                particle.style.opacity = '0.6';
-            }
-        });
-
-        rafId = requestAnimationFrame(animateParticles);
-    }
-
-    rafId = requestAnimationFrame(animateParticles);
-}
-
-// 3D card tilt effect - Simplified for performance
-function setup3DCardEffects() {
-    // Skip on low-end devices
-    if (isLowPerformanceDevice) return;
-    
-    const storyCards = document.querySelectorAll('.story-card');
-
-    storyCards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-8px)';
-        }, { passive: true });
-
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0)';
-        }, { passive: true });
-    });
-}
-
-// Mouse trail effect - Optimized for performance
-function setupMouseTrail() {
-    // Check if device has a mouse (not touch-only device)
-    const hasPointer = window.matchMedia('(pointer: fine)').matches;
-
-    if (!hasPointer || isLowPerformanceDevice) {
-        return;
-    }
-
-    const trail = [];
-    const trailLength = 10;
-    let mouseX = 0;
-    let mouseY = 0;
-    let isMouseActive = false;
-
-    // Create particle trail elements
-    for (let i = 0; i < trailLength; i++) {
-        const dot = document.createElement('div');
-        const opacity = (1 - i / trailLength) * 0.8;
-        const size = 8 - (i / trailLength) * 4;
-
-        dot.className = 'mouse-trail-particle';
-        dot.style.cssText = `
-            position: fixed;
-            width: ${size}px;
-            height: ${size}px;
-            background: radial-gradient(circle, rgba(100, 181, 246, ${opacity}) 0%, rgba(139, 92, 246, ${opacity * 0.5}) 50%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            box-shadow: 0 0 ${10 + i}px rgba(100, 181, 246, ${opacity}), 0 0 ${20 + i}px rgba(139, 92, 246, ${opacity * 0.5});
-            transform: translate(-50%, -50%);
-        `;
-        document.body.appendChild(dot);
-        trail.push({ element: dot, x: 0, y: 0, targetX: 0, targetY: 0 });
-    }
-
-    // Track mouse movement
-    document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-
-        if (!isMouseActive) {
-            isMouseActive = true;
-            // Fade in particles when mouse is detected
-            trail.forEach(dot => {
-                dot.element.style.opacity = '1';
-            });
-        }
-    });
-
-    // Hide particles when mouse leaves the window
-    document.addEventListener('mouseleave', () => {
-        isMouseActive = false;
-        trail.forEach(dot => {
-            dot.element.style.opacity = '0';
-        });
-    });
-
-    // Re-show particles when mouse re-enters
-    document.addEventListener('mouseenter', () => {
-        if (hasPointer) {
-            isMouseActive = true;
-            trail.forEach(dot => {
-                dot.element.style.opacity = '1';
-            });
-        }
-    });
-
-    // Smooth animation loop
-    function animateTrail() {
-        if (isMouseActive) {
-            // Update first particle to follow mouse directly
-            trail[0].targetX = mouseX;
-            trail[0].targetY = mouseY;
-
-            // Each particle follows the previous one with smooth interpolation
-            trail.forEach((dot, index) => {
-                if (index === 0) {
-                    // First particle follows mouse with slight delay
-                    dot.x += (dot.targetX - dot.x) * 0.2;
-                    dot.y += (dot.targetY - dot.y) * 0.2;
-                } else {
-                    // Other particles follow previous particle
-                    const prevDot = trail[index - 1];
-                    dot.targetX = prevDot.x;
-                    dot.targetY = prevDot.y;
-
-                    // Smoother interpolation for trailing effect
-                    const lag = 0.15 - (index * 0.003);
-                    dot.x += (dot.targetX - dot.x) * lag;
-                    dot.y += (dot.targetY - dot.y) * lag;
-                }
-
-                // Update element position
-                dot.element.style.left = dot.x + 'px';
-                dot.element.style.top = dot.y + 'px';
-            });
-        }
-
-        requestAnimationFrame(animateTrail);
-    }
-
-    animateTrail();
-}
-
-// Holographic effects
-function setupHolographicEffects() {
-    // Add holographic shimmer to navigation
-    const navIsland = document.querySelector('.nav-island');
-    if (navIsland) {
-        navIsland.addEventListener('mousemove', (e) => {
-            const rect = navIsland.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-            navIsland.style.background = `
-                radial-gradient(circle at ${x}% ${y}%, 
-                    rgba(100, 181, 246, 0.15) 0%, 
-                    var(--glass-bg) 50%)
-            `;
-        }, { passive: true });
-
-        navIsland.addEventListener('mouseleave', () => {
-            navIsland.style.background = 'var(--glass-bg)';
-        }, { passive: true });
-    }
-}
-
-// Custom Animated Cursor
-function setupCustomCursor() {
-    // Check if device has a mouse (not touch-only device)
-    const hasPointer = window.matchMedia('(pointer: fine)').matches;
-
-    if (!hasPointer) {
-        document.body.classList.add('no-custom-cursor');
-        return;
-    }
-
-    // Create cursor element
-    const cursor = document.createElement('div');
-    cursor.className = 'custom-cursor';
-    document.body.appendChild(cursor);
-
-    let mouseX = 0;
-    let mouseY = 0;
-    let cursorX = 0;
-    let cursorY = 0;
-
-    // Track mouse movement
-    document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-
-        if (!cursor.classList.contains('active')) {
-            cursor.classList.add('active');
-        }
-    });
-
-    // Hide cursor when mouse leaves window
-    document.addEventListener('mouseleave', () => {
-        cursor.classList.remove('active');
-    });
-
-    // Show cursor when mouse enters window
-    document.addEventListener('mouseenter', () => {
-        if (hasPointer) {
-            cursor.classList.add('active');
-        }
-    });
-
-    // Add hover effect on interactive elements
-    const interactiveElements = document.querySelectorAll(
-        'a, button, input, textarea, select, [role="button"], [onclick], ' +
-        '.control-btn, .selection-btn, .story-card, .clickable'
-    );
-
-    interactiveElements.forEach(element => {
-        element.addEventListener('mouseenter', () => {
-            cursor.classList.add('hover');
-        });
-
-        element.addEventListener('mouseleave', () => {
-            cursor.classList.remove('hover');
-        });
-    });
-
-    // Click effect
-    document.addEventListener('mousedown', () => {
-        cursor.classList.add('click');
-    });
-
-    document.addEventListener('mouseup', () => {
-        cursor.classList.remove('click');
-    });
-
-    // Smooth cursor animation
-    function animateCursor() {
-        const speed = 0.15;
-
-        cursorX += (mouseX - cursorX) * speed;
-        cursorY += (mouseY - cursorY) * speed;
-
-        cursor.style.left = cursorX + 'px';
-        cursor.style.top = cursorY + 'px';
-
-        requestAnimationFrame(animateCursor);
-    }
-
-    animateCursor();
-}
-
-// Enhanced Particle Trail - Disabled for performance
-function setupEnhancedParticleTrail() {
-    // Disabled for better performance
-    return;
-}
 
 // Add lazy loading for images
 function initializeLazyLoading() {
@@ -4942,3 +4790,335 @@ function smoothScrollTo(target, duration = 1000) {
 
     requestAnimationFrame(animation);
 }
+
+// ========================================
+// SMOOTH ANIMATION SYSTEM
+// ========================================
+
+// IntersectionObserver for Story Cards
+let storyCardObserver;
+
+function initializeStoryCardAnimations() {
+    if (storyCardObserver) {
+        storyCardObserver.disconnect();
+    }
+
+    storyCardObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add('card-reveal');
+                }, index * 80);
+                storyCardObserver.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '50px'
+    });
+
+    document.querySelectorAll('.story-card').forEach(card => {
+        storyCardObserver.observe(card);
+    });
+}
+
+// Scroll Reveal Observer for General Content
+let scrollRevealObserver;
+
+function initializeScrollReveal() {
+    if (scrollRevealObserver) {
+        scrollRevealObserver.disconnect();
+    }
+
+    scrollRevealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+                scrollRevealObserver.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.15,
+        rootMargin: '30px'
+    });
+
+    document.querySelectorAll('.reveal').forEach(element => {
+        scrollRevealObserver.observe(element);
+    });
+}
+
+// View Transition Functions
+function animateViewTransition(exitView, enterView, callback) {
+    if (!exitView || !enterView) {
+        if (callback) callback();
+        return;
+    }
+
+    exitView.classList.add('view-exit');
+    
+    const handleAnimationEnd = () => {
+        exitView.style.display = 'none';
+        exitView.classList.remove('view-exit');
+        enterView.style.display = 'block';
+        enterView.classList.add('view-enter');
+        
+        const handleEnterEnd = () => {
+            enterView.classList.remove('view-enter');
+            enterView.removeEventListener('animationend', handleEnterEnd);
+            if (callback) callback();
+        };
+        
+        enterView.addEventListener('animationend', handleEnterEnd, { once: true });
+        exitView.removeEventListener('animationend', handleAnimationEnd);
+    };
+    
+    exitView.addEventListener('animationend', handleAnimationEnd, { once: true });
+}
+
+// Enhanced View Switching with Animations
+const originalShowReaderView = window.showReaderView || showReaderView;
+const originalReturnToLibrary = window.returnToLibrary || returnToLibrary;
+
+window.showReaderView = function() {
+    const libraryView = document.getElementById('libraryView');
+    const readerView = document.getElementById('readerView');
+    
+    if (libraryView && readerView) {
+        animateViewTransition(libraryView, readerView, () => {
+            if (typeof originalShowReaderView === 'function') {
+                const tempDisplay = readerView.style.display;
+                readerView.style.display = tempDisplay;
+                
+                if (progressContainer) {
+                    progressContainer.style.display = 'flex';
+                    progressContainer.style.visibility = 'visible';
+                    progressContainer.style.opacity = '1';
+                }
+                if (readingControlsDropdown) {
+                    readingControlsDropdown.style.display = 'inline-block';
+                    readingControlsDropdown.style.visibility = 'visible';
+                    readingControlsDropdown.style.opacity = '1';
+                }
+                if (isFocusMode) {
+                    document.querySelector('.nav-container').style.opacity = '0';
+                    const footer = document.querySelector('.footer');
+                    if (footer) footer.style.opacity = '0';
+                }
+            }
+            
+            initializeTextRevealAnimation();
+        });
+    } else if (typeof originalShowReaderView === 'function') {
+        originalShowReaderView();
+        initializeTextRevealAnimation();
+    }
+};
+
+window.returnToLibrary = function() {
+    const libraryView = document.getElementById('libraryView');
+    const readerView = document.getElementById('readerView');
+    
+    if (libraryView && readerView) {
+        animateViewTransition(readerView, libraryView, () => {
+            if (typeof originalReturnToLibrary === 'function') {
+                const tempDisplay = libraryView.style.display;
+                libraryView.style.display = tempDisplay;
+                
+                if (progressContainer) {
+                    progressContainer.style.display = 'none';
+                    progressContainer.style.visibility = 'hidden';
+                    progressContainer.style.opacity = '0';
+                }
+                if (readingControlsDropdown) {
+                    readingControlsDropdown.style.display = 'none';
+                    readingControlsDropdown.style.visibility = 'hidden';
+                    readingControlsDropdown.style.opacity = '0';
+                    readingControlsDropdown.classList.remove('active');
+                }
+                
+                document.querySelector('.nav-container').style.opacity = '1';
+                const footer = document.querySelector('.footer');
+                if (footer) footer.style.opacity = '1';
+            }
+            
+            animateHeroSection();
+            initializeStoryCardAnimations();
+        });
+    } else if (typeof originalReturnToLibrary === 'function') {
+        originalReturnToLibrary();
+        animateHeroSection();
+        initializeStoryCardAnimations();
+    }
+};
+
+// Button Ripple Effect
+function createRipple(event) {
+    const button = event.currentTarget;
+    const ripple = document.createElement('span');
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (x - size / 2) + 'px';
+    ripple.style.top = (y - size / 2) + 'px';
+
+    button.appendChild(ripple);
+
+    setTimeout(() => {
+        ripple.remove();
+    }, 600);
+}
+
+// Initialize Ripple Effects
+function initializeRippleEffects() {
+    const buttons = document.querySelectorAll('.control-btn, .category-filter-btn, button:not(.no-ripple)');
+    buttons.forEach(button => {
+        button.removeEventListener('click', createRipple);
+        button.addEventListener('click', createRipple);
+    });
+}
+
+// Hero Section Animation
+function animateHeroSection() {
+    const heroSection = document.querySelector('.hero-section');
+    if (heroSection) {
+        heroSection.classList.remove('hero-animate');
+        
+        setTimeout(() => {
+            heroSection.classList.add('hero-animate');
+        }, 50);
+    }
+}
+
+// Parallax Mouse Movement
+let parallaxActive = true;
+
+function initializeParallax() {
+    const heroSection = document.querySelector('.hero-section');
+    if (!heroSection) return;
+
+    let rafId = null;
+    let mouseX = 0;
+    let mouseY = 0;
+
+    function updateParallax() {
+        if (!parallaxActive) return;
+
+        const moveX = (mouseX - window.innerWidth / 2) * 0.01;
+        const moveY = (mouseY - window.innerHeight / 2) * 0.01;
+        
+        heroSection.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        rafId = null;
+    }
+
+    function handleMouseMove(e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        if (!rafId) {
+            rafId = requestAnimationFrame(updateParallax);
+        }
+    }
+
+    document.addEventListener('mousemove', handleMouseMove, { passive: true });
+}
+
+// Text Reveal Animation for Story Paragraphs
+function initializeTextRevealAnimation() {
+    const storyContent = document.getElementById('storyContent');
+    if (!storyContent) return;
+
+    const paragraphs = storyContent.querySelectorAll('p');
+    paragraphs.forEach((p, index) => {
+        p.style.opacity = '0';
+        p.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            p.classList.add('paragraph-reveal');
+        }, index * 50);
+    });
+}
+
+// Enhanced Pagination Display
+const originalDisplayPage = window.displayPage || displayPage;
+
+window.displayPage = function(pageNumber) {
+    if (typeof originalDisplayPage === 'function') {
+        originalDisplayPage(pageNumber);
+        
+        setTimeout(() => {
+            initializeTextRevealAnimation();
+        }, 100);
+    }
+};
+
+// Initialize All Animations
+function initializeAllAnimations() {
+    try {
+        initializeStoryCardAnimations();
+        initializeScrollReveal();
+        initializeRippleEffects();
+        animateHeroSection();
+        initializeParallax();
+        
+        const readerView = document.getElementById('readerView');
+        if (readerView && readerView.style.display !== 'none') {
+            initializeTextRevealAnimation();
+        }
+
+        window.addEventListener('resize', debounce(() => {
+            parallaxActive = window.innerWidth > 768;
+        }, 250));
+        
+    } catch (error) {
+        console.error('Animation initialization error:', error);
+    }
+}
+
+// Auto-initialize after DOM is ready and startup is dismissed
+const originalDismissStartupScreen = window.dismissStartupScreen || dismissStartupScreen;
+
+window.dismissStartupScreen = function(e) {
+    if (typeof originalDismissStartupScreen === 'function') {
+        originalDismissStartupScreen(e);
+    }
+    
+    setTimeout(() => {
+        initializeAllAnimations();
+    }, 500);
+};
+
+// Also initialize on story grid updates
+const originalObserver = window.MutationObserver;
+if (originalObserver) {
+    const storyGridObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length > 0) {
+                mutation.addedNodes.forEach(node => {
+                    if (node.classList && node.classList.contains('story-card')) {
+                        setTimeout(() => {
+                            initializeStoryCardAnimations();
+                        }, 100);
+                    }
+                });
+            }
+        });
+    });
+
+    const storyGrid = document.querySelector('.story-grid');
+    if (storyGrid) {
+        storyGridObserver.observe(storyGrid, {
+            childList: true,
+            subtree: true
+        });
+    }
+}
+
+// Expose functions globally for compatibility
+window.initializeAllAnimations = initializeAllAnimations;
+window.initializeStoryCardAnimations = initializeStoryCardAnimations;
+window.animateHeroSection = animateHeroSection;
+window.initializeTextRevealAnimation = initializeTextRevealAnimation;
