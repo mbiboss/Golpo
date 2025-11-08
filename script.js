@@ -102,7 +102,7 @@ var defaultImages = {
 var storyDatabase = {
     'bissash.txt': {
         id: 'bissash',
-        name: 'বিশ্বাস',
+        name: '_বিশ্বাস_',
         location: 'Kathora,Shalna,Gazipur',
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'A story about trust and faith',
@@ -144,7 +144,7 @@ var storyDatabase = {
     },
     'Chaya.txt': {
         id: 'Chaya',
-        name: 'ছায়া',
+        name: '_ছায়া_',
         location: 'Kathora,Shalna,Gazipur',
         writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
         description: 'The Beginning of the Shadow',
