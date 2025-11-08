@@ -1,0 +1,512 @@
+/* =====================================================
+   ADVANCED ANIMATIONS & 3D EFFECTS
+   Professional, unique, beautiful effects for 60fps
+   ===================================================== */
+
+/* GPU Acceleration for all animated elements */
+*[class*="animate"],
+*[class*="3d"],
+.story-card,
+.control-btn,
+.nav-island,
+.startup-screen,
+.hero-section {
+    will-change: transform;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* =====================================================
+   ENHANCED STARTUP SCREEN - 3D & PARTICLES
+   ===================================================== */
+
+.startup-screen {
+    perspective: 1000px;
+    background: linear-gradient(135deg, 
+        #000000 0%, 
+        #0a0a1a 25%, 
+        #141428 50%, 
+        #0a0a1a 75%, 
+        #000000 100%);
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+    overflow: hidden;
+}
+
+@keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.startup-background {
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(100, 181, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.1) 0%, transparent 60%);
+    animation: aurora-dance 20s ease-in-out infinite;
+    filter: blur(60px);
+}
+
+@keyframes aurora-dance {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0.6; }
+    33% { transform: translate3d(50px, -50px, 0) rotate(120deg); opacity: 0.8; }
+    66% { transform: translate3d(-50px, 50px, 0) rotate(240deg); opacity: 0.7; }
+}
+
+.startup-logo-img {
+    animation: logo-float 4s ease-in-out infinite, logo-glow 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px rgba(100, 181, 246, 0.8)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.6));
+    transform-style: preserve-3d;
+}
+
+@keyframes logo-float {
+    0%, 100% { transform: translateY(0) rotateX(0deg) rotateY(0deg); }
+    50% { transform: translateY(-20px) rotateX(10deg) rotateY(5deg); }
+}
+
+@keyframes logo-glow {
+    0%, 100% { filter: drop-shadow(0 0 30px rgba(100, 181, 246, 0.8)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.6)); }
+    50% { filter: drop-shadow(0 0 50px rgba(100, 181, 246, 1)) drop-shadow(0 0 100px rgba(139, 92, 246, 0.9)); }
+}
+
+.startup-title h1 {
+    font-size: 4rem;
+    background: linear-gradient(135deg, #64B5F6 0%, #8B5CF6 50%, #EC4899 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-text 5s ease infinite, title-glitch 8s ease-in-out infinite;
+    position: relative;
+    text-shadow: 
+        0 0 20px rgba(100, 181, 246, 0.5),
+        0 0 40px rgba(139, 92, 246, 0.3),
+        0 0 60px rgba(236, 72, 153, 0.2);
+}
+
+@keyframes gradient-text {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes title-glitch {
+    0%, 90%, 100% { transform: translate3d(0, 0, 0); }
+    92% { transform: translate3d(-2px, 2px, 0); }
+    94% { transform: translate3d(2px, -2px, 0); }
+    96% { transform: translate3d(-1px, 1px, 0); }
+    98% { transform: translate3d(1px, -1px, 0); }
+}
+
+.tap-hint {
+    animation: pulse-glow 2s ease-in-out infinite;
+    font-size: 1.1rem;
+    color: rgba(100, 181, 246, 0.9);
+}
+
+@keyframes pulse-glow {
+    0%, 100% { 
+        opacity: 0.6; 
+        transform: scale(1);
+        text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
+    }
+    50% { 
+        opacity: 1; 
+        transform: scale(1.05);
+        text-shadow: 0 0 20px rgba(100, 181, 246, 0.8), 0 0 40px rgba(139, 92, 246, 0.6);
+    }
+}
+
+/* Enhanced Startup Particles */
+.startup-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, rgba(100, 181, 246, 0.9) 0%, rgba(139, 92, 246, 0.5) 100%);
+    border-radius: 50%;
+    box-shadow: 
+        0 0 10px rgba(100, 181, 246, 0.8),
+        0 0 20px rgba(100, 181, 246, 0.6),
+        0 0 30px rgba(139, 92, 246, 0.4);
+    animation: particle-float-3d 10s ease-in-out infinite;
+}
+
+.startup-particle:nth-child(1) {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+    animation-duration: 12s;
+}
+
+.startup-particle:nth-child(2) {
+    top: 50%;
+    left: 80%;
+    animation-delay: 2s;
+    animation-duration: 15s;
+}
+
+.startup-particle:nth-child(3) {
+    top: 70%;
+    left: 20%;
+    animation-delay: 4s;
+    animation-duration: 10s;
+}
+
+.startup-particle:nth-child(4) {
+    top: 30%;
+    left: 70%;
+    animation-delay: 6s;
+    animation-duration: 13s;
+}
+
+.startup-particle:nth-child(5) {
+    top: 80%;
+    left: 50%;
+    animation-delay: 8s;
+    animation-duration: 11s;
+}
+
+@keyframes particle-float-3d {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translate3d(100px, -100px, 50px) scale(1.5);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translate3d(-100px, 100px, -50px) scale(0.8);
+        opacity: 0.6;
+    }
+    75% {
+        transform: translate3d(50px, -50px, 100px) scale(1.2);
+        opacity: 0.9;
+    }
+}
+
+/* =====================================================
+   3D CARD EFFECTS - Story Cards
+   ===================================================== */
+
+.story-card {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.story-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, 
+        rgba(100, 181, 246, 0.5) 0%, 
+        rgba(139, 92, 246, 0.5) 50%, 
+        rgba(236, 72, 153, 0.5) 100%);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: -1;
+    filter: blur(20px);
+}
+
+.story-card:hover {
+    transform: translateY(-15px) scale(1.03) rotateX(5deg);
+    box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.5),
+        0 0 60px rgba(100, 181, 246, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.story-card:hover::before {
+    opacity: 1;
+}
+
+.story-cover {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.story-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 70%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.story-card:hover .story-cover::after {
+    transform: translateX(100%);
+}
+
+/* =====================================================
+   ADVANCED BUTTON HOVER EFFECTS
+   ===================================================== */
+
+.control-btn,
+.category-filter-btn,
+button {
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+
+.control-btn::before,
+.category-filter-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, 
+        rgba(100, 181, 246, 0.4) 0%, 
+        transparent 70%);
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.control-btn:hover::before,
+.category-filter-btn:hover::before {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.control-btn:hover,
+.category-filter-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 10px 30px rgba(100, 181, 246, 0.4),
+        0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+.control-btn:active,
+.category-filter-btn:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+/* =====================================================
+   HERO SECTION - PARALLAX & 3D
+   ===================================================== */
+
+.hero-title {
+    font-size: 3.5rem;
+    background: linear-gradient(135deg, 
+        #64B5F6 0%, 
+        #8B5CF6 50%, 
+        #EC4899 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: rainbow-shift 10s ease infinite;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    filter: contrast(1.1) brightness(1.1);
+}
+
+@keyframes rainbow-shift {
+    0%, 100% { background-position: 0% 50%; }
+    25% { background-position: 50% 50%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 50%; }
+}
+
+.hero-subtitle {
+    animation: float-up 3s ease-in-out infinite;
+    opacity: 0.9;
+}
+
+@keyframes float-up {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* =====================================================
+   SMOOTH SCROLL REVEAL ANIMATIONS
+   ===================================================== */
+
+.reveal-fade-up {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal-fade-up.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-scale {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.reveal-scale.revealed {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.reveal-3d-flip {
+    opacity: 0;
+    transform: rotateY(90deg);
+    transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.reveal-3d-flip.revealed {
+    opacity: 1;
+    transform: rotateY(0deg);
+}
+
+/* =====================================================
+   ADVANCED CURSOR TRAIL EFFECTS
+   ===================================================== */
+
+.cursor-trail {
+    position: fixed;
+    pointer-events: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+        rgba(100, 181, 246, 0.6) 0%, 
+        rgba(139, 92, 246, 0.4) 50%, 
+        transparent 70%);
+    z-index: 9999;
+    animation: cursor-pulse 1s ease-out infinite;
+    mix-blend-mode: screen;
+}
+
+@keyframes cursor-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* =====================================================
+   3D NAVIGATION ISLAND
+   ===================================================== */
+
+.nav-island {
+    transform-style: preserve-3d;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(100, 181, 246, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.nav-island:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 
+        0 15px 50px rgba(0, 0, 0, 0.4),
+        0 0 40px rgba(100, 181, 246, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* =====================================================
+   3D MODAL ANIMATIONS
+   ===================================================== */
+
+.selection-modal.active .modal-content {
+    animation: modal-3d-entrance 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes modal-3d-entrance {
+    0% {
+        opacity: 0;
+        transform: perspective(1000px) rotateX(-15deg) translateY(-50px) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1000px) rotateX(0deg) translateY(0) scale(1);
+    }
+}
+
+/* =====================================================
+   TEXT SPLIT ANIMATIONS - DISABLED FOR CLARITY
+   ===================================================== */
+
+.split-text {
+    display: block;
+}
+
+.split-char {
+    display: inline-block;
+}
+
+/* =====================================================
+   CANVAS PARTICLE SYSTEM CONTAINER
+   ===================================================== */
+
+#particles-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.6;
+}
+
+/* =====================================================
+   OPTIMIZED TRANSFORMS FOR 60FPS
+   ===================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+    * {
+        scroll-behavior: smooth;
+    }
+}
+
+/* Force GPU acceleration on key elements */
+.story-grid,
+.nav-container,
+.hero-section,
+.footer,
+.modal-content {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+}
+
+/* =====================================================
+   RESPONSIVE ADJUSTMENTS
+   ===================================================== */
+
+@media (max-width: 768px) {
+    .startup-title h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .story-card:hover {
+        transform: translateY(-10px) scale(1.02);
+    }
+}
+
+@media (max-width: 480px) {
+    .startup-title h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-title {
+        font-size: 1.5rem;
+    }
+}

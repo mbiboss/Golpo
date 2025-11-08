@@ -1,20 +1,25 @@
 
-// Service Worker for Golpo App - Optimized v1.4.0
-const CACHE_VERSION = 'v1.4.0';
+// Service Worker for Golpo App - Optimized v1.4.1
+const CACHE_VERSION = 'v1.4.1';
 const STATIC_CACHE = `golpo-static-${CACHE_VERSION}`;
 const STORIES_CACHE = `golpo-stories-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `golpo-dynamic-${CACHE_VERSION}`;
 const IMAGES_CACHE = `golpo-images-${CACHE_VERSION}`;
 
-// Core app files to cache
+// Detect base path from service worker location
+const SW_URL = new URL(self.location.href);
+const BASE_PATH = SW_URL.pathname.substring(0, SW_URL.pathname.lastIndexOf('/') + 1);
+
+// Core app files to cache (relative to base path)
 const CORE_FILES = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/assets/logo.png',
-    '/assets/English_font.otf',
-    '/assets/Bangla_font.ttf'
+    BASE_PATH,
+    BASE_PATH + 'index.html',
+    BASE_PATH + 'style.css',
+    BASE_PATH + 'script.js',
+    BASE_PATH + 'manifest.json',
+    BASE_PATH + 'assets/logo.png',
+    BASE_PATH + 'assets/English_font.otf',
+    BASE_PATH + 'assets/Bangla_font.ttf'
 ];
 
 // External resources to cache

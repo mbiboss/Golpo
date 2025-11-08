@@ -1,0 +1,65 @@
+[
+    {
+        "title": "Tare ami chuye dekhini",
+        "artist": "MBI FAVORITE",
+        "url": "https://www.youtube.com/embed/orvJCBTodiY?autoplay=1",
+        "duration": "4:10",
+        "icon": "fas fa-star"
+    },
+    {
+        "title": "Sono Le Ke",
+        "artist": "Hindi Song",
+        "url": "https://www.youtube.com/embed/s3xwSi7jyPc?autoplay=1",
+        "duration": "4:24",
+        "icon": "fas fa-music"
+    },
+    {
+        "title": "Qusad Einy",
+        "artist": "Arabic Song",
+        "url": "https://www.youtube.com/embed/vzvz0LtMrCQ?autoplay=1",
+        "duration": "4:24",
+        "icon": "fas fa-music"
+    },
+    {
+        "title": "Batman ansak",
+        "artist": "Arabic Song",
+        "url": "https://www.youtube.com/embed/kMU97_dBg_U?autoplay=1",
+        "duration": "3:15",
+        "icon": "fas fa-music"
+    },
+    {
+        "title": "Tumi chaile",
+        "artist": "Bengala song",
+        "url": "https://www.youtube.com/embed/5s0Mujwa-r8?autoplay=1",
+        "duration": "6:14",
+        "icon": "fas fa-music"
+    },
+    {
+        "title": "Ishq",
+        "artist": "Hindi song",
+        "url": "https://www.youtube.com/embed/hHuG7FIKgtc?autoplay=1",
+        "duration": "3:48",
+        "icon": "fas fa-music"
+    },
+    {
+        "title": "Maand",
+        "artist": "Hindi song",
+        "url": "https://www.youtube.com/embed/JVtKEX90SZ0?autoplay=1",
+        "duration": "3:06",
+        "icon": "fas fa-music"
+    },
+    {
+        "title": "Tu",
+        "artist": "Hindi song",
+        "url": "https://www.youtube.com/embed/4dkss90fdPc?autoplay=1",
+        "duration": "2:12",
+        "icon": "fas fa-music"
+    },
+    {
+        "title": "Pal Pal x Jhol",
+        "artist": "Hindi Mashup",
+        "url": "https://www.youtube.com/embed/dvawR63DnqE?autoplay=1",
+        "duration": "4:51",
+        "icon": "fas fa-music"
+    }
+]

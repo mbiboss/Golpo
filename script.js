@@ -5,6 +5,11 @@ var currentFontSize = 100;
 var isFocusMode = false;
 var storyBookmarks = {}; // Per-story bookmarks
 
+// Auto Scroll Variables
+var isAutoScrolling = false;
+var autoScrollSpeed = 3; // 1 (slow) to 10 (fast)
+var autoScrollInterval = null;
+
 // Pagination Variables
 var currentPage = 1;
 var totalPages = 1;
@@ -19,74 +24,24 @@ var cachedStories = new Set();
 var offlineIndicator = null;
 
 // Music Playlist Variables
-var musicPlaylist = [
-    {
-        title: "Tare ami chuye dekhini",
-        artist: "MBI FAVORITE",
-        url: "https://www.youtube.com/embed/orvJCBTodiY?autoplay=1",
-        duration: "4:10",
-        icon: "fas fa-star"
-    },
-    {
-        title: "Sono Le Ke",
-        artist: "Hindi Song",
-        url: "https://www.youtube.com/embed/s3xwSi7jyPc?autoplay=1",
-        duration: "4:24",
-        icon: "fas fa-music"
-    },
-    {
-        title: "Qusad Einy",
-        artist: "Arabic Song",
-        url: "https://www.youtube.com/embed/vzvz0LtMrCQ?autoplay=1",
-        duration: "4:24",
-        icon: "fas fa-music"
-    },
-    {
-        title: "Batman ansak",
-        artist: "Arabic Song",
-        url: "https://www.youtube.com/embed/kMU97_dBg_U?autoplay=1",
-        duration: "3:15",
-        icon: "fas fa-music"
-    },
-    {
-        title: "Tumi chaile",
-        artist: "Bengala song",
-        url: "https://www.youtube.com/embed/5s0Mujwa-r8?autoplay=1",
-        duration: "6:14",
-        icon: "fas fa-music"
-    },
-    {
-        title: "Ishq",
-        artist: "Hindi song",
-        url: "https://www.youtube.com/embed/hHuG7FIKgtc?autoplay=1",
-        duration: "3:48",
-        icon: "fas fa-music"
-    },
-    {
-        title: "Maand",
-        artist: "Hindi song",
-        url: "https://www.youtube.com/embed/JVtKEX90SZ0?autoplay=1",
-        duration: "3:06",
-        icon: "fas fa-music"
-    },
-    {
-        title: "Tu",
-        artist: "Hindi song",
-        url: "https://www.youtube.com/embed/4dkss90fdPc?autoplay=1",
-        duration: "2:12",
-        icon: "fas fa-music"
-    },
-    {
-        title: "Pal Pal x Jhol",
-        artist: "Hindi Mashup",
-        url: "https://www.youtube.com/embed/dvawR63DnqE?autoplay=1",
-        duration: "4:51",
-        icon: "fas fa-music"
-    }
-];
+var musicPlaylist = [];
 var currentMusicIndex = 0;
 var isPlaylistMode = true;
 var autoplayEnabled = true;
+
+async function loadMusicPlaylist() {
+    try {
+        const response = await fetch('songs.json');
+        if (response.ok) {
+            musicPlaylist = await response.json();
+            console.log('Music playlist loaded successfully:', musicPlaylist.length, 'songs');
+        } else {
+            console.error('Failed to load songs.json');
+        }
+    } catch (error) {
+        console.error('Error loading music playlist:', error);
+    }
+}
 
 // Dynamic Image System - Only 2 images that change per story
 var currentBannerImage = '';
@@ -99,90 +54,124 @@ var defaultImages = {
 };
 
 // Story Database with metadata including image URLs
-var storyDatabase = {
-    'bissash.txt': {
-        id: 'bissash',
-        name: '_বিশ্বাস_',
-        location: 'Kathora,Shalna,Gazipur',
-        writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
-        description: 'A story about trust and faith',
-        status: 'available',
-        category: 'Romance',
-        tags: ['trust', 'faith', 'relationship', 'emotional'],
-        banner: 'https://i.postimg.cc/SRhxGb8L/Bissash-wide.png',
-        reading: 'https://i.postimg.cc/FKDXWnhy/Bissash-small.png',
-        readingTime: 0, // Will be calculated
-        wordCount: 0    // Will be calculated
-    },
-    'Obisaperonontochaya.txt': {
-        id: 'Obisaperonontochaya',
-        name: 'অভিশাপের অনন্ত ছায়া',
-        location: 'Kathora,Shalna,Gazipur',
-        writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
-        description: 'About My Curse',
-        status: 'available',
-        category: 'Mystery',
-        tags: ['mystery', 'curse', 'supernatural'],
-        banner: 'https://i.postimg.cc/qMyzHwD1/Obisaperonontochayacover.png',
-        reading: 'https://i.postimg.cc/YC7jrFJM/20250918-011638.png',
-        readingTime: 0,
-        wordCount: 0
-    },
-    'Valobasha.txt': {
-        id: 'Valobasha',
-        name: 'ভালোবাসা : এক অন্তহীন মহাবৃত্ত',
-        location: 'Kathora,Shalna,Gazipur',
-        writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
-        description: 'About love',
-        status: 'available',
-        category: 'Mystery',
-        tags: ['mystery', 'love', 'emotional'],
-        banner: 'https://i.postimg.cc/gkcPhzjf/Valobashawide.png',
-        reading: 'https://i.postimg.cc/sXpRY1pR/Valobashasmall.png',
-        readingTime: 0,
-        wordCount: 0
-    },
-    'Chaya.txt': {
-        id: 'Chaya',
-        name: '_ছায়া_',
-        location: 'Kathora,Shalna,Gazipur',
-        writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
-        description: 'The Beginning of the Shadow',
-        status: 'available',
-        category: 'Horror',
-        tags: ['mystery', 'love', 'emotional'],
-        banner: 'https://i.postimg.cc/brF6cbDd/Chaya.jpg',
-        reading: 'https://i.postimg.cc/brF6cbDd/Chaya.jpg',
-        readingTime: 0,
-        wordCount: 0
-    },
-    'Chaya2.txt': {
-        id: 'Chaya2',
-        name: 'ছায়া পার্ট ২',
-        location: 'Kathora,Shalna,Gazipur',
-        writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
-        description: 'The Beginning of Truth',
-        status: 'available',
-        category: 'Horror',
-        tags: ['mystery', 'love', 'emotional'],
-        banner: 'https://i.postimg.cc/brF6cbDd/Chaya.jpg',
-        reading: 'https://i.postimg.cc/brF6cbDd/Chaya.jpg',
-        readingTime: 0,
-        wordCount: 0
-    },
-    'upcoming.txt': {
-        id: 'upcoming',
-        name: 'Upcoming Stories',
-        location: 'Kathora,Shalna,Gazipur',
-        writer: '✿ㅤ"MʙɪㅤDᴀʀᴋ"',
-        description: 'More stories coming soon...',
-        status: 'upcoming',
-        banner: 'https://i.postimg.cc/wMDMfnhn/static.png',
-        reading: 'https://i.postimg.cc/wMDMfnhn/static.png',
-        readingTime: 0,
-        wordCount: 0
+var storyDatabase = {};
+
+async function loadStoryDatabase() {
+    try {
+        const response = await fetch('stories.json');
+        if (response.ok) {
+            storyDatabase = await response.json();
+            console.log('Story database loaded successfully:', Object.keys(storyDatabase).length, 'stories');
+            
+            // Automatically detect and link story parts
+            detectStoryParts();
+        } else {
+            console.error('Failed to load stories.json');
+        }
+    } catch (error) {
+        console.error('Error loading story database:', error);
     }
-};
+}
+
+// Automatic story parts detection system
+function detectStoryParts() {
+    // Group stories by base name (without part number)
+    const storyGroups = {};
+    const allFiles = Object.keys(storyDatabase);
+    
+    allFiles.forEach(filename => {
+        // Match patterns like "name-1.txt", "name-2.txt" or "name1.txt", "name2.txt"
+        const match = filename.match(/^(.+?)[-_]?(\d+)\.txt$/);
+        
+        if (match) {
+            const baseName = match[1];
+            const partNumber = parseInt(match[2]);
+            
+            if (!storyGroups[baseName]) {
+                storyGroups[baseName] = [];
+            }
+            
+            storyGroups[baseName].push({
+                filename: filename,
+                partNumber: partNumber
+            });
+            
+            // Check if there's a file without number (Part 1)
+            const baseFile = baseName + '.txt';
+            if (allFiles.includes(baseFile) && !storyGroups[baseName].find(p => p.filename === baseFile)) {
+                storyGroups[baseName].push({
+                    filename: baseFile,
+                    partNumber: 1
+                });
+            }
+        } else if (filename.match(/^(.+?)\.txt$/)) {
+            // File without number - check if there's a numbered version
+            const baseName = filename.replace('.txt', '');
+            const numberedFiles = allFiles.filter(f => f.match(new RegExp(`^${baseName}[-_]?(\\d+)\\.txt$`)));
+            
+            if (numberedFiles.length > 0) {
+                // This is Part 1 of a series
+                if (!storyGroups[baseName]) {
+                    storyGroups[baseName] = [];
+                }
+                
+                // Only add if not already in the group
+                if (!storyGroups[baseName].find(p => p.filename === filename)) {
+                    storyGroups[baseName].push({
+                        filename: filename,
+                        partNumber: 1
+                    });
+                }
+                
+                // Add the numbered files
+                numberedFiles.forEach(f => {
+                    const numMatch = f.match(/^.+?[-_]?(\d+)\.txt$/);
+                    if (numMatch && !storyGroups[baseName].find(p => p.filename === f)) {
+                        storyGroups[baseName].push({
+                            filename: f,
+                            partNumber: parseInt(numMatch[1])
+                        });
+                    }
+                });
+            }
+        }
+    });
+    
+    // Process each group to set up part relationships
+    Object.keys(storyGroups).forEach(baseName => {
+        const parts = storyGroups[baseName];
+        
+        // Only process if there are multiple parts
+        if (parts.length > 1) {
+            // Sort parts by part number
+            parts.sort((a, b) => a.partNumber - b.partNumber);
+            
+            const totalParts = parts.length;
+            const seriesName = baseName.charAt(0).toUpperCase() + baseName.slice(1) + '-Series';
+            
+            // Update each part with relationship info
+            parts.forEach((part, index) => {
+                const story = storyDatabase[part.filename];
+                
+                story.partOf = seriesName;
+                story.partNumber = part.partNumber;
+                story.totalParts = totalParts;
+                
+                // Set previous part
+                if (index > 0) {
+                    story.previousPart = parts[index - 1].filename;
+                }
+                
+                // Set next part
+                if (index < parts.length - 1) {
+                    story.nextPart = parts[index + 1].filename;
+                }
+            });
+            
+            console.log(`Detected ${totalParts} parts for ${baseName} series`);
+        }
+    });
+}
 
 // Function to get banner image for a specific story
 function getBannerImageForStory(storyId) {
@@ -289,6 +278,11 @@ var searchBtn = document.getElementById('searchBtn');
 var clearSearchBtn = document.getElementById('clearSearchBtn');
 var searchResults = document.getElementById('searchResults');
 
+// Auto Scroll Elements
+var autoScrollBtn = document.getElementById('autoScrollBtn');
+var autoScrollControls = document.getElementById('autoScrollControls');
+var scrollSpeedSlider = document.getElementById('scrollSpeedSlider');
+
 // YouTube Player State
 var isYouTubePlaying = false;
 var currentYouTubeUrl = '';
@@ -393,7 +387,13 @@ function initializeMainApp() {
 }
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Load data files first
+    await Promise.all([
+        loadMusicPlaylist(),
+        loadStoryDatabase()
+    ]);
+    
     // Initially hide scroll on body to prevent background scrolling during startup
     document.body.style.overflow = 'hidden';
 
@@ -456,10 +456,15 @@ function createStorySuggestions(currentStoryFile) {
     // Get all available stories from database
     const stories = getAllStories();
 
-    // Filter out the current story
-    const otherStories = stories.filter(story => story.file !== currentStoryFile);
+    // Filter out the current story and upcoming stories
+    const otherStories = stories.filter(story => 
+        story.file !== currentStoryFile && story.status !== 'upcoming'
+    );
 
     if (otherStories.length === 0) return '';
+
+    // Limit to 4 latest stories
+    const latestStories = otherStories.slice(0, 4);
 
     let suggestionsHTML = `
         <div class="story-end-suggestions">
@@ -467,7 +472,7 @@ function createStorySuggestions(currentStoryFile) {
             <div class="suggestions-grid">
     `;
 
-    otherStories.forEach(story => {
+    latestStories.forEach(story => {
         const statusClass = story.status === 'upcoming' ? 'upcoming' : '';
         // Get reading image for this specific story
         const suggestionImage = getReadingImageForStory(story.id);
@@ -482,21 +487,16 @@ function createStorySuggestions(currentStoryFile) {
         const categoryIcon = categoryIcons[story.category] || 'fas fa-book';
 
         suggestionsHTML += `
-            <div class="suggestion-card ${statusClass}" onclick="loadStoryFromSuggestion('${story.file}')">
-                <div class="suggestion-cover">
+            <div class="suggestion-card-compact ${statusClass}" onclick="loadStoryFromSuggestion('${story.file}')">
+                <div class="suggestion-cover-compact">
                     <img src="${suggestionImage}" alt="${story.name}" loading="lazy">
-                    <div class="suggestion-overlay">
-                        <i class="fas fa-${story.status === 'upcoming' ? 'clock' : 'play'}"></i>
+                    <div class="suggestion-overlay-compact">
+                        <i class="fas fa-play"></i>
                     </div>
                 </div>
-                <div class="suggestion-content">
-                    <h3 class="suggestion-title ${story.file === 'upcoming.txt' ? 'english-text' : ''}">${story.name}</h3>
-                    <p class="suggestion-description english-text">${story.description}</p>
-                    <div class="suggestion-meta english-text">
-                        <span class="author">${story.writer}</span>
-                        <span class="status ${story.status}">${story.status === 'upcoming' ? 'Coming Soon' : 'Read Now'}</span>
-                    </div>
-                    ${story.category ? `<div class="suggestion-category-badge"><i class="${categoryIcon}"></i> ${story.category}</div>` : ''}
+                <div class="suggestion-name-compact">
+                    <h4 class="${story.file === 'upcoming.txt' ? 'english-text' : ''}">${story.name}</h4>
+                    ${story.partOf ? `<span class="part-badge-compact">Part ${story.partNumber}/${story.totalParts}</span>` : ''}
                 </div>
             </div>
         `;
@@ -590,6 +590,16 @@ function resetReaderView() {
     if (readerWordCount) {
         readerWordCount.textContent = '~0 words';
     }
+
+    // Reset logo text to "Golpo"
+    const logoText = document.querySelector('.logo-text');
+    if (logoText) {
+        logoText.textContent = 'Golpo';
+        logoText.classList.remove('music-playing');
+    }
+
+    // Reset browser title
+    document.title = 'Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"';
 }
 
 function toggleSearch() {
@@ -1043,8 +1053,59 @@ function updateReaderCoverImage(filename) {
         }
 
         readerCoverImage.alt = storyData.name + ' - Story Photo';
+        
+        // Update next part preview
+        updateNextPartPreview(filename);
     }
 }
+
+function updateNextPartPreview(currentFilename) {
+    const nextPartPreview = document.getElementById('nextPartPreview');
+    const nextPartCoverImage = document.getElementById('nextPartCoverImage');
+    const nextPartBtn = document.getElementById('nextPartBtn');
+    
+    if (!nextPartPreview || !nextPartCoverImage || !nextPartBtn) return;
+    
+    const currentStoryData = getStoryMetadata(currentFilename);
+    
+    // Check if this story has a next part
+    if (currentStoryData.nextPart) {
+        const nextStoryData = getStoryMetadata(currentStoryData.nextPart);
+        const nextReadingImage = getReadingImageForStory(nextStoryData.id);
+        
+        // Show preview
+        nextPartPreview.style.display = 'flex';
+        nextPartCoverImage.src = nextReadingImage || defaultImages.reading;
+        nextPartCoverImage.alt = nextStoryData.name + ' - Next Part';
+        
+        // Update button text
+        const btnText = nextPartBtn.querySelector('span');
+        if (btnText) {
+            btnText.textContent = `Part ${nextStoryData.partNumber}`;
+        }
+        
+        // Store next part filename for navigation
+        nextPartBtn.setAttribute('data-next-part', currentStoryData.nextPart);
+    } else {
+        // Hide preview if no next part
+        nextPartPreview.style.display = 'none';
+    }
+}
+
+function loadNextPart() {
+    const nextPartBtn = document.getElementById('nextPartBtn');
+    if (!nextPartBtn) return;
+    
+    const nextPartFile = nextPartBtn.getAttribute('data-next-part');
+    if (nextPartFile) {
+        loadStoryFromCard(nextPartFile);
+        // Scroll to top smoothly
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+// Export to global scope
+window.loadNextPart = loadNextPart;
 
 // Story navigation functions removed - navigation now only available on last page of story
 
@@ -1394,106 +1455,106 @@ function addStoryNavigationButtons() {
         existingStoryNav.remove();
     }
 
+    // Get current story metadata
+    const currentMetadata = getStoryMetadata(currentStory);
+    
     // Create story navigation container
     const storyNavContainer = document.createElement('div');
     storyNavContainer.className = 'story-navigation-container';
-    storyNavContainer.style.cssText = `
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        border: 1px solid var(--glass-border);
-    `;
 
-    // Get current story info for navigation
-    const stories = Object.keys(storyDatabase);
-    const currentIndex = stories.indexOf(currentStory);
+    // Check if this is a multi-part story
+    const hasPreviousPart = currentMetadata.previousPart;
+    const hasNextPart = currentMetadata.nextPart;
+    const isMultiPart = currentMetadata.partOf && (hasPreviousPart || hasNextPart);
 
-    // Previous story button
-    const prevStoryBtn = document.createElement('button');
-    prevStoryBtn.className = 'story-nav-btn prev-story-btn';
-    prevStoryBtn.innerHTML = '<i class="fas fa-chevron-left"></i><span>Previous Story</span>';
-    prevStoryBtn.disabled = currentIndex <= 0;
-    prevStoryBtn.style.cssText = `
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        color: var(--text-primary);
-        padding: 12px 20px;
-        border-radius: 15px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        min-width: 150px;
-        justify-content: center;
-    `;
+    // If multi-part story, show part navigation
+    if (isMultiPart) {
+        // Previous part button
+        const prevPartBtn = document.createElement('button');
+        prevPartBtn.className = 'story-nav-btn prev-story-btn';
+        prevPartBtn.innerHTML = '<i class="fas fa-chevron-left"></i><span>Previous Part</span>';
+        prevPartBtn.disabled = !hasPreviousPart;
 
-    if (currentIndex > 0) {
-        const prevStoryFile = stories[currentIndex - 1];
-        const prevStoryName = getStoryMetadata(prevStoryFile).name;
-        prevStoryBtn.onclick = () => loadStoryFromCard(prevStoryFile);
-        prevStoryBtn.title = `Load: ${prevStoryName}`;
-    }
-
-    // Next story button
-    const nextStoryBtn = document.createElement('button');
-    nextStoryBtn.className = 'story-nav-btn next-story-btn';
-    nextStoryBtn.innerHTML = '<span>Next Story</span><i class="fas fa-chevron-right"></i>';
-    nextStoryBtn.disabled = currentIndex >= stories.length - 1;
-    nextStoryBtn.style.cssText = `
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        color: var(--text-primary);
-        padding: 12px 20px;
-        border-radius: 15px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        min-width: 150px;
-        justify-content: center;
-    `;
-
-    if (currentIndex < stories.length - 1) {
-        const nextStoryFile = stories[currentIndex + 1];
-        const nextStoryName = getStoryMetadata(nextStoryFile).name;
-        nextStoryBtn.onclick = () => loadStoryFromCard(nextStoryFile);
-        nextStoryBtn.title = `Load: ${nextStoryName}`;
-    }
-
-    // Add hover styles
-    [prevStoryBtn, nextStoryBtn].forEach(btn => {
-        if (!btn.disabled) {
-            btn.addEventListener('mouseenter', () => {
-                btn.style.background = 'var(--accent-color)';
-                btn.style.color = 'white';
-                btn.style.transform = 'translateY(-2px)';
-                btn.style.boxShadow = '0 4px 12px rgba(0, 122, 255, 0.3)';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.background = 'var(--glass-bg)';
-                btn.style.color = 'var(--text-primary)';
-                btn.style.transform = 'translateY(0)';
-                btn.style.boxShadow = 'none';
-            });
-        } else {
-            btn.style.opacity = '0.4';
-            btn.style.cursor = 'not-allowed';
+        if (hasPreviousPart) {
+            const prevPartMeta = getStoryMetadata(currentMetadata.previousPart);
+            prevPartBtn.onclick = () => {
+                showReaderView();
+                loadStory(currentMetadata.previousPart);
+                updateReaderCoverImage(currentMetadata.previousPart);
+            };
+            prevPartBtn.title = `Part ${prevPartMeta.partNumber}: ${prevPartMeta.name}`;
         }
-    });
 
-    storyNavContainer.appendChild(prevStoryBtn);
-    storyNavContainer.appendChild(nextStoryBtn);
+        // Part indicator (center)
+        const partIndicator = document.createElement('div');
+        partIndicator.className = 'story-part-indicator';
+        partIndicator.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        `;
+        partIndicator.innerHTML = `
+            <div style="font-weight: 600; color: var(--accent-color);">Part ${currentMetadata.partNumber} of ${currentMetadata.totalParts}</div>
+            <div style="font-size: 0.8rem;">${currentMetadata.name}</div>
+        `;
+
+        // Next part button
+        const nextPartBtn = document.createElement('button');
+        nextPartBtn.className = 'story-nav-btn next-story-btn';
+        nextPartBtn.innerHTML = '<span>Next Part</span><i class="fas fa-chevron-right"></i>';
+        nextPartBtn.disabled = !hasNextPart;
+
+        if (hasNextPart) {
+            const nextPartMeta = getStoryMetadata(currentMetadata.nextPart);
+            nextPartBtn.onclick = () => {
+                showReaderView();
+                loadStory(currentMetadata.nextPart);
+                updateReaderCoverImage(currentMetadata.nextPart);
+            };
+            nextPartBtn.title = `Part ${nextPartMeta.partNumber}: ${nextPartMeta.name}`;
+        }
+
+        storyNavContainer.appendChild(prevPartBtn);
+        storyNavContainer.appendChild(partIndicator);
+        storyNavContainer.appendChild(nextPartBtn);
+    } else {
+        // Regular story navigation (previous/next story)
+        const stories = Object.keys(storyDatabase);
+        const currentIndex = stories.indexOf(currentStory);
+
+        // Previous story button
+        const prevStoryBtn = document.createElement('button');
+        prevStoryBtn.className = 'story-nav-btn prev-story-btn';
+        prevStoryBtn.innerHTML = '<i class="fas fa-chevron-left"></i><span>Previous Story</span>';
+        prevStoryBtn.disabled = currentIndex <= 0;
+
+        if (currentIndex > 0) {
+            const prevStoryFile = stories[currentIndex - 1];
+            const prevStoryName = getStoryMetadata(prevStoryFile).name;
+            prevStoryBtn.onclick = () => loadStoryFromCard(prevStoryFile);
+            prevStoryBtn.title = `Load: ${prevStoryName}`;
+        }
+
+        // Next story button
+        const nextStoryBtn = document.createElement('button');
+        nextStoryBtn.className = 'story-nav-btn next-story-btn';
+        nextStoryBtn.innerHTML = '<span>Next Story</span><i class="fas fa-chevron-right"></i>';
+        nextStoryBtn.disabled = currentIndex >= stories.length - 1;
+
+        if (currentIndex < stories.length - 1) {
+            const nextStoryFile = stories[currentIndex + 1];
+            const nextStoryName = getStoryMetadata(nextStoryFile).name;
+            nextStoryBtn.onclick = () => loadStoryFromCard(nextStoryFile);
+            nextStoryBtn.title = `Load: ${nextStoryName}`;
+        }
+
+        storyNavContainer.appendChild(prevStoryBtn);
+        storyNavContainer.appendChild(nextStoryBtn);
+    }
+
     storyContent.appendChild(storyNavContainer);
 }
 
@@ -1751,6 +1812,25 @@ function setupEventListeners() {
         scrollTopBtn.addEventListener('click', scrollToTop);
     }
 
+    // Auto Scroll Event Listeners
+    if (autoScrollBtn) {
+        autoScrollBtn.addEventListener('click', toggleAutoScroll);
+    }
+    if (scrollSpeedSlider) {
+        scrollSpeedSlider.addEventListener('input', updateAutoScrollSpeed);
+        scrollSpeedSlider.addEventListener('change', updateAutoScrollSpeed);
+        // Prevent slider interaction from closing the menu
+        scrollSpeedSlider.addEventListener('mousedown', function(e) {
+            e.stopPropagation();
+        });
+        scrollSpeedSlider.addEventListener('touchstart', function(e) {
+            e.stopPropagation();
+        });
+    }
+    
+    // Add scroll listener to detect user manual scrolling
+    window.addEventListener('scroll', handleUserScroll, { passive: true });
+
     if (bookmarkBtn) {
         bookmarkBtn.addEventListener('click', toggleBookmark);
     }
@@ -1767,7 +1847,12 @@ function setupEventListeners() {
     }
 
     if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', clearSearch);
+        clearSearchBtn.removeEventListener('click', clearSearch); // Remove any existing listener
+        clearSearchBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            clearSearch();
+        });
     }
 
     if (searchInput) {
@@ -1823,8 +1908,7 @@ function displayStory(filename, content) {
         `;
     }
 
-    // Update browser title and nav logo
-    logoText.textContent = storyName + ' by ' + writerName;
+    // Update browser title only - keep logo text as "Golpo"
     document.title = storyName + ' by ' + writerName;
 
     // Update story details (reading time, word count)
@@ -1917,7 +2001,10 @@ function createStoryCardHTML(filename) {
                 <div class="story-status ${story.status}">${story.status === 'upcoming' ? 'Coming Soon' : 'Available'}</div>
             </div>
             <div class="story-info">
-                <h3 class="story-title" ${filename !== 'upcoming.txt' ? 'style="font-family: \'BanglaFont\', \'Noto Sans Bengali\', sans-serif;"' : ''}>${story.name}</h3>
+                <div class="story-title-row">
+                    <h3 class="story-title" ${filename !== 'upcoming.txt' ? 'style="font-family: \'BanglaFont\', \'Noto Sans Bengali\', sans-serif;"' : ''}>${story.name}</h3>
+                    ${story.partOf ? `<span class="part-number-inline">Part ${story.partNumber}/${story.totalParts}</span>` : ''}
+                </div>
                 <p class="story-description">${story.description}</p>
                 <div class="story-meta">
                     <span class="author">by ${story.writer}</span>
@@ -1931,7 +2018,7 @@ function createStoryCardHTML(filename) {
 }
 
 
-// Function to initialize story cards from HTML data-stories attribute
+// Function to initialize story cards from HTML data-stories attribute or automatically from database
 function initializeStoryGrid() {
     const storyGrid = document.querySelector('.story-grid');
     if (!storyGrid) return;
@@ -1954,18 +2041,32 @@ function initializeStoryGrid() {
 
         storyGrid.innerHTML = cardsHTML;
     } else {
-        // Check for individual story containers with data-story-id
-        const storyContainers = document.querySelectorAll('[data-story-id]');
-
-        storyContainers.forEach(container => {
-            const storyId = container.getAttribute('data-story-id');
-            const filename = storyId.includes('.txt') ? storyId : storyId + '.txt';
-
-            if (storyDatabase[filename]) {
-                container.innerHTML = createStoryCardHTML(filename);
-                container.classList.add('story-card-container');
-            }
+        // Automatically load all stories from database
+        let cardsHTML = '';
+        
+        // Get all story filenames from database
+        const allStories = Object.keys(storyDatabase);
+        
+        // Sort stories: available stories first, then upcoming
+        const sortedStories = allStories.sort((a, b) => {
+            const storyA = storyDatabase[a];
+            const storyB = storyDatabase[b];
+            
+            // Upcoming stories go last
+            if (storyA.status === 'upcoming' && storyB.status !== 'upcoming') return 1;
+            if (storyA.status !== 'upcoming' && storyB.status === 'upcoming') return -1;
+            
+            // Otherwise maintain order from JSON
+            return 0;
         });
+        
+        sortedStories.forEach(filename => {
+            cardsHTML += createStoryCardHTML(filename);
+        });
+        
+        storyGrid.innerHTML = cardsHTML;
+        
+        console.log(`Auto-loaded ${sortedStories.length} stories from database`);
     }
 }
 
@@ -2799,14 +2900,7 @@ function updateSelectorText(selector, text, iconType) {
         iconElement.className = iconType === 'book' ? 'fas fa-book-open' : 'fas fa-music';
     }
 
-    // Update logo text to show smaller music name
-    const logoText = document.querySelector('.logo-text');
-    if (logoText && iconType === 'music') {
-        logoText.classList.add('music-playing');
-        const maxLogoLength = 20;
-        const logoDisplayText = text.length > maxLogoLength ? text.substring(0, maxLogoLength) + '...' : text;
-        logoText.textContent = logoDisplayText;
-    }
+    // Don't change logo text - keep it as "Golpo" always
 }
 
 async function loadStory(filename) {
@@ -3233,6 +3327,132 @@ function scrollToTop() {
     showNotification('📍 Scrolled to top', 'success');
 }
 
+// Auto Scroll Functions
+function toggleAutoScroll() {
+    if (isAutoScrolling) {
+        stopAutoScroll();
+    } else {
+        startAutoScroll();
+    }
+}
+
+function startAutoScroll() {
+    if (!currentStory) {
+        showNotification('⚠️ Please load a story first', 'warning');
+        return;
+    }
+
+    isAutoScrolling = true;
+    autoScrollBtn.classList.add('active');
+    autoScrollControls.style.display = 'block';
+    
+    // Show notification
+    showNotification('▶️ Auto scroll started', 'success');
+    
+    // Calculate scroll amount based on speed (1-10)
+    // Speed 1 = 0.5px per 50ms, Speed 10 = 5px per 50ms
+    const scrollAmount = autoScrollSpeed * 0.5;
+    
+    // Clear any existing interval
+    if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+    }
+    
+    // Start scrolling
+    autoScrollInterval = setInterval(() => {
+        if (!isAutoScrolling) {
+            clearInterval(autoScrollInterval);
+            return;
+        }
+        
+        // Check if we've reached the bottom
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+        
+        if (scrollTop + clientHeight >= scrollHeight - 10) {
+            // Reached bottom, stop auto scrolling
+            stopAutoScroll();
+            showNotification('✓ Reached end of page', 'info');
+            return;
+        }
+        
+        // Scroll smoothly
+        window.scrollBy({
+            top: scrollAmount,
+            behavior: 'auto'
+        });
+    }, 50);
+}
+
+function stopAutoScroll() {
+    isAutoScrolling = false;
+    autoScrollBtn.classList.remove('active');
+    
+    if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = null;
+    }
+    
+    showNotification('⏸️ Auto scroll stopped', 'info');
+}
+
+function updateAutoScrollSpeed(event) {
+    if (!scrollSpeedSlider) return;
+    
+    // Prevent event from bubbling up
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    const newSpeed = parseInt(scrollSpeedSlider.value);
+    autoScrollSpeed = newSpeed;
+    
+    // Show visual feedback
+    showNotification(`Speed: ${newSpeed}`, 'info', 1500);
+    
+    // If currently scrolling, restart with new speed
+    if (isAutoScrolling) {
+        stopAutoScroll();
+        setTimeout(() => {
+            startAutoScroll();
+        }, 100);
+    }
+}
+
+// Pause auto scroll when user manually scrolls
+var lastScrollTop = 0;
+var userScrollTimeout = null;
+
+function handleUserScroll() {
+    if (!isAutoScrolling) return;
+    
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollDiff = Math.abs(scrollTop - lastScrollTop);
+    
+    // If scroll difference is larger than what auto-scroll would do, user is manually scrolling
+    if (scrollDiff > (autoScrollSpeed * 0.5) + 2) {
+        // Pause auto scroll temporarily
+        if (autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+        }
+        
+        // Clear existing timeout
+        if (userScrollTimeout) {
+            clearTimeout(userScrollTimeout);
+        }
+        
+        // Resume auto scroll after 2 seconds of no manual scrolling
+        userScrollTimeout = setTimeout(() => {
+            if (isAutoScrolling) {
+                startAutoScroll();
+            }
+        }, 2000);
+    }
+    
+    lastScrollTop = scrollTop;
+}
+
 function toggleBookmark() {
     if (!currentStory) {
         showNotification('⚠️ Please load a story first', 'warning');
@@ -3487,15 +3707,21 @@ function performSearch() {
 }
 
 function clearSearch() {
+    // Clear the search input field
     if (searchInput) {
         searchInput.value = '';
+        searchInput.focus(); // Keep focus for easy re-search
     }
 
+    // Clear search results display
     if (searchResults) {
         searchResults.innerHTML = '';
     }
 
+    // Remove all search highlights from the story content
     clearPreviousHighlights();
+    
+    // Show confirmation
     showNotification('🗑️ Search cleared', 'success', 2000);
 }
 

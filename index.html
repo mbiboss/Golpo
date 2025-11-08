@@ -22,6 +22,17 @@
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="icon" type="image/png" href="assets/logo.png">
+  
+  <!-- Advanced Animation Libraries -->
+  <link rel="stylesheet" href="animations.css">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Golpo">
+  <link rel="apple-touch-icon" href="assets/logo.png">
 </head>
 
 <body data-theme="dark">
@@ -34,8 +45,8 @@
           onerror="this.src='assets/logo.png'">
       </div>
       <div class="startup-title">
-        <h1 data-text="Golpo">Golpo</h1>
-        <p class="english-text">By ✿ㅤ"MʙɪㅤDᴀʀᴋ"</p>
+        <h1 class="hero-title">Golpo</h1>
+        <p>By ✿ㅤ"MʙɪㅤDᴀʀᴋ"</p>
       </div>
       <div class="startup-hint">
         <p class="tap-hint">
@@ -96,8 +107,8 @@
           </button>
           <div class="reading-controls-menu" id="readingControlsMenu">
             <div class="control-group">
-              <label class="control-label">Font Size</label>
-              <div class="font-size-controls">
+              <label class="control-label">Text Zoom & Focus</label>
+              <div class="control-row">
                 <button class="control-btn" id="decreaseFontBtn" title="Decrease Font Size">
                   <i class="fas fa-minus"></i>
                 </button>
@@ -105,23 +116,31 @@
                 <button class="control-btn" id="increaseFontBtn" title="Increase Font Size">
                   <i class="fas fa-plus"></i>
                 </button>
+                <button class="control-btn mode-btn" id="focusModeBtn" title="Toggle Focus Mode">
+                  <i class="fas fa-eye"></i>
+                </button>
               </div>
             </div>
             <div class="control-group">
-              <label class="control-label">Reading Mode</label>
-              <button class="control-btn mode-btn" id="focusModeBtn" title="Toggle Focus Mode">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
-            <div class="control-group">
-              <label class="control-label">Quick Actions</label>
-              <div class="quick-actions">
+              <label class="control-label">Auto Scroll & Go Top</label>
+              <div class="control-row">
+                <button class="control-btn mode-btn" id="autoScrollBtn" title="Toggle Auto Scroll">
+                  <i class="fas fa-play-circle"></i>
+                </button>
                 <button class="control-btn" id="scrollTopBtn" title="Scroll to Top">
                   <i class="fas fa-arrow-up"></i>
                 </button>
                 <button class="control-btn" id="bookmarkBtn" title="Bookmark Position">
                   <i class="fas fa-bookmark"></i>
                 </button>
+              </div>
+              <div class="auto-scroll-controls" id="autoScrollControls" style="display: none;">
+                <label class="speed-label">Speed</label>
+                <input type="range" id="scrollSpeedSlider" class="scroll-speed-slider" min="1" max="10" value="3" step="1">
+                <div class="speed-indicators">
+                  <span class="speed-indicator">Slow</span>
+                  <span class="speed-indicator">Fast</span>
+                </div>
               </div>
             </div>
             <div class="control-group">
@@ -195,30 +214,28 @@
           </div>
         </div>
 
-        <!-- Category Filter Section -->
         <div class="category-filter-section" id="categoryFilterSection">
           <div class="category-filters">
             <button class="category-filter-btn active" data-category="all" onclick="filterByCategory('all')">
-              <i class="fas fa-list"></i> All Stories
+              <i class="fas fa-list"></i><span class="filter-text"> All Stories</span>
             </button>
             <button class="category-filter-btn" data-category="Romance" onclick="filterByCategory('Romance')">
-              <i class="fas fa-heart"></i> Romance
+              <i class="fas fa-heart"></i><span class="filter-text"> Romance</span>
             </button>
             <button class="category-filter-btn" data-category="Horror" onclick="filterByCategory('Horror')">
-              <i class="fas fa-ghost"></i> Horror
+              <i class="fas fa-ghost"></i><span class="filter-text"> Horror</span>
             </button>
             <button class="category-filter-btn" data-category="Drama" onclick="filterByCategory('Drama')">
-              <i class="fas fa-theater-masks"></i> Drama
+              <i class="fas fa-theater-masks"></i><span class="filter-text"> Drama</span>
             </button>
             <button class="category-filter-btn" data-category="Mystery" onclick="filterByCategory('Mystery')">
-              <i class="fas fa-search"></i> Mystery
+              <i class="fas fa-search"></i><span class="filter-text"> Mystery</span>
             </button>
           </div>
         </div>
 
-        <div class="story-grid" data-stories="bissash,Chaya,Obisaperonontochaya,Valobasha,Chaya2,upcoming">
-          <!-- Story cards will be automatically generated from JavaScript based on the data-stories attribute -->
-          <!-- To add new stories: 1) Add story metadata to storyDatabase in script.js, 2) Add story ID to data-stories above -->
+        <div class="story-grid" id="storyGrid">
+          <!-- Story cards will be automatically generated from stories.json -->
         </div>
       </section>
 
@@ -261,6 +278,18 @@
               <span class="divider">•</span>
               <span id="readerWordCount" class="word-count">~2,500 words</span>
             </div>
+          </div>
+          <div class="next-part-preview" id="nextPartPreview" style="display: none;">
+            <div class="next-part-cover">
+              <img id="nextPartCoverImage" src="" alt="Next Part Cover" loading="lazy" />
+              <div class="next-part-overlay">
+                <i class="fas fa-forward"></i>
+              </div>
+            </div>
+            <button class="next-part-btn" id="nextPartBtn" onclick="loadNextPart()">
+              <i class="fas fa-arrow-right"></i>
+              <span>Next Part</span>
+            </button>
           </div>
         </header>
 
@@ -346,7 +375,17 @@
     </div>
   </footer>
 
+  <!-- 3D Canvas for Particle System -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Advanced Animation Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.8.1/dist/vanilla-tilt.min.js"></script>
+  
   <script src="script.js" defer></script>
+  <script src="animations.js" defer></script>
 </body>
 
 </html>
