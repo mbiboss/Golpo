@@ -292,6 +292,9 @@ var startupDismissed = false;
 
 // Startup Screen Functions
 function setupStartupScreen() {
+    // Remove body padding when startup screen is shown
+    document.body.style.paddingTop = '0';
+    
     if (startupScreen) {
         // Use single pointer event to handle both touch and mouse, with once option
         startupScreen.addEventListener('pointerdown', dismissStartupScreen, { once: true });
@@ -334,6 +337,15 @@ function dismissStartupScreen(e) {
             startupScreen.style.display = 'none';
         }
 
+        // Show navigation bar after startup is dismissed
+        const navContainer = document.querySelector('.nav-container');
+        if (navContainer) {
+            navContainer.style.display = 'block';
+        }
+
+        // Restore body padding for navigation bar
+        document.body.style.paddingTop = '90px';
+
         // Enable interactions with main content
         document.body.style.overflow = 'auto';
 
@@ -364,8 +376,9 @@ function initializeMainApp() {
     setupEventListeners();
     loadSavedSettings();
 
-    // Initialize secret analytics
+    // Initialize secret analytics and favorites
     initSecretAnalytics();
+    initializeFavoritesData();
 
     // Setup reading controls outside click handler
     setupReadingControlsOutsideClick();
@@ -399,6 +412,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Initialize offline functionality
     initializeOfflineSupport();
+    
+    // Initialize PWA install prompt
+    initializePWAInstall();
 
     // Setup startup screen functionality
     setupStartupScreen();
@@ -535,6 +551,9 @@ function showReaderView() {
 }
 
 function returnToLibrary() {
+    // Stop reading timer for current story
+    stopReadingTimer(currentStory);
+    
     document.getElementById('readerView').style.display = 'none';
     document.getElementById('libraryView').style.display = 'block';
 
@@ -771,10 +790,28 @@ function filterByCategory(category) {
         }
     });
 
-    // Show feedback
+    // Check visible cards and show/hide empty state message
     const visibleCards = Array.from(storyCards).filter(card => card.style.display !== 'none');
-    if (category !== 'all') {
-        showNotification(`Showing ${visibleCards.length} ${category} ${visibleCards.length === 1 ? 'story' : 'stories'}`, 'info', 2000);
+    const noStoriesMessage = document.getElementById('noStoriesMessage');
+    const storyGrid = document.getElementById('storyGrid');
+    
+    if (visibleCards.length === 0) {
+        // No stories found - show empty state message
+        if (storyGrid) storyGrid.style.display = 'none';
+        if (noStoriesMessage) {
+            noStoriesMessage.style.display = 'flex';
+            noStoriesMessage.style.animation = 'fadeIn 0.5s ease';
+        }
+        if (category !== 'all') {
+            showNotification(`No ${category} stories found`, 'info', 2000);
+        }
+    } else {
+        // Stories found - hide empty state message
+        if (storyGrid) storyGrid.style.display = '';
+        if (noStoriesMessage) noStoriesMessage.style.display = 'none';
+        if (category !== 'all') {
+            showNotification(`Showing ${visibleCards.length} ${category} ${visibleCards.length === 1 ? 'story' : 'stories'}`, 'info', 2000);
+        }
     }
 }
 
@@ -931,43 +968,75 @@ function openAnalyticsDashboard() {
 }
 
 function updateAnalyticsDisplay() {
+    // Calculate total reading time from storyReadingTime data
+    const totalSeconds = getTotalReadingTime();
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    // Update total reading time display if element exists
+    const totalTimeElement = document.getElementById('totalReadingTime');
+    if (totalTimeElement) {
+        totalTimeElement.textContent = `${hours}h ${minutes}m`;
+    }
+    
     // Calculate reading speed
     const avgSpeed = calculateAverageReadingSpeed();
-    document.getElementById('avgReadingSpeed').textContent = avgSpeed;
+    const avgSpeedElement = document.getElementById('avgReadingSpeed');
+    if (avgSpeedElement) {
+        avgSpeedElement.textContent = avgSpeed;
+    }
 
     // Calculate average session time
     const avgSession = calculateAverageSessionTime();
-    document.getElementById('avgSessionTime').textContent = avgSession;
+    const avgSessionElement = document.getElementById('avgSessionTime');
+    if (avgSessionElement) {
+        avgSessionElement.textContent = avgSession;
+    }
 
     // Calculate completion rate
     const completionRate = calculateCompletionRate();
-    document.getElementById('completionRate').textContent = completionRate + '%';
+    const completionRateElement = document.getElementById('completionRate');
+    if (completionRateElement) {
+        completionRateElement.textContent = completionRate + '%';
+    }
 
-    // Get favorite category
-    const favCategory = getFavoriteCategory();
-    document.getElementById('favCategory').textContent = favCategory;
-
-    // Get current theme
-    document.getElementById('favTheme').textContent = currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1);
-
-    // Get current font size
-    document.getElementById('favFontSize').textContent = currentFontSize + '%';
-
-    // Update timeline
+    // Update all new sections
+    updateFavoriteStoriesList();
+    updateRecentlyReadList();
+    updateRecentlyPlayedList();
+    updateReadingTimeList();
     updateActivityTimeline();
 }
 
+function getTotalReadingTime() {
+    // Calculate total reading time from storyReadingTime object
+    let totalSeconds = 0;
+    for (const filename in storyReadingTime) {
+        totalSeconds += storyReadingTime[filename].totalSeconds || 0;
+    }
+    return totalSeconds;
+}
+
 function calculateAverageReadingSpeed() {
-    if (analyticsData.totalReadingTime === 0) return '0';
+    const totalSeconds = getTotalReadingTime();
+    if (totalSeconds === 0) return '0';
     const stats = JSON.parse(localStorage.getItem('golpoStats') || '{}');
     const totalWords = stats.totalWordsRead || 0;
-    const speed = Math.round(totalWords / (analyticsData.totalReadingTime / 60));
+    const speed = Math.round(totalWords / (totalSeconds / 60));
     return speed > 0 ? speed : '150';
 }
 
 function calculateAverageSessionTime() {
-    if (analyticsData.sessionsCount === 0) return '0m';
-    const avgMinutes = Math.round(analyticsData.totalReadingTime / analyticsData.sessionsCount);
+    // Calculate total sessions from storyReadingTime
+    let totalSessions = 0;
+    for (const filename in storyReadingTime) {
+        totalSessions += storyReadingTime[filename].sessions || 0;
+    }
+    
+    if (totalSessions === 0) return '0m';
+    const totalSeconds = getTotalReadingTime();
+    const avgMinutes = Math.round(totalSeconds / 60 / totalSessions);
     return avgMinutes > 0 ? avgMinutes + 'm' : '5m';
 }
 
@@ -1039,6 +1108,317 @@ function trackAnalyticsEvent(action, details = {}) {
 // Export to global scope
 window.openAnalyticsDashboard = openAnalyticsDashboard;
 
+// Favorite Stories Management
+var favoriteStories = [];
+var recentlyReadStories = [];
+var recentlyPlayedSongs = [];
+var storyReadingTime = {};
+var currentStoryStartTime = null;
+
+function initializeFavoritesData() {
+    const savedFavorites = localStorage.getItem('golpoFavorites');
+    if (savedFavorites) {
+        try {
+            favoriteStories = JSON.parse(savedFavorites);
+        } catch (e) {
+            favoriteStories = [];
+        }
+    }
+
+    const savedRecentlyRead = localStorage.getItem('golpoRecentlyRead');
+    if (savedRecentlyRead) {
+        try {
+            recentlyReadStories = JSON.parse(savedRecentlyRead);
+        } catch (e) {
+            recentlyReadStories = [];
+        }
+    }
+
+    const savedRecentlySongs = localStorage.getItem('golpoRecentlySongs');
+    if (savedRecentlySongs) {
+        try {
+            recentlyPlayedSongs = JSON.parse(savedRecentlySongs);
+        } catch (e) {
+            recentlyPlayedSongs = [];
+        }
+    }
+
+    const savedReadingTime = localStorage.getItem('golpoReadingTime');
+    if (savedReadingTime) {
+        try {
+            storyReadingTime = JSON.parse(savedReadingTime);
+        } catch (e) {
+            storyReadingTime = {};
+        }
+    }
+}
+
+function isStoryFavorite(filename) {
+    return favoriteStories.includes(filename);
+}
+
+function toggleFavoriteStory(filename) {
+    const index = favoriteStories.indexOf(filename);
+    if (index > -1) {
+        favoriteStories.splice(index, 1);
+        showNotification('Removed from favorites', 'info', 1500);
+        trackAnalyticsEvent('Removed favorite story: ' + getStoryDisplayName(filename));
+    } else {
+        favoriteStories.push(filename);
+        showNotification('Added to favorites!', 'success', 1500);
+        trackAnalyticsEvent('Added favorite story: ' + getStoryDisplayName(filename));
+    }
+    
+    localStorage.setItem('golpoFavorites', JSON.stringify(favoriteStories));
+    
+    updateFavoriteButtons(filename);
+    
+    if (document.getElementById('analyticsModal').classList.contains('active')) {
+        updateAnalyticsDisplay();
+    }
+}
+
+function toggleCurrentStoryFavorite() {
+    if (currentStory) {
+        toggleFavoriteStory(currentStory);
+    }
+}
+
+function updateFavoriteButtons(filename) {
+    const isFavorite = isStoryFavorite(filename);
+    
+    const readerBtn = document.getElementById('favoriteBtn');
+    if (readerBtn && currentStory === filename) {
+        if (isFavorite) {
+            readerBtn.classList.add('active');
+            readerBtn.title = 'Remove from favorites';
+        } else {
+            readerBtn.classList.remove('active');
+            readerBtn.title = 'Add to favorites';
+        }
+    }
+    
+    const cardBtns = document.querySelectorAll(`.story-card[data-story="${filename}"] .favorite-btn`);
+    cardBtns.forEach(btn => {
+        if (isFavorite) {
+            btn.classList.add('active');
+            btn.title = 'Remove from favorites';
+        } else {
+            btn.classList.remove('active');
+            btn.title = 'Add to favorites';
+        }
+    });
+}
+
+function shareStory(filename) {
+    shareCurrentStoryByFilename(filename);
+}
+
+function shareCurrentStoryByFilename(filename) {
+    const storyData = getStoryMetadata(filename);
+    const storyUrl = window.location.origin + window.location.pathname + '?story=' + filename;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: storyData.name,
+            text: `Read "${storyData.name}" by ${storyData.writer}`,
+            url: storyUrl
+        }).then(() => {
+            showNotification('Story shared successfully!', 'success', 2000);
+            trackAnalyticsEvent('Shared story: ' + storyData.name);
+        }).catch(() => {
+        });
+    } else {
+        navigator.clipboard.writeText(storyUrl).then(() => {
+            showNotification('Story link copied to clipboard!', 'success', 2000);
+            trackAnalyticsEvent('Copied story link: ' + storyData.name);
+        }).catch(() => {
+            showNotification('Failed to copy link', 'error', 2000);
+        });
+    }
+}
+
+function trackRecentlyRead(filename) {
+    const story = getStoryMetadata(filename);
+    if (story.status === 'upcoming') return;
+    
+    const existingIndex = recentlyReadStories.findIndex(item => item.filename === filename);
+    if (existingIndex > -1) {
+        recentlyReadStories.splice(existingIndex, 1);
+    }
+    
+    recentlyReadStories.unshift({
+        filename: filename,
+        name: story.name,
+        timestamp: Date.now()
+    });
+    
+    if (recentlyReadStories.length > 10) {
+        recentlyReadStories = recentlyReadStories.slice(0, 10);
+    }
+    
+    localStorage.setItem('golpoRecentlyRead', JSON.stringify(recentlyReadStories));
+}
+
+function trackRecentlyPlayedSong(songTitle, songArtist) {
+    const existingIndex = recentlyPlayedSongs.findIndex(item => item.title === songTitle);
+    if (existingIndex > -1) {
+        recentlyPlayedSongs.splice(existingIndex, 1);
+    }
+    
+    recentlyPlayedSongs.unshift({
+        title: songTitle,
+        artist: songArtist,
+        timestamp: Date.now()
+    });
+    
+    if (recentlyPlayedSongs.length > 10) {
+        recentlyPlayedSongs = recentlyPlayedSongs.slice(0, 10);
+    }
+    
+    localStorage.setItem('golpoRecentlySongs', JSON.stringify(recentlyPlayedSongs));
+}
+
+function startReadingTimer(filename) {
+    currentStoryStartTime = Date.now();
+}
+
+function stopReadingTimer(filename) {
+    if (currentStoryStartTime && filename) {
+        const readingDuration = Math.round((Date.now() - currentStoryStartTime) / 1000);
+        
+        if (!storyReadingTime[filename]) {
+            storyReadingTime[filename] = {
+                totalSeconds: 0,
+                sessions: 0,
+                name: getStoryDisplayName(filename)
+            };
+        }
+        
+        storyReadingTime[filename].totalSeconds += readingDuration;
+        storyReadingTime[filename].sessions += 1;
+        
+        localStorage.setItem('golpoReadingTime', JSON.stringify(storyReadingTime));
+        currentStoryStartTime = null;
+    }
+}
+
+function updateFavoriteStoriesList() {
+    const container = document.getElementById('favoriteStoriesList');
+    if (!container) return;
+    
+    if (favoriteStories.length === 0) {
+        container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No favorite stories yet. Mark stories as favorite to see them here!</p>';
+        return;
+    }
+    
+    container.innerHTML = favoriteStories.map(filename => {
+        const story = getStoryMetadata(filename);
+        return `
+            <div class="analytics-list-item" onclick="loadStoryFromFavorites('${filename}')">
+                <div class="list-item-icon"><i class="fas fa-star" style="color: #F59E0B;"></i></div>
+                <div class="list-item-content">
+                    <div class="list-item-title">${story.name}</div>
+                    <div class="list-item-meta">${story.category || 'Story'}</div>
+                </div>
+                <button class="list-item-action" onclick="event.stopPropagation(); toggleFavoriteStory('${filename}')" title="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateRecentlyReadList() {
+    const container = document.getElementById('recentlyReadList');
+    if (!container) return;
+    
+    if (recentlyReadStories.length === 0) {
+        container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No recent reading activity</p>';
+        return;
+    }
+    
+    container.innerHTML = recentlyReadStories.slice(0, 5).map(item => {
+        return `
+            <div class="analytics-list-item" onclick="loadStoryFromFavorites('${item.filename}')">
+                <div class="list-item-icon"><i class="fas fa-book-open"></i></div>
+                <div class="list-item-content">
+                    <div class="list-item-title">${item.name}</div>
+                    <div class="list-item-meta">${formatTimestamp(item.timestamp)}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateRecentlyPlayedList() {
+    const container = document.getElementById('recentlyPlayedList');
+    if (!container) return;
+    
+    if (recentlyPlayedSongs.length === 0) {
+        container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No songs played yet</p>';
+        return;
+    }
+    
+    container.innerHTML = recentlyPlayedSongs.slice(0, 5).map(item => {
+        return `
+            <div class="analytics-list-item">
+                <div class="list-item-icon"><i class="fas fa-music"></i></div>
+                <div class="list-item-content">
+                    <div class="list-item-title">${item.title}</div>
+                    <div class="list-item-meta">${item.artist} • ${formatTimestamp(item.timestamp)}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateReadingTimeList() {
+    const container = document.getElementById('readingTimeList');
+    if (!container) return;
+    
+    const stories = Object.keys(storyReadingTime);
+    if (stories.length === 0) {
+        container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">Start reading to track your time!</p>';
+        return;
+    }
+    
+    const sortedStories = stories.sort((a, b) => 
+        storyReadingTime[b].totalSeconds - storyReadingTime[a].totalSeconds
+    );
+    
+    container.innerHTML = sortedStories.slice(0, 10).map(filename => {
+        const data = storyReadingTime[filename];
+        const minutes = Math.floor(data.totalSeconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const remainingMins = minutes % 60;
+        const timeStr = hours > 0 ? `${hours}h ${remainingMins}m` : `${minutes}m`;
+        
+        return `
+            <div class="analytics-list-item">
+                <div class="list-item-icon"><i class="fas fa-clock"></i></div>
+                <div class="list-item-content">
+                    <div class="list-item-title">${data.name}</div>
+                    <div class="list-item-meta">${timeStr} across ${data.sessions} session${data.sessions !== 1 ? 's' : ''}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function loadStoryFromFavorites(filename) {
+    const modal = document.getElementById('analyticsModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    loadStoryFromCard(filename);
+}
+
+window.toggleFavoriteStory = toggleFavoriteStory;
+window.shareStory = shareStory;
+window.toggleCurrentStoryFavorite = toggleCurrentStoryFavorite;
+window.loadStoryFromFavorites = loadStoryFromFavorites;
+
 function updateReaderCoverImage(filename) {
     const readerCoverImage = document.getElementById('readerCoverImage');
     if (readerCoverImage && filename) {
@@ -1056,6 +1436,94 @@ function updateReaderCoverImage(filename) {
         
         // Update next part preview
         updateNextPartPreview(filename);
+
+
+// PWA Install Prompt
+var deferredPrompt = null;
+var installButton = null;
+
+function initializePWAInstall() {
+    // Create install button
+    createInstallButton();
+    
+    // Listen for beforeinstallprompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later
+        deferredPrompt = e;
+        // Show install button
+        showInstallButton();
+    });
+    
+    // Listen for successful installation
+    window.addEventListener('appinstalled', () => {
+        hideInstallButton();
+        showNotification('✓ Golpo installed successfully!', 'success', 3000);
+        deferredPrompt = null;
+    });
+    
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+        hideInstallButton();
+    }
+}
+
+function createInstallButton() {
+    // Create install button container
+    installButton = document.createElement('button');
+    installButton.id = 'pwaInstallBtn';
+    installButton.className = 'pwa-install-btn';
+    installButton.innerHTML = `
+        <i class="fas fa-download"></i>
+        <span>Install App</span>
+    `;
+    installButton.style.display = 'none';
+    installButton.onclick = promptInstall;
+    
+    // Add to footer
+    const footer = document.querySelector('.footer-content');
+    if (footer) {
+        footer.appendChild(installButton);
+    }
+}
+
+function showInstallButton() {
+    if (installButton) {
+        installButton.style.display = 'flex';
+        installButton.style.animation = 'slideInUp 0.5s ease-out';
+    }
+}
+
+function hideInstallButton() {
+    if (installButton) {
+        installButton.style.display = 'none';
+    }
+}
+
+async function promptInstall() {
+    if (!deferredPrompt) {
+        showNotification('App is already installed or not supported', 'info', 2000);
+        return;
+    }
+    
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+        showNotification('Installing Golpo...', 'success', 2000);
+    } else {
+        showNotification('Installation cancelled', 'info', 2000);
+    }
+    
+    // Clear the deferredPrompt
+    deferredPrompt = null;
+    hideInstallButton();
+}
+
     }
 }
 
@@ -1881,8 +2349,16 @@ function setupEventListeners() {
 
 // Display story content
 function displayStory(filename, content) {
+    // Stop previous reading timer if any
+    stopReadingTimer(currentStory);
+    
     // Save reading session
     saveReadingSession(filename, window.pageYOffset);
+    
+    // Track recently read and start new timer
+    trackRecentlyRead(filename);
+    startReadingTimer(filename);
+    
     // Get story metadata and update title and logo text
     var storyMetadata = getStoryMetadata(filename);
     var storyName = storyMetadata.name;
@@ -1892,6 +2368,9 @@ function displayStory(filename, content) {
     // Update reader view elements
     const readerStoryTitle = document.getElementById('readerStoryTitle');
     const readerAuthor = document.getElementById('readerAuthor');
+    
+    // Update favorite button state
+    updateFavoriteButtons(filename);
 
     if (readerStoryTitle) {
         readerStoryTitle.textContent = storyName;
@@ -1985,6 +2464,7 @@ function getStoryDisplayName(filename) {
 function createStoryCardHTML(filename) {
     const story = getStoryMetadata(filename);
     const bannerImage = getBannerImageForStory(story.id);
+    const isFavorite = isStoryFavorite(filename);
 
     // Get category icon
     const categoryIcons = {
@@ -1996,11 +2476,25 @@ function createStoryCardHTML(filename) {
     const categoryIcon = categoryIcons[story.category] || 'fas fa-book';
 
     return `
-        <div class="story-card" data-story="${filename}" onclick="window.loadStoryFromCard('${filename}')">
-            <div class="story-cover story-cover-wide" style="background-image: url('${bannerImage}'); background-size: cover; background-position: center;">
+        <div class="story-card" data-story="${filename}">
+            <div class="story-cover story-cover-wide" style="background-image: url('${bannerImage}'); background-size: cover; background-position: center;" onclick="window.loadStoryFromCard('${filename}')">
                 <div class="story-status ${story.status}">${story.status === 'upcoming' ? 'Coming Soon' : 'Available'}</div>
+                ${story.status !== 'upcoming' ? `
+                <div class="story-card-actions">
+                    <button class="story-action-btn favorite-btn ${isFavorite ? 'active' : ''}" 
+                            onclick="event.stopPropagation(); toggleFavoriteStory('${filename}')" 
+                            title="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
+                        <i class="fas fa-star"></i>
+                    </button>
+                    <button class="story-action-btn share-btn" 
+                            onclick="event.stopPropagation(); shareStory('${filename}')" 
+                            title="Share story">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
+                ` : ''}
             </div>
-            <div class="story-info">
+            <div class="story-info" onclick="window.loadStoryFromCard('${filename}')">
                 <div class="story-title-row">
                     <h3 class="story-title" ${filename !== 'upcoming.txt' ? 'style="font-family: \'BanglaFont\', \'Noto Sans Bengali\', sans-serif;"' : ''}>${story.name}</h3>
                     ${story.partOf ? `<span class="part-number-inline">Part ${story.partNumber}/${story.totalParts}</span>` : ''}
@@ -3018,6 +3512,12 @@ function setMusicSource(url, fromPlaylist = false) {
                 window.youtubeCheckInterval = null;
             }
         } catch (youtubeError) {
+        }
+
+        // Track recently played song
+        if (musicPlaylist && musicPlaylist[currentMusicIndex]) {
+            const currentSong = musicPlaylist[currentMusicIndex];
+            trackRecentlyPlayedSong(currentSong.title, currentSong.artist);
         }
 
         // Set new music source with error handling

@@ -1497,6 +1497,68 @@ body.focus-mode .story-container {
 }
 
 /* Song Details */
+
+
+/* PWA Install Button */
+.pwa-install-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--accent-color), var(--glow-secondary));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: var(--cursor-pointer);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 8px 24px rgba(100, 181, 246, 0.4);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    z-index: 1000;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.pwa-install-btn:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(100, 181, 246, 0.6);
+}
+
+.pwa-install-btn i {
+    font-size: 1.2rem;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .pwa-install-btn {
+        bottom: 60px;
+        right: 15px;
+        padding: 0.8rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    .pwa-install-btn span {
+        display: none;
+    }
+    
+    .pwa-install-btn i {
+        font-size: 1.3rem;
+        margin: 0;
+    }
+}
+
 #musicModal .song-details {
     flex: 1;
     display: flex;
@@ -1824,6 +1886,7 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
+    display: none; /* Hidden by default until startup screen is dismissed */
     width: 90%;
     max-width: 1200px;
     margin: 0 auto;
@@ -3279,6 +3342,76 @@ body {
     margin: 0 auto;
 }
 
+/* No Stories Message - Empty State */
+.no-stories-message {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    margin: 2rem auto;
+    max-width: 600px;
+    background: linear-gradient(135deg, 
+        rgba(18, 18, 18, 0.6) 0%,
+        rgba(31, 31, 31, 0.4) 100%);
+    border: 2px dashed rgba(100, 181, 246, 0.3);
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+}
+
+.no-stories-icon {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, 
+        rgba(100, 181, 246, 0.15) 0%,
+        rgba(139, 92, 246, 0.1) 100%);
+    border-radius: 50%;
+    animation: iconPulse 2s ease-in-out infinite;
+}
+
+.no-stories-icon i {
+    font-size: 3.5rem;
+    background: linear-gradient(135deg, #64B5F6 0%, #8B5CF6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(100, 181, 246, 0.4));
+}
+
+.no-stories-message h3 {
+    font-family: 'EnglishFont', Arial, sans-serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    background: linear-gradient(135deg, #64B5F6 0%, #8B5CF6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.no-stories-message p {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.6;
+}
+
+@keyframes iconPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+}
+
 .story-card {
     background: linear-gradient(135deg, 
         rgba(18, 18, 18, 0.95) 0%,
@@ -3667,7 +3800,8 @@ body {
 }
 
 .toc-btn,
-.share-btn {
+.share-btn,
+.favorite-btn-reader {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     color: var(--text-primary);
@@ -3678,15 +3812,27 @@ body {
     align-items: center;
     gap: 0.5rem;
     font-weight: 500;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transition: all 0.3s ease;
     margin-left: 1rem;
 }
 
 .toc-btn:hover,
-.share-btn:hover {
+.share-btn:hover,
+.favorite-btn-reader:hover {
     background: var(--accent-color);
     color: white;
     transform: translateY(-1px);
+}
+
+.favorite-btn-reader.active {
+    background: linear-gradient(135deg, #F59E0B, #EF4444);
+    border-color: #F59E0B;
+    color: white;
+}
+
+.favorite-btn-reader.active:hover {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    transform: translateY(-1px) scale(1.05);
 }
 
 .toc-container {
@@ -3954,6 +4100,183 @@ body {
     color: var(--text-primary);
     font-weight: 500;
     font-size: 0.75rem;
+}
+
+/* Analytics List Items for Favorites, Recently Read, etc. */
+.favorite-stories-list,
+.recently-read-list,
+.recently-played-list,
+.reading-time-list {
+    background: linear-gradient(135deg, 
+        rgba(100, 181, 246, 0.05) 0%, 
+        rgba(139, 92, 246, 0.03) 100%);
+    border: 1px solid rgba(100, 181, 246, 0.15);
+    border-radius: 12px;
+    padding: 0.6rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.favorite-stories-list::-webkit-scrollbar,
+.recently-read-list::-webkit-scrollbar,
+.recently-played-list::-webkit-scrollbar,
+.reading-time-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.favorite-stories-list::-webkit-scrollbar-track,
+.recently-read-list::-webkit-scrollbar-track,
+.recently-played-list::-webkit-scrollbar-track,
+.reading-time-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+}
+
+.favorite-stories-list::-webkit-scrollbar-thumb,
+.recently-read-list::-webkit-scrollbar-thumb,
+.recently-played-list::-webkit-scrollbar-thumb,
+.reading-time-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--accent-color), var(--glow-secondary));
+    border-radius: 2px;
+}
+
+.analytics-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.6rem;
+    margin: 0.3rem 0;
+    background: rgba(100, 181, 246, 0.08);
+    border-left: 2px solid transparent;
+    border-image: linear-gradient(180deg, var(--accent-color), var(--glow-secondary)) 1;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.analytics-list-item:hover {
+    background: rgba(100, 181, 246, 0.15);
+    transform: translateX(4px);
+}
+
+.list-item-icon {
+    flex-shrink: 0;
+    font-size: 1.2rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--accent-color), var(--glow-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.list-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.list-item-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-item-meta {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+.list-item-action {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.7rem;
+}
+
+.list-item-action:hover {
+    background: rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+    transform: scale(1.1);
+}
+
+/* Story Card Action Buttons */
+.story-card-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.story-card:hover .story-card-actions,
+.story-cover:hover .story-card-actions {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.story-action-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.story-action-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.story-action-btn.favorite-btn {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.story-action-btn.favorite-btn:hover {
+    background: rgba(245, 158, 11, 0.9);
+}
+
+.story-action-btn.favorite-btn.active {
+    background: linear-gradient(135deg, #F59E0B, #EF4444);
+    color: white;
+}
+
+.story-action-btn.favorite-btn.active:hover {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    transform: scale(1.2) rotate(15deg);
+}
+
+.story-action-btn.share-btn:hover {
+    background: rgba(100, 181, 246, 0.9);
 }
 
 /* Analytics Modal Header Enhancement */
@@ -4831,6 +5154,11 @@ body {
     will-change: opacity;
 }
 
+/* Remove body padding when startup screen is visible */
+body:has(.startup-screen:not([style*="display: none"])) {
+    padding-top: 0 !important;
+}
+
 /* Dark Blur Background */
 .startup-background {
     position: absolute;
@@ -4849,13 +5177,13 @@ body {
     opacity: 1;
 }
 
-/* Logo Container - Smooth Fade In */
+/* Logo Container - Smooth Fade In with rotation */
 .startup-logo {
     position: relative;
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
     opacity: 0;
-    transform: scale(0.8);
-    animation: logoFadeIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
+    transform: scale(0.5) rotate(-180deg);
+    animation: logoFadeIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
     will-change: opacity, transform;
 }
 
@@ -4872,53 +5200,85 @@ body {
     z-index: 1;
     will-change: transform;
     transition: transform 0.3s ease;
+    animation: logoPulse 2s ease-in-out infinite 1.5s;
 }
 
 .startup-logo-img:hover {
     transform: scale(1.05);
 }
 
-.startup-title {
-    margin-bottom: 3rem;
+/* App Name - Appears after logo */
+.startup-app-name {
+    margin-bottom: 2rem;
     position: relative;
 }
 
-/* Simplified Title - Sequential Fade In */
-.startup-title h1 {
+.startup-app-name h1 {
     font-family: 'EnglishFont', Arial, sans-serif;
-    font-size: 4rem;
+    font-size: 4.5rem;
     font-weight: 700;
-    margin: 0 0 1rem 0;
-    letter-spacing: 0.1em;
-    background: linear-gradient(135deg, #64B5F6 0%, #8B5CF6 100%);
+    margin: 0;
+    letter-spacing: 0.2em;
+    background: linear-gradient(
+        90deg,
+        #64B5F6 0%,
+        #8B5CF6 25%,
+        #EC4899 50%,
+        #F59E0B 75%,
+        #64B5F6 100%
+    );
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-transform: uppercase;
-    opacity: 1;
-    transform: translateY(0);
-    animation: titleFadeIn 0.6s ease-out 0.3s both;
-    will-change: opacity, transform;
+    opacity: 0;
+    transform: translateY(50px) scale(0.8);
+    animation: appNameFadeIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) 1.4s forwards, 
+               gradient-flow 3s ease infinite 2.5s;
+    will-change: opacity, transform, background-position;
+    text-shadow: 0 0 60px rgba(100, 181, 246, 0.6);
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4));
 }
 
-.startup-title p {
+/* Credits - Appears after app name */
+.startup-credits {
+    margin-bottom: 2.5rem;
+    position: relative;
+}
+
+.startup-credits p {
     font-family: 'EnglishFont', Arial, sans-serif;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 400;
-    color: rgba(100, 181, 246, 0.9);
+    background: linear-gradient(135deg, #64B5F6 0%, #8B5CF6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin: 0;
-    opacity: 1;
-    transform: translateY(0);
-    animation: titleFadeIn 0.6s ease-out 0.5s both;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: creditsFadeIn 0.8s ease-out 2.5s forwards;
     will-change: opacity, transform;
+    filter: drop-shadow(0 0 10px rgba(100, 181, 246, 0.3));
 }
 
-/* Simplified Hint */
+/* Keep old .startup-title for backward compatibility but hide it */
+.startup-title {
+    display: none;
+}
+
+.startup-title h1,
+.startup-title p {
+    display: none;
+}
+
+/* Simplified Hint - Appears last with pulse */
 .startup-hint {
     position: relative;
     margin-top: 2rem;
     opacity: 0;
-    animation: hintFadeIn 0.6s ease-out 1.7s forwards;
+    animation: hintFadeIn 0.8s ease-out 3.3s forwards;
     will-change: opacity;
 }
 
@@ -4937,12 +5297,14 @@ body {
     border-radius: 50px;
     transition: transform 0.3s ease, opacity 0.3s ease;
     cursor: pointer;
+    animation: hintPulse 2s ease-in-out infinite 3.8s;
 }
 
 .tap-hint:hover {
     background: transparent;
     transform: translateY(-2px);
     color: rgba(255, 255, 255, 0.7);
+    animation: none;
 }
 
 
@@ -5198,26 +5560,110 @@ body {
 
 /* Optimized Keyframe Animations */
 @keyframes logoFadeIn {
-    to {
+    0% {
+        opacity: 0;
+        transform: scale(0.5) rotate(-180deg);
+    }
+    70% {
+        transform: scale(1.1) rotate(10deg);
+    }
+    100% {
         opacity: 1;
-        transform: scale(1);
+        transform: scale(1) rotate(0deg);
     }
 }
 
-@keyframes titleFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+@keyframes logoPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 
+            0 10px 40px rgba(100, 181, 246, 0.3),
+            0 0 60px rgba(100, 181, 246, 0.2);
     }
-    to {
+    50% {
+        transform: scale(1.05);
+        box-shadow: 
+            0 15px 50px rgba(100, 181, 246, 0.5),
+            0 0 80px rgba(100, 181, 246, 0.4);
+    }
+}
+
+@keyframes appNameFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(50px) scale(0.8);
+    }
+    60% {
+        opacity: 0.9;
+        transform: translateY(-10px) scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes creditsFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-@keyframes hintFadeIn {
-    to {
+@keyframes titleFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
         opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes titleSmartFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+    }
+    60% {
+        opacity: 0.9;
+        transform: translateY(-5px) scale(1.02);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes gradient-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes hintFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes hintPulse {
+    0%, 100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.02);
     }
 }
 
@@ -5518,11 +5964,12 @@ body {
 
 /* Responsive Startup Screen */
 @media (max-width: 768px) {
-    .startup-title h1 {
-        font-size: 3rem;
+    .startup-app-name h1 {
+        font-size: 3.5rem;
+        letter-spacing: 0.15em;
     }
 
-    .startup-title p {
+    .startup-credits p {
         font-size: 1.1rem;
     }
 
@@ -5543,12 +5990,12 @@ body {
 }
 
 @media (max-width: 480px) {
-    .startup-title h1 {
-        font-size: 2.5rem;
-        letter-spacing: 0.08em;
+    .startup-app-name h1 {
+        font-size: 2.8rem;
+        letter-spacing: 0.12em;
     }
 
-    .startup-title p {
+    .startup-credits p {
         font-size: 1rem;
     }
 

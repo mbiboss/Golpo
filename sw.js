@@ -1,14 +1,22 @@
 
-// Service Worker for Golpo App - Optimized v1.4.1
-const CACHE_VERSION = 'v1.4.1';
+// Service Worker for Golpo App - Optimized v1.4.2
+const CACHE_VERSION = 'v1.4.2';
 const STATIC_CACHE = `golpo-static-${CACHE_VERSION}`;
 const STORIES_CACHE = `golpo-stories-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `golpo-dynamic-${CACHE_VERSION}`;
 const IMAGES_CACHE = `golpo-images-${CACHE_VERSION}`;
 
-// Detect base path from service worker location
+// Detect base path dynamically for different hosting environments
 const SW_URL = new URL(self.location.href);
-const BASE_PATH = SW_URL.pathname.substring(0, SW_URL.pathname.lastIndexOf('/') + 1);
+let BASE_PATH = SW_URL.pathname.substring(0, SW_URL.pathname.lastIndexOf('/') + 1);
+
+// Normalize base path - ensure it ends with / and starts with /
+if (!BASE_PATH.endsWith('/')) {
+    BASE_PATH += '/';
+}
+if (!BASE_PATH.startsWith('/')) {
+    BASE_PATH = '/' + BASE_PATH;
+}
 
 // Core app files to cache (relative to base path)
 const CORE_FILES = [
@@ -16,10 +24,14 @@ const CORE_FILES = [
     BASE_PATH + 'index.html',
     BASE_PATH + 'style.css',
     BASE_PATH + 'script.js',
+    BASE_PATH + 'animations.css',
+    BASE_PATH + 'animations.js',
     BASE_PATH + 'manifest.json',
     BASE_PATH + 'assets/logo.png',
     BASE_PATH + 'assets/English_font.otf',
-    BASE_PATH + 'assets/Bangla_font.ttf'
+    BASE_PATH + 'assets/Bangla_font.ttf',
+    BASE_PATH + 'songs.json',
+    BASE_PATH + 'stories.json'
 ];
 
 // External resources to cache
