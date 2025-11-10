@@ -412,9 +412,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Initialize offline functionality
     initializeOfflineSupport();
-    
-    // Initialize PWA install prompt
-    initializePWAInstall();
 
     // Setup startup screen functionality
     setupStartupScreen();
