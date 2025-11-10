@@ -1,6 +1,6 @@
 
-// Service Worker for Golpo App - Optimized v2.0.0 (Lightweight)
-const CACHE_VERSION = 'v2.0.0';
+// Service Worker for Golpo App - Optimized v2.3.9
+const CACHE_VERSION = 'v2.3.9';
 const STATIC_CACHE = `golpo-static-${CACHE_VERSION}`;
 const STORIES_CACHE = `golpo-stories-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `golpo-dynamic-${CACHE_VERSION}`;
@@ -85,6 +85,7 @@ self.addEventListener('activate', (event) => {
                     cacheNames.map((cacheName) => {
                         // Delete caches that don't match current version
                         if (!cacheName.includes(CACHE_VERSION)) {
+                            console.log('SW v2.2.0: Deleting old cache:', cacheName);
                             return caches.delete(cacheName);
                         }
                     })
@@ -93,6 +94,7 @@ self.addEventListener('activate', (event) => {
             // Take control of all pages immediately
             self.clients.claim()
         ]).then(() => {
+            console.log('SW v2.2.0: Activated and ready (PWA removed, offline support active)');
         })
     );
 });

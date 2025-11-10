@@ -6,7 +6,7 @@ function getBasePath() {
         const base = new URL(baseElement.href);
         return base.pathname;
     }
-    
+
     // Try to derive from script.js location (most reliable for SPAs)
     // Find the script tag that loaded this file
     const scripts = document.getElementsByTagName('script');
@@ -23,27 +23,27 @@ function getBasePath() {
             }
         }
     }
-    
+
     // Fallback: derive from document location
     let pathname = window.location.pathname;
-    
+
     // If we're on index.html, extract its directory
     if (pathname.endsWith('/index.html')) {
         return pathname.substring(0, pathname.lastIndexOf('/') + 1);
     }
-    
+
     // If already ends with /, use as-is
     if (pathname.endsWith('/')) {
         return pathname;
     }
-    
+
     // Check if the last segment looks like a file (has extension)
     const lastSegment = pathname.substring(pathname.lastIndexOf('/') + 1);
     if (lastSegment.includes('.')) {
         // It's a file, return its directory
         return pathname.substring(0, pathname.lastIndexOf('/') + 1);
     }
-    
+
     // No trailing slash and no extension
     // This could be a directory without trailing slash, so add one
     return pathname + '/';
@@ -51,6 +51,21 @@ function getBasePath() {
 
 // Get base path and ensure it's available globally
 const BASE_PATH = getBasePath();
+
+// Splash Screen Logic
+(function initSplashScreen() {
+    const splashScreen = document.getElementById('splashScreen');
+    if (!splashScreen) return;
+
+    function hideSplashScreen() {
+        splashScreen.classList.add('fade-out');
+        setTimeout(() => {
+            splashScreen.style.display = 'none';
+        }, 600);
+    }
+
+    splashScreen.addEventListener('click', hideSplashScreen);
+})();
 
 // Global Variables
 var currentTheme = 'dark';
@@ -116,7 +131,7 @@ async function loadStoryDatabase() {
         if (response.ok) {
             storyDatabase = await response.json();
             console.log('Story database loaded successfully:', Object.keys(storyDatabase).length, 'stories');
-            
+
             // Automatically detect and link story parts
             detectStoryParts();
         } else {
@@ -132,24 +147,24 @@ function detectStoryParts() {
     // Group stories by base name (without part number)
     const storyGroups = {};
     const allFiles = Object.keys(storyDatabase);
-    
+
     allFiles.forEach(filename => {
         // Match patterns like "name-1.txt", "name-2.txt" or "name1.txt", "name2.txt"
         const match = filename.match(/^(.+?)[-_]?(\d+)\.txt$/);
-        
+
         if (match) {
             const baseName = match[1];
             const partNumber = parseInt(match[2]);
-            
+
             if (!storyGroups[baseName]) {
                 storyGroups[baseName] = [];
             }
-            
+
             storyGroups[baseName].push({
                 filename: filename,
                 partNumber: partNumber
             });
-            
+
             // Check if there's a file without number (Part 1)
             const baseFile = baseName + '.txt';
             if (allFiles.includes(baseFile) && !storyGroups[baseName].find(p => p.filename === baseFile)) {
@@ -162,13 +177,13 @@ function detectStoryParts() {
             // File without number - check if there's a numbered version
             const baseName = filename.replace('.txt', '');
             const numberedFiles = allFiles.filter(f => f.match(new RegExp(`^${baseName}[-_]?(\\d+)\\.txt$`)));
-            
+
             if (numberedFiles.length > 0) {
                 // This is Part 1 of a series
                 if (!storyGroups[baseName]) {
                     storyGroups[baseName] = [];
                 }
-                
+
                 // Only add if not already in the group
                 if (!storyGroups[baseName].find(p => p.filename === filename)) {
                     storyGroups[baseName].push({
@@ -176,7 +191,7 @@ function detectStoryParts() {
                         partNumber: 1
                     });
                 }
-                
+
                 // Add the numbered files
                 numberedFiles.forEach(f => {
                     const numMatch = f.match(/^.+?[-_]?(\d+)\.txt$/);
@@ -190,38 +205,38 @@ function detectStoryParts() {
             }
         }
     });
-    
+
     // Process each group to set up part relationships
     Object.keys(storyGroups).forEach(baseName => {
         const parts = storyGroups[baseName];
-        
+
         // Only process if there are multiple parts
         if (parts.length > 1) {
             // Sort parts by part number
             parts.sort((a, b) => a.partNumber - b.partNumber);
-            
+
             const totalParts = parts.length;
             const seriesName = baseName.charAt(0).toUpperCase() + baseName.slice(1) + '-Series';
-            
+
             // Update each part with relationship info
             parts.forEach((part, index) => {
                 const story = storyDatabase[part.filename];
-                
+
                 story.partOf = seriesName;
                 story.partNumber = part.partNumber;
                 story.totalParts = totalParts;
-                
+
                 // Set previous part
                 if (index > 0) {
                     story.previousPart = parts[index - 1].filename;
                 }
-                
+
                 // Set next part
                 if (index < parts.length - 1) {
                     story.nextPart = parts[index + 1].filename;
                 }
             });
-            
+
             console.log(`Detected ${totalParts} parts for ${baseName} series`);
         }
     });
@@ -314,9 +329,6 @@ var musicModalOverlay = document.getElementById('musicModalOverlay');
 var closeStoryModal = document.getElementById('closeStoryModal');
 var closeMusicModal = document.getElementById('closeMusicModal');
 
-// Startup Screen Elements
-var startupScreen = document.getElementById('startupScreen');
-
 // Reading Controls Elements
 var readingControlsDropdown = document.getElementById('readingControlsDropdown');
 var readingControlsBtn = document.getElementById('readingControlsBtn');
@@ -340,75 +352,6 @@ var scrollSpeedSlider = document.getElementById('scrollSpeedSlider');
 // YouTube Player State
 var isYouTubePlaying = false;
 var currentYouTubeUrl = '';
-
-// Startup Screen State
-var startupDismissed = false;
-
-// Startup Screen Functions
-function setupStartupScreen() {
-    // Remove body padding when startup screen is shown
-    document.body.style.paddingTop = '0';
-    
-    if (startupScreen) {
-        // Use single pointer event to handle both touch and mouse, with once option
-        startupScreen.addEventListener('pointerdown', dismissStartupScreen, { once: true });
-
-        // Add keyboard support (Enter or Space to continue)
-        document.addEventListener('keydown', function(e) {
-            if (!startupDismissed && startupScreen && startupScreen.style.display !== 'none' &&
-                (e.key === 'Enter' || e.key === ' ')) {
-                e.preventDefault();
-                dismissStartupScreen(e);
-            }
-        });
-    }
-}
-
-function dismissStartupScreen(e) {
-    // Prevent double initialization
-    if (startupDismissed || !startupScreen) {
-        return false;
-    }
-
-    // Prevent event propagation and default behavior
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    // Mark as dismissed
-    startupDismissed = true;
-
-    // Add fade-out class for smooth animation
-    startupScreen.classList.add('fade-out');
-
-    // Save that user has seen startup
-    localStorage.setItem('hasSeenStartup', '1');
-
-    // Remove startup screen after animation completes
-    setTimeout(() => {
-        if (startupScreen) {
-            startupScreen.style.display = 'none';
-        }
-
-        // Show navigation bar after startup is dismissed
-        const navContainer = document.querySelector('.nav-container');
-        if (navContainer) {
-            navContainer.style.display = 'block';
-        }
-
-        // Restore body padding for navigation bar
-        document.body.style.paddingTop = '90px';
-
-        // Enable interactions with main content
-        document.body.style.overflow = 'auto';
-
-        // Initialize main app functionality
-        initializeMainApp();
-    }, 800); // Match the CSS animation duration
-
-    return false;
-}
 
 // Track if main app is initialized
 var mainAppInitialized = false;
@@ -436,7 +379,7 @@ function initializeMainApp() {
 
     // Setup reading controls outside click handler
     setupReadingControlsOutsideClick();
-    
+
     // Check if there's a shared story to load
     const sharedStoryId = sessionStorage.getItem('loadSharedStory');
     if (sharedStoryId) {
@@ -455,44 +398,47 @@ function initializeMainApp() {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', async function() {
+    // Force clear old service worker cache if version changed
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+    }
+
     // Load data files first
     await Promise.all([
         loadMusicPlaylist(),
         loadStoryDatabase()
     ]);
-    
-    // Initially hide scroll on body to prevent background scrolling during startup
-    document.body.style.overflow = 'hidden';
 
     // Initialize offline functionality
     initializeOfflineSupport();
-    
-    // Initialize PWA install functionality
+
+    // Initialize PWA install (desktop & mobile)
     initializePWAInstall();
 
-    // Setup startup screen functionality
-    setupStartupScreen();
+    // Initialize main app immediately (no startup screen)
+    initializeMainApp();
 
-    // Check if user has seen startup screen before (optional - uncomment to skip for returning users)
-    const hasSeenStartup = localStorage.getItem('hasSeenStartup');
-    if (hasSeenStartup) {
-        // Skip startup screen for returning users
-        // dismissStartupScreen();
+    // Show navigation bar immediately
+    const navContainer = document.querySelector('.nav-container');
+    if (navContainer) {
+        navContainer.style.display = 'flex';
+        navContainer.style.visibility = 'visible';
+        navContainer.style.opacity = '1';
     }
 
-    // Add accessibility support
-    if (startupScreen) {
-        startupScreen.setAttribute('tabindex', '0');
-        startupScreen.setAttribute('role', 'button');
-        startupScreen.setAttribute('aria-label', 'Tap to enter Golpo storytelling app');
-    }
-    
     // Check if URL has a story parameter (from shared link)
     const urlParams = new URLSearchParams(window.location.search);
     const sharedStoryId = urlParams.get('story');
     if (sharedStoryId) {
-        // Store the shared story to load after startup
-        sessionStorage.setItem('loadSharedStory', sharedStoryId);
+        // Find the story file by ID
+        const storyFile = Object.keys(storyDatabase).find(filename => {
+            return storyDatabase[filename].id === sharedStoryId;
+        });
+        if (storyFile) {
+            setTimeout(() => {
+                loadStoryFromCard(storyFile);
+            }, 500);
+        }
     }
 });
 
@@ -546,7 +492,7 @@ function createStorySuggestions(currentStoryFile) {
         const statusClass = story.status === 'upcoming' ? 'upcoming' : '';
         // Get reading image for this specific story
         const suggestionImage = getReadingImageForStory(story.id);
-        
+
         // Get category icon
         const categoryIcons = {
             'Romance': 'fas fa-heart',
@@ -585,6 +531,7 @@ function showReaderView() {
     document.getElementById('libraryView').style.display = 'none';
     document.getElementById('readerView').style.display = 'block';
 
+
     // Show reading controls and progress on reader page
     if (progressContainer) {
         progressContainer.style.display = 'flex';
@@ -607,7 +554,7 @@ function showReaderView() {
 function returnToLibrary() {
     // Stop reading timer for current story
     stopReadingTimer(currentStory);
-    
+
     document.getElementById('readerView').style.display = 'none';
     document.getElementById('libraryView').style.display = 'block';
 
@@ -624,6 +571,7 @@ function returnToLibrary() {
         readingControlsDropdown.classList.remove('active');
     }
 
+
     // Show navigation again
     document.querySelector('.nav-container').style.opacity = '1';
     if (document.querySelector('.footer')) {
@@ -639,6 +587,9 @@ window.returnToLibrary = returnToLibrary;
 window.displayPage = displayPage;
 
 function resetReaderView() {
+    // Clear current story reference FIRST
+    currentStory = '';
+    
     // Clear story content
     const storyContent = document.getElementById('storyContent');
     if (storyContent) {
@@ -664,11 +615,12 @@ function resetReaderView() {
         readerWordCount.textContent = '~0 words';
     }
 
-    // Reset logo text to "Golpo"
+    // Reset logo text to "Golpo" - ALWAYS reset when returning to library
     const logoText = document.querySelector('.logo-text');
     if (logoText) {
         logoText.textContent = 'Golpo';
         logoText.classList.remove('music-playing');
+        logoText.style.fontFamily = "'EnglishFont', sans-serif";
     }
 
     // Reset browser title
@@ -816,6 +768,26 @@ function filterByCategory(category) {
         }
     });
 
+    const seriesView = document.getElementById('seriesView');
+    const storyGrid = document.getElementById('storyGrid');
+    const noStoriesMessage = document.getElementById('noStoriesMessage');
+
+    // Handle series view
+    if (category === 'series') {
+        // Hide normal story grid, show series view
+        if (storyGrid) storyGrid.style.display = 'none';
+        if (seriesView) {
+            seriesView.style.display = 'block';
+            generateSeriesView();
+        }
+        if (noStoriesMessage) noStoriesMessage.style.display = 'none';
+        return;
+    } else {
+        // Show normal grid, hide series view
+        if (storyGrid) storyGrid.style.display = '';
+        if (seriesView) seriesView.style.display = 'none';
+    }
+
     // Filter stories
     storyCards.forEach(card => {
         const storyFile = card.dataset.story;
@@ -827,6 +799,18 @@ function filterByCategory(category) {
         if (category === 'all') {
             card.style.display = '';
             card.style.opacity = '1';
+        } else if (category === 'favorites') {
+            // Filter by favorites
+            const isFavorite = favoriteStories.includes(filename);
+            
+            if (isFavorite) {
+                card.style.display = '';
+                card.style.opacity = '1';
+                card.style.animation = 'fadeIn 0.3s ease';
+            } else {
+                card.style.display = 'none';
+                card.style.opacity = '0';
+            }
         } else {
             const storyCategory = storyData?.category || '';
             const storyTags = storyData?.tags || [];
@@ -846,9 +830,7 @@ function filterByCategory(category) {
 
     // Check visible cards and show/hide empty state message
     const visibleCards = Array.from(storyCards).filter(card => card.style.display !== 'none');
-    const noStoriesMessage = document.getElementById('noStoriesMessage');
-    const storyGrid = document.getElementById('storyGrid');
-    
+
     if (visibleCards.length === 0) {
         // No stories found - show empty state message
         if (storyGrid) storyGrid.style.display = 'none';
@@ -856,14 +838,18 @@ function filterByCategory(category) {
             noStoriesMessage.style.display = 'flex';
             noStoriesMessage.style.animation = 'fadeIn 0.5s ease';
         }
-        if (category !== 'all') {
+        if (category === 'favorites') {
+            showNotification('No favorite stories yet', 'info', 2000);
+        } else if (category !== 'all') {
             showNotification(`No ${category} stories found`, 'info', 2000);
         }
     } else {
         // Stories found - hide empty state message
         if (storyGrid) storyGrid.style.display = '';
         if (noStoriesMessage) noStoriesMessage.style.display = 'none';
-        if (category !== 'all') {
+        if (category === 'favorites') {
+            showNotification(`Showing ${visibleCards.length} favorite ${visibleCards.length === 1 ? 'story' : 'stories'}`, 'info', 2000);
+        } else if (category !== 'all') {
             showNotification(`Showing ${visibleCards.length} ${category} ${visibleCards.length === 1 ? 'story' : 'stories'}`, 'info', 2000);
         }
     }
@@ -871,6 +857,91 @@ function filterByCategory(category) {
 
 // Export to global scope
 window.filterByCategory = filterByCategory;
+
+// Generate Series View - Shows multi-part stories grouped as playlists
+function generateSeriesView() {
+    const seriesView = document.getElementById('seriesView');
+    if (!seriesView) return;
+
+    // Find all multi-part stories and group them
+    const seriesGroups = {};
+    
+    Object.keys(storyDatabase).forEach(filename => {
+        const story = storyDatabase[filename];
+        if (story.partOf) {
+            const seriesName = story.partOf;
+            if (!seriesGroups[seriesName]) {
+                seriesGroups[seriesName] = [];
+            }
+            seriesGroups[seriesName].push({
+                filename: filename,
+                partNumber: story.partNumber,
+                name: story.name,
+                description: story.description,
+                category: story.category,
+                readingTime: story.readingTime
+            });
+        }
+    });
+
+    // Sort parts within each series
+    Object.keys(seriesGroups).forEach(seriesName => {
+        seriesGroups[seriesName].sort((a, b) => a.partNumber - b.partNumber);
+    });
+
+    // Generate HTML for series cards
+    let seriesHTML = '';
+    
+    Object.keys(seriesGroups).forEach(seriesName => {
+        const parts = seriesGroups[seriesName];
+        const totalParts = parts.length;
+        const firstPart = parts[0];
+        
+        // Calculate total reading time
+        const totalReadingTime = parts.reduce((sum, part) => sum + (part.readingTime || 0), 0);
+        
+        seriesHTML += `
+            <div class="series-card">
+                <div class="series-header">
+                    <div class="series-icon">
+                        <i class="fas fa-list-ol"></i>
+                    </div>
+                    <div class="series-info">
+                        <h3 class="series-title">${seriesName}</h3>
+                        <p class="series-meta english-text">${totalParts} Parts • ${totalReadingTime} min total</p>
+                    </div>
+                </div>
+                <div class="series-parts-list">
+                    ${parts.map(part => `
+                        <div class="series-part-item" onclick="loadStoryFromCard('${part.filename}')">
+                            <div class="part-number">
+                                <span>${part.partNumber}</span>
+                            </div>
+                            <div class="part-info">
+                                <div class="part-name">${part.name}</div>
+                                <div class="part-meta english-text">
+                                    ${part.category || 'Story'} • ${part.readingTime || 0} min read
+                                </div>
+                            </div>
+                            <div class="part-play-icon">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    if (seriesHTML) {
+        seriesView.innerHTML = seriesHTML;
+        showNotification(`Found ${Object.keys(seriesGroups).length} series`, 'info', 2000);
+    } else {
+        seriesView.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 2rem;">No multi-part series found</p>';
+    }
+}
+
+window.generateSeriesView = generateSeriesView;
 
 // Table of Contents Feature
 var storyTOC = [];
@@ -1022,45 +1093,13 @@ function openAnalyticsDashboard() {
 }
 
 function updateAnalyticsDisplay() {
-    // Calculate total reading time from storyReadingTime data
-    const totalSeconds = getTotalReadingTime();
-    const totalMinutes = Math.floor(totalSeconds / 60);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    
-    // Update total reading time display if element exists
-    const totalTimeElement = document.getElementById('totalReadingTime');
-    if (totalTimeElement) {
-        totalTimeElement.textContent = `${hours}h ${minutes}m`;
-    }
-    
-    // Calculate reading speed
-    const avgSpeed = calculateAverageReadingSpeed();
-    const avgSpeedElement = document.getElementById('avgReadingSpeed');
-    if (avgSpeedElement) {
-        avgSpeedElement.textContent = avgSpeed;
-    }
-
-    // Calculate average session time
-    const avgSession = calculateAverageSessionTime();
-    const avgSessionElement = document.getElementById('avgSessionTime');
-    if (avgSessionElement) {
-        avgSessionElement.textContent = avgSession;
-    }
-
-    // Calculate completion rate
-    const completionRate = calculateCompletionRate();
-    const completionRateElement = document.getElementById('completionRate');
-    if (completionRateElement) {
-        completionRateElement.textContent = completionRate + '%';
-    }
-
-    // Update all new sections
+    // Update all sections
     updateFavoriteStoriesList();
     updateRecentlyReadList();
     updateRecentlyPlayedList();
     updateReadingTimeList();
     updateActivityTimeline();
+    updateNotificationHistoryList();
 }
 
 function getTotalReadingTime() {
@@ -1087,7 +1126,7 @@ function calculateAverageSessionTime() {
     for (const filename in storyReadingTime) {
         totalSessions += storyReadingTime[filename].sessions || 0;
     }
-    
+
     if (totalSessions === 0) return '0m';
     const totalSeconds = getTotalReadingTime();
     const avgMinutes = Math.round(totalSeconds / 60 / totalSessions);
@@ -1159,13 +1198,114 @@ function trackAnalyticsEvent(action, details = {}) {
     localStorage.setItem('golpoAnalytics', JSON.stringify(analyticsData));
 }
 
+function trackNotification(message, type, subtitle = '') {
+    const notification = {
+        message: message,
+        type: type,
+        subtitle: subtitle,
+        timestamp: Date.now()
+    };
+
+    notificationHistory.unshift(notification);
+
+    if (notificationHistory.length > 20) {
+        notificationHistory = notificationHistory.slice(0, 20);
+    }
+
+    localStorage.setItem('golpoNotificationHistory', JSON.stringify(notificationHistory));
+}
+
+function updateNotificationHistoryList() {
+    const container = document.getElementById('notificationHistoryList');
+    if (!container) return;
+
+    if (notificationHistory.length === 0) {
+        container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No notifications yet</p>';
+        return;
+    }
+
+    const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-triangle',
+        warning: 'fa-exclamation-circle',
+        info: 'fa-info-circle',
+        music: 'fa-music'
+    };
+
+    container.innerHTML = notificationHistory.slice(0, 10).map(item => {
+        const icon = iconMap[item.type] || 'fa-bell';
+        return `
+            <div class="analytics-list-item notification-item-${item.type}">
+                <div class="list-item-icon"><i class="fas ${icon}"></i></div>
+                <div class="list-item-content">
+                    <div class="list-item-title">${item.message}</div>
+                    <div class="list-item-meta">${item.subtitle ? item.subtitle + ' • ' : ''}${formatTimestamp(item.timestamp)}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Favorites Menu Functions
+function openFavoritesMenu() {
+    const modal = document.getElementById('favoritesModal');
+    if (modal) {
+        modal.classList.add('active');
+        updateFavoritesMenuList();
+        showNotification('⭐ Favorites Menu', 'success', 2000);
+    }
+}
+
+function closeFavoritesMenu() {
+    const modal = document.getElementById('favoritesModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function updateFavoritesMenuList() {
+    const container = document.getElementById('favoritesMenuList');
+    if (!container) return;
+
+    if (favoriteStories.length === 0) {
+        container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 2rem;">No favorite stories yet. Mark stories as favorite to see them here!</p>';
+        return;
+    }
+
+    container.innerHTML = favoriteStories.map(filename => {
+        const story = getStoryMetadata(filename);
+        return `
+            <div class="analytics-list-item" onclick="loadStoryFromFavoritesMenu('${filename}')">
+                <div class="list-item-icon"><i class="fas fa-star" style="color: #F59E0B;"></i></div>
+                <div class="list-item-content">
+                    <div class="list-item-title">${story.name}</div>
+                    <div class="list-item-meta">${story.category || 'Story'} • ${story.readingTime > 0 ? story.readingTime + ' min read' : ''}</div>
+                </div>
+                <button class="list-item-action" onclick="event.stopPropagation(); toggleFavoriteStory('${filename}')" title="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+function loadStoryFromFavoritesMenu(filename) {
+    closeFavoritesMenu();
+    loadStoryFromCard(filename);
+}
+
 // Export to global scope
 window.openAnalyticsDashboard = openAnalyticsDashboard;
+window.openFavoritesMenu = openFavoritesMenu;
+window.closeFavoritesMenu = closeFavoritesMenu;
+window.loadStoryFromFavoritesMenu = loadStoryFromFavoritesMenu;
+window.trackNotification = trackNotification;
 
 // Favorite Stories Management
 var favoriteStories = [];
 var recentlyReadStories = [];
 var recentlyPlayedSongs = [];
+var notificationHistory = [];
 var storyReadingTime = {};
 var currentStoryStartTime = null;
 
@@ -1205,6 +1345,15 @@ function initializeFavoritesData() {
             storyReadingTime = {};
         }
     }
+
+    const savedNotifications = localStorage.getItem('golpoNotificationHistory');
+    if (savedNotifications) {
+        try {
+            notificationHistory = JSON.parse(savedNotifications);
+        } catch (e) {
+            notificationHistory = [];
+        }
+    }
 }
 
 function isStoryFavorite(filename) {
@@ -1222,11 +1371,11 @@ function toggleFavoriteStory(filename) {
         showNotification('Added to favorites!', 'success', 1500);
         trackAnalyticsEvent('Added favorite story: ' + getStoryDisplayName(filename));
     }
-    
+
     localStorage.setItem('golpoFavorites', JSON.stringify(favoriteStories));
-    
+
     updateFavoriteButtons(filename);
-    
+
     if (document.getElementById('analyticsModal').classList.contains('active')) {
         updateAnalyticsDisplay();
     }
@@ -1240,7 +1389,7 @@ function toggleCurrentStoryFavorite() {
 
 function updateFavoriteButtons(filename) {
     const isFavorite = isStoryFavorite(filename);
-    
+
     const readerBtn = document.getElementById('favoriteBtn');
     if (readerBtn && currentStory === filename) {
         if (isFavorite) {
@@ -1251,7 +1400,7 @@ function updateFavoriteButtons(filename) {
             readerBtn.title = 'Add to favorites';
         }
     }
-    
+
     const cardBtns = document.querySelectorAll(`.story-card[data-story="${filename}"] .favorite-btn`);
     cardBtns.forEach(btn => {
         if (isFavorite) {
@@ -1271,7 +1420,7 @@ function shareStory(filename) {
 function shareCurrentStoryByFilename(filename) {
     const storyData = getStoryMetadata(filename);
     const storyUrl = window.location.origin + window.location.pathname + '?story=' + filename;
-    
+
     if (navigator.share) {
         navigator.share({
             title: storyData.name,
@@ -1295,22 +1444,22 @@ function shareCurrentStoryByFilename(filename) {
 function trackRecentlyRead(filename) {
     const story = getStoryMetadata(filename);
     if (story.status === 'upcoming') return;
-    
+
     const existingIndex = recentlyReadStories.findIndex(item => item.filename === filename);
     if (existingIndex > -1) {
         recentlyReadStories.splice(existingIndex, 1);
     }
-    
+
     recentlyReadStories.unshift({
         filename: filename,
         name: story.name,
         timestamp: Date.now()
     });
-    
+
     if (recentlyReadStories.length > 10) {
         recentlyReadStories = recentlyReadStories.slice(0, 10);
     }
-    
+
     localStorage.setItem('golpoRecentlyRead', JSON.stringify(recentlyReadStories));
 }
 
@@ -1319,17 +1468,17 @@ function trackRecentlyPlayedSong(songTitle, songArtist) {
     if (existingIndex > -1) {
         recentlyPlayedSongs.splice(existingIndex, 1);
     }
-    
+
     recentlyPlayedSongs.unshift({
         title: songTitle,
         artist: songArtist,
         timestamp: Date.now()
     });
-    
+
     if (recentlyPlayedSongs.length > 10) {
         recentlyPlayedSongs = recentlyPlayedSongs.slice(0, 10);
     }
-    
+
     localStorage.setItem('golpoRecentlySongs', JSON.stringify(recentlyPlayedSongs));
 }
 
@@ -1340,7 +1489,7 @@ function startReadingTimer(filename) {
 function stopReadingTimer(filename) {
     if (currentStoryStartTime && filename) {
         const readingDuration = Math.round((Date.now() - currentStoryStartTime) / 1000);
-        
+
         if (!storyReadingTime[filename]) {
             storyReadingTime[filename] = {
                 totalSeconds: 0,
@@ -1348,10 +1497,10 @@ function stopReadingTimer(filename) {
                 name: getStoryDisplayName(filename)
             };
         }
-        
+
         storyReadingTime[filename].totalSeconds += readingDuration;
         storyReadingTime[filename].sessions += 1;
-        
+
         localStorage.setItem('golpoReadingTime', JSON.stringify(storyReadingTime));
         currentStoryStartTime = null;
     }
@@ -1360,12 +1509,12 @@ function stopReadingTimer(filename) {
 function updateFavoriteStoriesList() {
     const container = document.getElementById('favoriteStoriesList');
     if (!container) return;
-    
+
     if (favoriteStories.length === 0) {
         container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No favorite stories yet. Mark stories as favorite to see them here!</p>';
         return;
     }
-    
+
     container.innerHTML = favoriteStories.map(filename => {
         const story = getStoryMetadata(filename);
         return `
@@ -1381,17 +1530,20 @@ function updateFavoriteStoriesList() {
             </div>
         `;
     }).join('');
+    
+    // Also update favorites menu if it exists
+    updateFavoritesMenuList();
 }
 
 function updateRecentlyReadList() {
     const container = document.getElementById('recentlyReadList');
     if (!container) return;
-    
+
     if (recentlyReadStories.length === 0) {
         container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No recent reading activity</p>';
         return;
     }
-    
+
     container.innerHTML = recentlyReadStories.slice(0, 5).map(item => {
         return `
             <div class="analytics-list-item" onclick="loadStoryFromFavorites('${item.filename}')">
@@ -1408,12 +1560,12 @@ function updateRecentlyReadList() {
 function updateRecentlyPlayedList() {
     const container = document.getElementById('recentlyPlayedList');
     if (!container) return;
-    
+
     if (recentlyPlayedSongs.length === 0) {
         container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No songs played yet</p>';
         return;
     }
-    
+
     container.innerHTML = recentlyPlayedSongs.slice(0, 5).map(item => {
         return `
             <div class="analytics-list-item">
@@ -1430,24 +1582,24 @@ function updateRecentlyPlayedList() {
 function updateReadingTimeList() {
     const container = document.getElementById('readingTimeList');
     if (!container) return;
-    
+
     const stories = Object.keys(storyReadingTime);
     if (stories.length === 0) {
         container.innerHTML = '<p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">Start reading to track your time!</p>';
         return;
     }
-    
+
     const sortedStories = stories.sort((a, b) => 
         storyReadingTime[b].totalSeconds - storyReadingTime[a].totalSeconds
     );
-    
+
     container.innerHTML = sortedStories.slice(0, 10).map(filename => {
         const data = storyReadingTime[filename];
         const minutes = Math.floor(data.totalSeconds / 60);
         const hours = Math.floor(minutes / 60);
         const remainingMins = minutes % 60;
         const timeStr = hours > 0 ? `${hours}h ${remainingMins}m` : `${minutes}m`;
-        
+
         return `
             <div class="analytics-list-item">
                 <div class="list-item-icon"><i class="fas fa-clock"></i></div>
@@ -1487,130 +1639,174 @@ function updateReaderCoverImage(filename) {
         }
 
         readerCoverImage.alt = storyData.name + ' - Story Photo';
-        
+
         // Update next part preview
         updateNextPartPreview(filename);
     }
 }
 
-// PWA Install Prompt
+// Mobile detection
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+           (window.innerWidth <= 768);
+}
+
+// PWA Install
 var deferredPrompt = null;
 var installButton = null;
 
 function initializePWAInstall() {
-    console.log('Initializing PWA install functionality...');
-    
-    // Create install button
     createInstallButton();
-    
-    // Listen for beforeinstallprompt event
+
+    // Listen for beforeinstallprompt event (Chrome, Edge on Android/Desktop)
     window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('beforeinstallprompt event fired - PWA is installable');
-        // Prevent the mini-infobar from appearing on mobile
         e.preventDefault();
-        // Stash the event so it can be triggered later
         deferredPrompt = e;
-        // Show install button
-        showInstallButton();
+        console.log('PWA install prompt available');
+        // Button is already visible, just update internal state
     });
-    
+
     // Listen for successful installation
     window.addEventListener('appinstalled', () => {
-        console.log('PWA installed successfully');
         hideInstallButton();
-        showNotification('✓ Golpo installed successfully!', 'success', 3000);
+        showNotification('✓ App installed!', 'success', 2000);
         deferredPrompt = null;
     });
-    
-    // Check if already installed or running as PWA
+
+    // Hide button only if app is already installed/running in standalone mode
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-        console.log('App is already installed or running in standalone mode');
         hideInstallButton();
     } else {
-        console.log('App not installed yet - waiting for beforeinstallprompt event');
+        // Show button by default for all platforms
+        showInstallButton();
     }
 }
 
 function createInstallButton() {
-    // Create install button container
     installButton = document.createElement('button');
     installButton.id = 'pwaInstallBtn';
     installButton.className = 'pwa-install-btn';
-    installButton.innerHTML = `
-        <i class="fas fa-download"></i>
-        <span>Install App</span>
-    `;
+    installButton.innerHTML = '<i class="fas fa-download"></i><span>Install App</span>';
     installButton.style.display = 'none';
     installButton.onclick = promptInstall;
-    
-    // Add to footer
+
     const footer = document.querySelector('.footer-content');
-    if (footer) {
-        footer.appendChild(installButton);
-    }
+    if (footer) footer.appendChild(installButton);
 }
 
 function showInstallButton() {
-    if (installButton) {
-        installButton.style.display = 'flex';
-        installButton.style.animation = 'slideInUp 0.5s ease-out';
-    }
+    if (installButton) installButton.style.display = 'flex';
 }
 
 function hideInstallButton() {
-    if (installButton) {
-        installButton.style.display = 'none';
+    if (installButton) installButton.style.display = 'none';
+}
+
+function detectPlatform() {
+    const ua = navigator.userAgent.toLowerCase();
+
+    if (/iphone|ipad|ipod/.test(ua)) {
+        return 'ios';
+    } else if (/android/.test(ua)) {
+        return 'android';
+    } else if (/mac/.test(ua) && navigator.maxTouchPoints > 1) {
+        return 'ios'; // iPad with desktop mode
+    } else {
+        return 'desktop';
     }
 }
 
-async function promptInstall() {
-    if (!deferredPrompt) {
-        showNotification('App is already installed or not supported', 'info', 2000);
-        return;
-    }
-    
-    // Show the install prompt
-    deferredPrompt.prompt();
-    
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-        showNotification('Installing Golpo...', 'success', 2000);
+function showInstallInstructions() {
+    const platform = detectPlatform();
+    let instructions = '';
+
+    if (platform === 'ios') {
+        instructions = `
+            <div class="install-instructions">
+                <h3>Install Golpo on iOS</h3>
+                <ol>
+                    <li>Tap the Share button <i class="fas fa-share"></i> at the bottom</li>
+                    <li>Scroll down and tap "Add to Home Screen" <i class="fas fa-plus-square"></i></li>
+                    <li>Tap "Add" to install</li>
+                </ol>
+            </div>
+        `;
+    } else if (platform === 'android') {
+        instructions = `
+            <div class="install-instructions">
+                <h3>Install Golpo on Android</h3>
+                <ol>
+                    <li>Tap the menu button <i class="fas fa-ellipsis-v"></i> (three dots)</li>
+                    <li>Select "Install app" or "Add to Home screen"</li>
+                    <li>Follow the prompts to install</li>
+                </ol>
+            </div>
+        `;
     } else {
-        showNotification('Installation cancelled', 'info', 2000);
+        instructions = `
+            <div class="install-instructions">
+                <h3>Install Golpo</h3>
+                <ol>
+                    <li>Click the install icon <i class="fas fa-download"></i> in your browser's address bar</li>
+                    <li>Or open your browser menu and select "Install Golpo"</li>
+                    <li>Follow the prompts to install</li>
+                </ol>
+            </div>
+        `;
     }
-    
-    // Clear the deferredPrompt
-    deferredPrompt = null;
-    hideInstallButton();
+
+    showNotification(instructions, 'info', 8000);
+}
+
+async function promptInstall() {
+    // If beforeinstallprompt is available, use native prompt
+    if (deferredPrompt) {
+        try {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+
+            if (outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            } else {
+                console.log('User dismissed the install prompt');
+            }
+
+            deferredPrompt = null;
+        } catch (error) {
+            console.error('Error showing install prompt:', error);
+            showInstallInstructions();
+        }
+    } else {
+        // Fallback: Show platform-specific instructions
+        showInstallInstructions();
+    }
 }
 
 function updateNextPartPreview(currentFilename) {
     const nextPartPreview = document.getElementById('nextPartPreview');
     const nextPartCoverImage = document.getElementById('nextPartCoverImage');
     const nextPartBtn = document.getElementById('nextPartBtn');
-    
+
     if (!nextPartPreview || !nextPartCoverImage || !nextPartBtn) return;
-    
+
     const currentStoryData = getStoryMetadata(currentFilename);
-    
+
     // Check if this story has a next part
     if (currentStoryData.nextPart) {
         const nextStoryData = getStoryMetadata(currentStoryData.nextPart);
         const nextReadingImage = getReadingImageForStory(nextStoryData.id);
-        
+
         // Show preview
         nextPartPreview.style.display = 'flex';
         nextPartCoverImage.src = nextReadingImage || defaultImages.reading;
         nextPartCoverImage.alt = nextStoryData.name + ' - Next Part';
-        
+
         // Update button text
         const btnText = nextPartBtn.querySelector('span');
         if (btnText) {
             btnText.textContent = `Part ${nextStoryData.partNumber}`;
         }
-        
+
         // Store next part filename for navigation
         nextPartBtn.setAttribute('data-next-part', currentStoryData.nextPart);
     } else {
@@ -1622,7 +1818,7 @@ function updateNextPartPreview(currentFilename) {
 function loadNextPart() {
     const nextPartBtn = document.getElementById('nextPartBtn');
     if (!nextPartBtn) return;
-    
+
     const nextPartFile = nextPartBtn.getAttribute('data-next-part');
     if (nextPartFile) {
         loadStoryFromCard(nextPartFile);
@@ -1762,6 +1958,7 @@ function initializeApp() {
 
     // Initialize story grid from HTML data attributes
     initializeStoryGrid();
+
 
     // Initialize music system (generate playlist and start autoplay)
     initializeMusicSystem();
@@ -1984,7 +2181,7 @@ function addStoryNavigationButtons() {
 
     // Get current story metadata
     const currentMetadata = getStoryMetadata(currentStory);
-    
+
     // Create story navigation container
     const storyNavContainer = document.createElement('div');
     storyNavContainer.className = 'story-navigation-container';
@@ -2164,13 +2361,13 @@ function initializeCursorEffects() {
     // Track mouse movement for glow and particles
     let lastParticleTime = 0;
     const particleInterval = 50; // Create particle every 50ms during movement
-    
+
     document.addEventListener('mousemove', (e) => {
         if (cursorGlow) {
             cursorGlow.style.left = e.clientX + 'px';
             cursorGlow.style.top = e.clientY + 'px';
         }
-        
+
         // Create particle trail with consistent timing
         const now = Date.now();
         if (now - lastParticleTime > particleInterval) {
@@ -2195,25 +2392,25 @@ function initializeCursorEffects() {
 function createCursorParticle(x, y, isBurst = false) {
     const particle = document.createElement('div');
     particle.className = 'cursor-particle';
-    
+
     // Random movement direction
     const angle = isBurst ? (Math.random() * Math.PI * 2) : (Math.random() * Math.PI * 2);
     const distance = isBurst ? (30 + Math.random() * 40) : (10 + Math.random() * 20);
     const tx = Math.cos(angle) * distance;
     const ty = Math.sin(angle) * distance;
-    
+
     particle.style.left = x + 'px';
     particle.style.top = y + 'px';
     particle.style.setProperty('--tx', tx + 'px');
     particle.style.setProperty('--ty', ty + 'px');
-    
+
     // Random size variation
     const size = isBurst ? (6 + Math.random() * 8) : (4 + Math.random() * 6);
     particle.style.width = size + 'px';
     particle.style.height = size + 'px';
-    
+
     document.body.appendChild(particle);
-    
+
     // Remove after animation
     setTimeout(() => {
         if (particle.parentNode) {
@@ -2228,9 +2425,9 @@ function createClickRipple(x, y) {
     ripple.className = 'click-ripple';
     ripple.style.left = (x - 50) + 'px';
     ripple.style.top = (y - 50) + 'px';
-    
+
     document.body.appendChild(ripple);
-    
+
     // Remove after animation
     setTimeout(() => {
         if (ripple.parentNode) {
@@ -2299,6 +2496,16 @@ function setupEventListeners() {
         });
     }
 
+    // Favorites menu modal events
+    const closeFavoritesModal = document.getElementById('closeFavoritesModal');
+    const favoritesModalOverlay = document.getElementById('favoritesModalOverlay');
+    if (closeFavoritesModal) {
+        closeFavoritesModal.addEventListener('click', closeFavoritesMenu);
+    }
+    if (favoritesModalOverlay) {
+        favoritesModalOverlay.addEventListener('click', closeFavoritesMenu);
+    }
+
     // Story and music card clicks
     setupCardListeners();
 
@@ -2354,7 +2561,7 @@ function setupEventListeners() {
             e.stopPropagation();
         });
     }
-    
+
     // Add scroll listener to detect user manual scrolling
     window.addEventListener('scroll', handleUserScroll, { passive: true });
 
@@ -2410,14 +2617,14 @@ function setupEventListeners() {
 function displayStory(filename, content) {
     // Stop previous reading timer if any
     stopReadingTimer(currentStory);
-    
+
     // Save reading session
     saveReadingSession(filename, window.pageYOffset);
-    
+
     // Track recently read and start new timer
     trackRecentlyRead(filename);
     startReadingTimer(filename);
-    
+
     // Get story metadata and update title and logo text
     var storyMetadata = getStoryMetadata(filename);
     var storyName = storyMetadata.name;
@@ -2427,7 +2634,7 @@ function displayStory(filename, content) {
     // Update reader view elements
     const readerStoryTitle = document.getElementById('readerStoryTitle');
     const readerAuthor = document.getElementById('readerAuthor');
-    
+
     // Update favorite button state
     updateFavoriteButtons(filename);
 
@@ -2446,8 +2653,20 @@ function displayStory(filename, content) {
         `;
     }
 
-    // Update browser title only - keep logo text as "Golpo"
+    // Update browser title
     document.title = storyName + ' by ' + writerName;
+    
+    // Update logo text to show current story name
+    const logoText = document.querySelector('.logo-text');
+    if (logoText) {
+        logoText.textContent = storyName;
+        // Apply Bangla font if not upcoming story
+        if (filename !== 'upcoming.txt') {
+            logoText.style.fontFamily = "'BanglaFont', 'Noto Sans Bengali', sans-serif";
+        } else {
+            logoText.style.fontFamily = "'EnglishFont', sans-serif";
+        }
+    }
 
     // Update story details (reading time, word count)
     updateStoryDetails(filename, content);
@@ -2596,30 +2815,38 @@ function initializeStoryGrid() {
     } else {
         // Automatically load all stories from database
         let cardsHTML = '';
-        
+
         // Get all story filenames from database
         const allStories = Object.keys(storyDatabase);
-        
+
         // Sort stories: available stories first, then upcoming
         const sortedStories = allStories.sort((a, b) => {
             const storyA = storyDatabase[a];
             const storyB = storyDatabase[b];
-            
+
             // Upcoming stories go last
             if (storyA.status === 'upcoming' && storyB.status !== 'upcoming') return 1;
             if (storyA.status !== 'upcoming' && storyB.status === 'upcoming') return -1;
-            
+
             // Otherwise maintain order from JSON
             return 0;
         });
-        
+
         sortedStories.forEach(filename => {
             cardsHTML += createStoryCardHTML(filename);
         });
-        
+
         storyGrid.innerHTML = cardsHTML;
-        
+
         console.log(`Auto-loaded ${sortedStories.length} stories from database`);
+    }
+
+    // Re-initialize scroll animations and card hover effects for newly added story cards
+    if (window.initScrollAnimations) {
+        window.initScrollAnimations();
+    }
+    if (window.initCardHoverEffects) {
+        window.initCardHoverEffects();
     }
 }
 
@@ -3904,38 +4131,38 @@ function startAutoScroll() {
     isAutoScrolling = true;
     autoScrollBtn.classList.add('active');
     autoScrollControls.style.display = 'block';
-    
+
     // Show notification
     showNotification('▶️ Auto scroll started', 'success');
-    
+
     // Calculate scroll amount based on speed (1-10)
     // Speed 1 = 0.5px per 50ms, Speed 10 = 5px per 50ms
     const scrollAmount = autoScrollSpeed * 0.5;
-    
+
     // Clear any existing interval
     if (autoScrollInterval) {
         clearInterval(autoScrollInterval);
     }
-    
+
     // Start scrolling
     autoScrollInterval = setInterval(() => {
         if (!isAutoScrolling) {
             clearInterval(autoScrollInterval);
             return;
         }
-        
+
         // Check if we've reached the bottom
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         const scrollHeight = document.documentElement.scrollHeight;
         const clientHeight = document.documentElement.clientHeight;
-        
+
         if (scrollTop + clientHeight >= scrollHeight - 10) {
             // Reached bottom, stop auto scrolling
             stopAutoScroll();
             showNotification('✓ Reached end of page', 'info');
             return;
         }
-        
+
         // Scroll smoothly
         window.scrollBy({
             top: scrollAmount,
@@ -3947,29 +4174,29 @@ function startAutoScroll() {
 function stopAutoScroll() {
     isAutoScrolling = false;
     autoScrollBtn.classList.remove('active');
-    
+
     if (autoScrollInterval) {
         clearInterval(autoScrollInterval);
         autoScrollInterval = null;
     }
-    
+
     showNotification('⏸️ Auto scroll stopped', 'info');
 }
 
 function updateAutoScrollSpeed(event) {
     if (!scrollSpeedSlider) return;
-    
+
     // Prevent event from bubbling up
     if (event) {
         event.stopPropagation();
     }
-    
+
     const newSpeed = parseInt(scrollSpeedSlider.value);
     autoScrollSpeed = newSpeed;
-    
+
     // Show visual feedback
     showNotification(`Speed: ${newSpeed}`, 'info', 1500);
-    
+
     // If currently scrolling, restart with new speed
     if (isAutoScrolling) {
         stopAutoScroll();
@@ -3985,22 +4212,22 @@ var userScrollTimeout = null;
 
 function handleUserScroll() {
     if (!isAutoScrolling) return;
-    
+
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollDiff = Math.abs(scrollTop - lastScrollTop);
-    
+
     // If scroll difference is larger than what auto-scroll would do, user is manually scrolling
     if (scrollDiff > (autoScrollSpeed * 0.5) + 2) {
         // Pause auto scroll temporarily
         if (autoScrollInterval) {
             clearInterval(autoScrollInterval);
         }
-        
+
         // Clear existing timeout
         if (userScrollTimeout) {
             clearTimeout(userScrollTimeout);
         }
-        
+
         // Resume auto scroll after 2 seconds of no manual scrolling
         userScrollTimeout = setTimeout(() => {
             if (isAutoScrolling) {
@@ -4008,7 +4235,7 @@ function handleUserScroll() {
             }
         }, 2000);
     }
-    
+
     lastScrollTop = scrollTop;
 }
 
@@ -4279,7 +4506,7 @@ function clearSearch() {
 
     // Remove all search highlights from the story content
     clearPreviousHighlights();
-    
+
     // Show confirmation
     showNotification('🗑️ Search cleared', 'success', 2000);
 }
@@ -4362,7 +4589,7 @@ function shareCurrentStory() {
     // Create a URL with story parameter so it opens directly to the story
     const baseUrl = window.location.origin + window.location.pathname;
     const storyUrl = `${baseUrl}?story=${encodeURIComponent(story.id)}`;
-    
+
     const shareData = {
         title: `${story.name} - Golpo`,
         text: `Read "${story.name}" by ${story.writer} on Golpo - Bengali Story Platform`,
@@ -4401,7 +4628,7 @@ function copyShareLink(shareData) {
             textArea.select();
             const successful = document.execCommand('copy');
             textArea.remove();
-            
+
             if (successful) {
                 showNotification('Story link copied! 📋', 'success', 2500);
             } else {
@@ -4735,7 +4962,7 @@ async function initializeOfflineSupport() {
             // Register service worker with dynamic base path
             const swPath = BASE_PATH + 'sw.js';
             const swScope = BASE_PATH;
-            
+
             serviceWorkerRegistration = await navigator.serviceWorker.register(swPath, {
                 scope: swScope
             });
@@ -5144,6 +5371,18 @@ function showNotification(message, type = 'info', duration = 4000, options = {})
             }
         });
 
+        // Track analytics for certain notification types
+        if (typeof trackAnalyticsEvent === 'function') {
+            if (message.includes('Story shared') || message.includes('Story link copied')) {
+                trackAnalyticsEvent('Shared story');
+            }
+        }
+
+        // Track all notifications in history
+        if (typeof trackNotification === 'function') {
+            trackNotification(message, type, options.subtitle || '');
+        }
+
         return notificationId;
 
     } catch (error) {
@@ -5545,23 +5784,23 @@ function animateViewTransition(exitView, enterView, callback) {
     }
 
     exitView.classList.add('view-exit');
-    
+
     const handleAnimationEnd = () => {
         exitView.style.display = 'none';
         exitView.classList.remove('view-exit');
         enterView.style.display = 'block';
         enterView.classList.add('view-enter');
-        
+
         const handleEnterEnd = () => {
             enterView.classList.remove('view-enter');
             enterView.removeEventListener('animationend', handleEnterEnd);
             if (callback) callback();
         };
-        
+
         enterView.addEventListener('animationend', handleEnterEnd, { once: true });
         exitView.removeEventListener('animationend', handleAnimationEnd);
     };
-    
+
     exitView.addEventListener('animationend', handleAnimationEnd, { once: true });
 }
 
@@ -5572,13 +5811,13 @@ const originalReturnToLibrary = window.returnToLibrary || returnToLibrary;
 window.showReaderView = function() {
     const libraryView = document.getElementById('libraryView');
     const readerView = document.getElementById('readerView');
-    
+
     if (libraryView && readerView) {
         animateViewTransition(libraryView, readerView, () => {
             if (typeof originalShowReaderView === 'function') {
                 const tempDisplay = readerView.style.display;
                 readerView.style.display = tempDisplay;
-                
+
                 if (progressContainer) {
                     progressContainer.style.display = 'flex';
                     progressContainer.style.visibility = 'visible';
@@ -5595,7 +5834,7 @@ window.showReaderView = function() {
                     if (footer) footer.style.opacity = '0';
                 }
             }
-            
+
             initializeTextRevealAnimation();
         });
     } else if (typeof originalShowReaderView === 'function') {
@@ -5607,13 +5846,13 @@ window.showReaderView = function() {
 window.returnToLibrary = function() {
     const libraryView = document.getElementById('libraryView');
     const readerView = document.getElementById('readerView');
-    
+
     if (libraryView && readerView) {
         animateViewTransition(readerView, libraryView, () => {
             if (typeof originalReturnToLibrary === 'function') {
                 const tempDisplay = libraryView.style.display;
                 libraryView.style.display = tempDisplay;
-                
+
                 if (progressContainer) {
                     progressContainer.style.display = 'none';
                     progressContainer.style.visibility = 'hidden';
@@ -5625,12 +5864,12 @@ window.returnToLibrary = function() {
                     readingControlsDropdown.style.opacity = '0';
                     readingControlsDropdown.classList.remove('active');
                 }
-                
+
                 document.querySelector('.nav-container').style.opacity = '1';
                 const footer = document.querySelector('.footer');
                 if (footer) footer.style.opacity = '1';
             }
-            
+
             animateHeroSection();
             initializeStoryCardAnimations();
         });
@@ -5676,7 +5915,7 @@ function animateHeroSection() {
     const heroSection = document.querySelector('.hero-section');
     if (heroSection) {
         heroSection.classList.remove('hero-animate');
-        
+
         setTimeout(() => {
             heroSection.classList.add('hero-animate');
         }, 50);
@@ -5699,7 +5938,7 @@ function initializeParallax() {
 
         const moveX = (mouseX - window.innerWidth / 2) * 0.01;
         const moveY = (mouseY - window.innerHeight / 2) * 0.01;
-        
+
         heroSection.style.transform = `translate(${moveX}px, ${moveY}px)`;
         rafId = null;
     }
@@ -5725,7 +5964,7 @@ function initializeTextRevealAnimation() {
     paragraphs.forEach((p, index) => {
         p.style.opacity = '0';
         p.style.transform = 'translateY(20px)';
-        
+
         setTimeout(() => {
             p.classList.add('paragraph-reveal');
         }, index * 50);
@@ -5738,7 +5977,7 @@ const originalDisplayPage = window.displayPage || displayPage;
 window.displayPage = function(pageNumber) {
     if (typeof originalDisplayPage === 'function') {
         originalDisplayPage(pageNumber);
-        
+
         setTimeout(() => {
             initializeTextRevealAnimation();
         }, 100);
@@ -5753,7 +5992,7 @@ function initializeAllAnimations() {
         initializeRippleEffects();
         animateHeroSection();
         initializeParallax();
-        
+
         const readerView = document.getElementById('readerView');
         if (readerView && readerView.style.display !== 'none') {
             initializeTextRevealAnimation();
@@ -5762,24 +6001,16 @@ function initializeAllAnimations() {
         window.addEventListener('resize', debounce(() => {
             parallaxActive = window.innerWidth > 768;
         }, 250));
-        
+
     } catch (error) {
         console.error('Animation initialization error:', error);
     }
 }
 
-// Auto-initialize after DOM is ready and startup is dismissed
-const originalDismissStartupScreen = window.dismissStartupScreen || dismissStartupScreen;
-
-window.dismissStartupScreen = function(e) {
-    if (typeof originalDismissStartupScreen === 'function') {
-        originalDismissStartupScreen(e);
-    }
-    
-    setTimeout(() => {
-        initializeAllAnimations();
-    }, 500);
-};
+// Auto-initialize animations after a short delay
+setTimeout(() => {
+    initializeAllAnimations();
+}, 500);
 
 // Also initialize on story grid updates
 const originalObserver = window.MutationObserver;

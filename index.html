@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  PWA BASE PATH CONFIGURATION:
+  BASE PATH CONFIGURATION:
   Set data-base-path to your deployment path!
   - Root deployment: data-base-path="/"
   - GitHub Pages repo: data-base-path="/repo-name/"
@@ -29,15 +29,15 @@
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Favicon for all browsers -->
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/logo.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="assets/logo.png">
-  <link rel="shortcut icon" href="assets/logo.png">
+  <!-- Favicon - Static fallback -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/logo.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/logo.png">
+  <link rel="shortcut icon" href="/assets/logo.png">
   
   <!-- Advanced Animation Libraries -->
   <link rel="stylesheet" href="animations.css">
   
-  <!-- PWA Base Path Detection & Dynamic Manifest Loading -->
+  <!-- Base Path Detection & Dynamic Icon/Manifest Loading -->
   <!--
     DEPLOYMENT NOTES:
     - For root deployment: Deploy to domain root, app works at /
@@ -73,76 +73,66 @@
       }
       
       const basePath = getBasePath();
-      const manifestPath = basePath + 'manifest.json';
       
-      // Set manifest link dynamically
+      // Set manifest link for mobile PWA
       const manifestLink = document.createElement('link');
       manifestLink.rel = 'manifest';
-      manifestLink.href = manifestPath;
+      manifestLink.href = basePath + 'manifest.json';
       document.head.appendChild(manifestLink);
       
-      // Set Apple touch icons dynamically
-      const appleTouchIcon = document.createElement('link');
-      appleTouchIcon.rel = 'apple-touch-icon';
-      appleTouchIcon.href = basePath + 'assets/logo.png';
-      document.head.appendChild(appleTouchIcon);
+      // Set favicon dynamically for all browsers (with leading slash)
+      const favicon32 = document.createElement('link');
+      favicon32.rel = 'icon';
+      favicon32.type = 'image/png';
+      favicon32.sizes = '32x32';
+      favicon32.href = '/assets/logo.png';
+      document.head.appendChild(favicon32);
       
-      // Add Apple splash screens for different device sizes
-      const splashScreens = [
-        { media: '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)', size: '1290x2796' },
-        { media: '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)', size: '1179x2556' },
-        { media: '(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)', size: '1284x2778' },
-        { media: '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)', size: '1170x2532' },
-        { media: '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)', size: '1125x2436' },
-        { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)', size: '1242x2688' },
-        { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)', size: '828x1792' },
-        { media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)', size: '750x1334' }
-      ];
+      const favicon16 = document.createElement('link');
+      favicon16.rel = 'icon';
+      favicon16.type = 'image/png';
+      favicon16.sizes = '16x16';
+      favicon16.href = '/assets/logo.png';
+      document.head.appendChild(favicon16);
       
-      splashScreens.forEach(screen => {
-        const link = document.createElement('link');
-        link.rel = 'apple-touch-startup-image';
-        link.media = screen.media;
-        link.href = basePath + 'assets/logo.png';
-        document.head.appendChild(link);
-      });
+      const shortcutIcon = document.createElement('link');
+      shortcutIcon.rel = 'shortcut icon';
+      shortcutIcon.href = '/assets/logo.png';
+      document.head.appendChild(shortcutIcon);
     })();
   </script>
   <meta name="theme-color" content="#000000">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Golpo">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="Golpo">
+  <link rel="apple-touch-icon" href="assets/logo.png">
 </head>
 
 <body data-theme="dark">
-  <!-- Startup/Splash Screen -->
-  <div id="startupScreen" class="startup-screen">
-    <div class="startup-background"></div>
-    <div class="startup-content">
-      <div class="startup-logo">
-        <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="startup-logo-img" loading="lazy"
-          onerror="this.src='assets/logo.png'">
+  <!-- Startup Splash Screen -->
+  <div class="splash-screen" id="splashScreen">
+    <div class="splash-content">
+      <div class="splash-logo-container">
+        <img src="assets/logo.png" alt="Golpo Logo" class="splash-logo" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
+        <div class="splash-glow"></div>
       </div>
-      <div class="startup-app-name">
-        <h1 class="hero-title">GOLPO</h1>
-      </div>
-      <div class="startup-credits">
-        <p>Made by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</p>
-      </div>
-      <div class="startup-hint">
-        <p class="tap-hint">
-          Tap anywhere to continue
-        </p>
+      <h1 class="splash-title">Golpo</h1>
+      <p class="splash-subtitle">By ✿ㅤ"MʙɪㅤDᴀʀᴋ"</p>
+      <div class="tap-to-continue">
+        <i class="fas fa-hand-pointer"></i>
+        <span>Tap to Continue</span>
       </div>
     </div>
-    <div class="startup-particles">
-      <div class="startup-particle"></div>
-      <div class="startup-particle"></div>
-      <div class="startup-particle"></div>
-      <div class="startup-particle"></div>
-      <div class="startup-particle"></div>
+    <div class="splash-particles">
+      <div class="splash-particle"></div>
+      <div class="splash-particle"></div>
+      <div class="splash-particle"></div>
+      <div class="splash-particle"></div>
+      <div class="splash-particle"></div>
+      <div class="splash-particle"></div>
     </div>
   </div>
 
@@ -158,8 +148,8 @@
   <nav class="nav-container">
     <div class="nav-island">
       <div class="nav-left">
-        <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="logo" loading="lazy"
-          onerror="this.src='assets/logo.png'">
+        <img src="assets/logo.png" alt="MB Logo" class="logo" loading="lazy"
+          onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
         <span class="logo-text" id="logoText">Golpo</span>
       </div>
 
@@ -314,11 +304,20 @@
             <button class="category-filter-btn" data-category="Mystery" onclick="filterByCategory('Mystery')">
               <i class="fas fa-search"></i><span class="filter-text"> Mystery</span>
             </button>
+            <button class="category-filter-btn" data-category="series" onclick="filterByCategory('series')" title="Multi-Part Series">
+              <i class="fas fa-list-ol"></i><span class="filter-text"> Series</span>
+            </button>
+            <button class="category-filter-btn" id="favoritesNavBtn" data-category="favorites" onclick="filterByCategory('favorites')" title="Favorite Stories">
+              <i class="fas fa-star"></i><span class="filter-text"> Favorites</span>
+            </button>
           </div>
         </div>
 
         <div class="story-grid" id="storyGrid">
           <!-- Story cards will be automatically generated from stories.json -->
+        </div>
+        <div class="series-view" id="seriesView" style="display: none;">
+          <!-- Series cards will be generated here -->
         </div>
         <div class="no-stories-message" id="noStoriesMessage" style="display: none;">
           <div class="no-stories-icon">
@@ -331,6 +330,7 @@
 
       <!-- Footer Image Section -->
       <section class="footer-image-section">
+        <p class="secret-hint english-text">Tap footer logo for secret</p>
         <img src="https://i.postimg.cc/MTvjDs38/footer.gif" alt="Footer Animation" class="footer-animation" loading="lazy">
       </section>
     </div>
@@ -448,8 +448,8 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-left">
-        <img src="https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png" alt="MB Logo" class="footer-logo" loading="lazy"
-          onerror="this.src='assets/logo.png'">
+        <img src="assets/logo.png" alt="MB Logo" class="footer-logo" loading="lazy"
+          onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
         <p class="english-text">✿ㅤ"MʙɪㅤDᴀʀᴋ &copy; 2025 Golpo. All rights reserved.</p>
       </div>
 
@@ -534,26 +534,6 @@
     </div>
     <div class="analytics-dashboard" id="analyticsDashboard">
       <div class="analytics-section">
-        <h4 class="analytics-title english-text">Reading Behavior</h4>
-        <div class="analytics-grid">
-          <div class="analytics-card">
-            <div class="analytics-icon"><i class="fas fa-tachometer-alt"></i></div>
-            <div class="analytics-value" id="avgReadingSpeed">0</div>
-            <div class="analytics-label">Words/Min</div>
-          </div>
-          <div class="analytics-card">
-            <div class="analytics-icon"><i class="fas fa-hourglass-half"></i></div>
-            <div class="analytics-value" id="avgSessionTime">0</div>
-            <div class="analytics-label">Avg Session</div>
-          </div>
-          <div class="analytics-card">
-            <div class="analytics-icon"><i class="fas fa-chart-line"></i></div>
-            <div class="analytics-value" id="completionRate">0%</div>
-            <div class="analytics-label">Completion Rate</div>
-          </div>
-        </div>
-      </div>
-      <div class="analytics-section">
         <h4 class="analytics-title english-text"><i class="fas fa-star"></i> Favorite Stories</h4>
         <div class="favorite-stories-list" id="favoriteStoriesList">
           <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No favorite stories yet. Mark stories as favorite to see them here!</p>
@@ -583,6 +563,14 @@
           <p class="english-text" style="text-align: center; color: var(--text-muted);">Recent activity will appear here</p>
         </div>
       </div>
+      <div class="analytics-section">
+        <h4 class="analytics-title english-text"><i class="fas fa-bell"></i> Recent Notifications</h4>
+        <div class="notification-history-list" id="notificationHistoryList">
+          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No notifications yet</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+
