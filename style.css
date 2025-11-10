@@ -3185,6 +3185,16 @@ body {
         height: 50px;
         font-size: 17px;
     }
+    
+    /* Hide favorite button text on mobile, show only icon */
+    .favorite-btn-reader .favorite-text {
+        display: none;
+    }
+    
+    .favorite-btn-reader {
+        min-width: auto;
+        padding: 0.75rem 1rem;
+    }
 }
 
 .search-toggle:hover {

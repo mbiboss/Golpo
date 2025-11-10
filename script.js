@@ -1,3 +1,57 @@
+// === BASE PATH DETECTION FOR UNIVERSAL HOSTING ===
+// Detects the base path for the app to work on any hosting platform
+function getBasePath() {
+    const baseElement = document.querySelector('base');
+    if (baseElement && baseElement.href) {
+        const base = new URL(baseElement.href);
+        return base.pathname;
+    }
+    
+    // Try to derive from script.js location (most reliable for SPAs)
+    // Find the script tag that loaded this file
+    const scripts = document.getElementsByTagName('script');
+    for (let i = 0; i < scripts.length; i++) {
+        const src = scripts[i].src;
+        if (src && src.includes('script.js')) {
+            try {
+                const scriptUrl = new URL(src);
+                const scriptPath = scriptUrl.pathname;
+                // script.js is in the app root, so extract its directory
+                return scriptPath.substring(0, scriptPath.lastIndexOf('/') + 1);
+            } catch (e) {
+                // URL parsing failed, fall through to next method
+            }
+        }
+    }
+    
+    // Fallback: derive from document location
+    let pathname = window.location.pathname;
+    
+    // If we're on index.html, extract its directory
+    if (pathname.endsWith('/index.html')) {
+        return pathname.substring(0, pathname.lastIndexOf('/') + 1);
+    }
+    
+    // If already ends with /, use as-is
+    if (pathname.endsWith('/')) {
+        return pathname;
+    }
+    
+    // Check if the last segment looks like a file (has extension)
+    const lastSegment = pathname.substring(pathname.lastIndexOf('/') + 1);
+    if (lastSegment.includes('.')) {
+        // It's a file, return its directory
+        return pathname.substring(0, pathname.lastIndexOf('/') + 1);
+    }
+    
+    // No trailing slash and no extension
+    // This could be a directory without trailing slash, so add one
+    return pathname + '/';
+}
+
+// Get base path and ensure it's available globally
+const BASE_PATH = getBasePath();
+
 // Global Variables
 var currentTheme = 'dark';
 var currentStory = '';
@@ -412,6 +466,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Initialize offline functionality
     initializeOfflineSupport();
+    
+    // Initialize PWA install functionality
+    initializePWAInstall();
 
     // Setup startup screen functionality
     setupStartupScreen();
@@ -1433,18 +1490,22 @@ function updateReaderCoverImage(filename) {
         
         // Update next part preview
         updateNextPartPreview(filename);
-
+    }
+}
 
 // PWA Install Prompt
 var deferredPrompt = null;
 var installButton = null;
 
 function initializePWAInstall() {
+    console.log('Initializing PWA install functionality...');
+    
     // Create install button
     createInstallButton();
     
     // Listen for beforeinstallprompt event
     window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('beforeinstallprompt event fired - PWA is installable');
         // Prevent the mini-infobar from appearing on mobile
         e.preventDefault();
         // Stash the event so it can be triggered later
@@ -1455,14 +1516,18 @@ function initializePWAInstall() {
     
     // Listen for successful installation
     window.addEventListener('appinstalled', () => {
+        console.log('PWA installed successfully');
         hideInstallButton();
         showNotification('✓ Golpo installed successfully!', 'success', 3000);
         deferredPrompt = null;
     });
     
-    // Check if already installed
+    // Check if already installed or running as PWA
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+        console.log('App is already installed or running in standalone mode');
         hideInstallButton();
+    } else {
+        console.log('App not installed yet - waiting for beforeinstallprompt event');
     }
 }
 
@@ -1519,9 +1584,6 @@ async function promptInstall() {
     // Clear the deferredPrompt
     deferredPrompt = null;
     hideInstallButton();
-}
-
-    }
 }
 
 function updateNextPartPreview(currentFilename) {
@@ -4670,9 +4732,12 @@ async function initializeOfflineSupport() {
     try {
         // Check if service workers are supported
         if ('serviceWorker' in navigator) {
-            // Register service worker
-            serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js', {
-                scope: '/'
+            // Register service worker with dynamic base path
+            const swPath = BASE_PATH + 'sw.js';
+            const swScope = BASE_PATH;
+            
+            serviceWorkerRegistration = await navigator.serviceWorker.register(swPath, {
+                scope: swScope
             });
 
 

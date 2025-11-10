@@ -1,6 +1,6 @@
 
-// Service Worker for Golpo App - Optimized v1.4.2
-const CACHE_VERSION = 'v1.4.2';
+// Service Worker for Golpo App - Optimized v2.0.0 (Lightweight)
+const CACHE_VERSION = 'v2.0.0';
 const STATIC_CACHE = `golpo-static-${CACHE_VERSION}`;
 const STORIES_CACHE = `golpo-stories-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `golpo-dynamic-${CACHE_VERSION}`;

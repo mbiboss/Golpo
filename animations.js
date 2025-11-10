@@ -1,138 +1,38 @@
 
 /* =====================================================
-   ADVANCED 3D ANIMATIONS & PARTICLE SYSTEM
-   Professional animations for Golpo story reader
+   OPTIMIZED ANIMATIONS - Lightweight CSS-based
+   No heavy libraries required (no Three.js, GSAP, etc.)
    ===================================================== */
 
-// Initialize advanced animations when DOM is ready
+// Initialize animations when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    initAdvancedAnimations();
-    initParticleSystem();
+    initStartupScreen();
     initScrollAnimations();
-    init3DCardEffects();
+    initCardHoverEffects();
+    initCursorEffects();
+    console.log('✨ Advanced animations initialized successfully!');
 });
 
-// Advanced Animations Initialization
-function initAdvancedAnimations() {
-    // GSAP ScrollTrigger setup
-    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-        gsap.registerPlugin(ScrollTrigger);
-        
-        // Animate story cards on scroll
-        gsap.utils.toArray('.story-card').forEach((card, i) => {
-            gsap.from(card, {
-                scrollTrigger: {
-                    trigger: card,
-                    start: "top bottom-=100",
-                    toggleActions: "play none none reverse"
-                },
-                opacity: 0,
-                y: 50,
-                duration: 0.8,
-                delay: i * 0.1,
-                ease: "power3.out"
-            });
-        });
+// Startup screen animation
+function initStartupScreen() {
+    const startupScreen = document.getElementById('startupScreen');
+    if (!startupScreen) return;
 
-        // Hero section parallax
-        const heroSection = document.querySelector('.hero-section');
-        if (heroSection) {
-            gsap.to(heroSection, {
-                scrollTrigger: {
-                    trigger: heroSection,
-                    start: "top top",
-                    end: "bottom top",
-                    scrub: 1
-                },
-                y: 100,
-                opacity: 0.5,
-                ease: "none"
-            });
-        }
-    }
-
-    // Vanilla Tilt for 3D card effects
-    if (typeof VanillaTilt !== 'undefined') {
-        VanillaTilt.init(document.querySelectorAll('.story-card'), {
-            max: 10,
-            speed: 400,
-            glare: true,
-            'max-glare': 0.2,
-            scale: 1.05
-        });
-    }
-
-    console.log('✨ Advanced animations initialized successfully!');
-}
-
-// 3D Particle System with Three.js
-function initParticleSystem() {
-    if (typeof THREE === 'undefined') return;
-
-    const canvasElement = document.getElementById('particles-canvas');
-    if (!canvasElement) return;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ 
-        canvas: canvasElement, 
-        alpha: true,
-        antialias: true 
-    });
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    camera.position.z = 5;
-
-    // Create particles
-    const particlesGeometry = new THREE.BufferGeometry();
-    const particlesCount = 100;
-    const posArray = new Float32Array(particlesCount * 3);
-
-    for (let i = 0; i < particlesCount * 3; i++) {
-        posArray[i] = (Math.random() - 0.5) * 10;
-    }
-
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-
-    const particlesMaterial = new THREE.PointsMaterial({
-        size: 0.02,
-        color: 0x64B5F6,
-        transparent: true,
-        opacity: 0.6,
-        blending: THREE.AdditiveBlending
-    });
-
-    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-    scene.add(particlesMesh);
-
-    // Animation loop
-    let animationFrameId;
-    function animate() {
-        animationFrameId = requestAnimationFrame(animate);
-        particlesMesh.rotation.y += 0.001;
-        particlesMesh.rotation.x += 0.0005;
-        renderer.render(scene, camera);
-    }
-    animate();
-
-    // Handle resize
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-        cancelAnimationFrame(animationFrameId);
-        renderer.dispose();
-        particlesGeometry.dispose();
-        particlesMaterial.dispose();
+    // Wait for page to fully load
+    window.addEventListener('load', () => {
+        // Delay slightly to show the startup screen
+        setTimeout(() => {
+            startupScreen.classList.add('fade-out');
+            
+            // Remove from DOM after fade animation completes
+            setTimeout(() => {
+                startupScreen.style.display = 'none';
+            }, 800); // Match the CSS transition duration
+        }, 1500); // Show startup screen for 1.5 seconds
     });
 }
 
-// Scroll-based reveal animations
+// Lightweight scroll-based reveal animations using IntersectionObserver
 function initScrollAnimations() {
     const observerOptions = {
         threshold: 0.1,
@@ -143,18 +43,27 @@ function initScrollAnimations() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('revealed');
-                observer.unobserve(entry.target);
+                // Optional: unobserve after revealing to improve performance
+                // observer.unobserve(entry.target);
             }
         });
     }, observerOptions);
 
-    document.querySelectorAll('.reveal-fade-up, .reveal-scale, .reveal-3d-flip').forEach(el => {
+    // Observe story cards
+    document.querySelectorAll('.story-card').forEach((card, i) => {
+        card.style.transitionDelay = `${i * 0.1}s`;
+        card.classList.add('reveal');
+        observer.observe(card);
+    });
+
+    // Observe other reveal elements
+    document.querySelectorAll('.reveal, .reveal-fade-up, .reveal-scale').forEach(el => {
         observer.observe(el);
     });
 }
 
-// 3D Card Tilt Effects
-function init3DCardEffects() {
+// Simple 3D card tilt effects using CSS transforms
+function initCardHoverEffects() {
     const cards = document.querySelectorAll('.story-card');
     
     cards.forEach(card => {
@@ -166,21 +75,21 @@ function init3DCardEffects() {
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
             
-            const rotateX = (y - centerY) / 10;
-            const rotateY = (centerX - x) / 10;
+            const rotateX = (y - centerY) / 20;
+            const rotateY = (centerX - x) / 20;
             
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(1.02)`;
         });
         
         card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+            card.style.transform = '';
         });
     });
 }
 
-// Cursor trail effect
+// Lightweight cursor trail effect
 let cursorTrails = [];
-const maxTrails = 10;
+const maxTrails = 5; // Reduced for better performance
 
 document.addEventListener('mousemove', (e) => {
     if (cursorTrails.length >= maxTrails) {
@@ -191,12 +100,12 @@ document.addEventListener('mousemove', (e) => {
     }
 
     const trail = document.createElement('div');
-    trail.className = 'cursor-trail';
+    trail.className = 'cursor-particle';
     trail.style.left = e.pageX + 'px';
     trail.style.top = e.pageY + 'px';
     
-    const tx = (Math.random() - 0.5) * 50;
-    const ty = (Math.random() - 0.5) * 50;
+    const tx = (Math.random() - 0.5) * 30;
+    const ty = (Math.random() - 0.5) * 30;
     trail.style.setProperty('--tx', tx + 'px');
     trail.style.setProperty('--ty', ty + 'px');
     
@@ -208,7 +117,7 @@ document.addEventListener('mousemove', (e) => {
             trail.parentNode.removeChild(trail);
         }
         cursorTrails = cursorTrails.filter(t => t !== trail);
-    }, 800);
+    }, 600);
 });
 
 // Pause animations when tab is hidden (performance optimization)
@@ -219,3 +128,15 @@ document.addEventListener('visibilitychange', () => {
         document.body.style.animationPlayState = 'running';
     }
 });
+
+// Lightweight cursor effects
+function initCursorEffects() {
+    // Add subtle glow effect on interactive elements
+    const interactiveElements = document.querySelectorAll('a, button, .story-card, .control-btn');
+    
+    interactiveElements.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            el.style.transition = 'transform 0.2s ease';
+        });
+    });
+}
