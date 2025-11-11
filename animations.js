@@ -1,9 +1,3 @@
-/* =====================================================
-   OPTIMIZED ANIMATIONS - Lightweight CSS-based
-   No heavy libraries required (no Three.js, GSAP, etc.)
-   ===================================================== */
-
-// Initialize animations when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     initScrollAnimations();
     initCardHoverEffects();
@@ -11,10 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('✨ Advanced animations initialized successfully!');
 });
 
-// Global IntersectionObserver for scroll animations
 let scrollAnimationObserver = null;
 
-// Lightweight scroll-based reveal animations using IntersectionObserver
 function initScrollAnimations() {
     const observerOptions = {
         threshold: 0.1,
@@ -31,7 +23,6 @@ function initScrollAnimations() {
         }, observerOptions);
     }
 
-    // Observe story cards (only observe elements that don't already have 'revealed' class)
     document.querySelectorAll('.story-card').forEach((card, i) => {
         if (!card.classList.contains('revealed') && !card.classList.contains('reveal')) {
             card.style.transitionDelay = `${i * 0.1}s`;
@@ -40,7 +31,6 @@ function initScrollAnimations() {
         }
     });
 
-    // Observe other reveal elements
     document.querySelectorAll('.reveal, .reveal-fade-up, .reveal-scale').forEach(el => {
         if (!el.classList.contains('revealed')) {
             scrollAnimationObserver.observe(el);
@@ -48,10 +38,8 @@ function initScrollAnimations() {
     });
 }
 
-// Make initScrollAnimations available globally for re-initialization
 window.initScrollAnimations = initScrollAnimations;
 
-// Simple 3D card tilt effects using CSS transforms
 function initCardHoverEffects() {
     const cards = document.querySelectorAll('.story-card');
 
@@ -79,19 +67,17 @@ function initCardHoverEffects() {
     });
 }
 
-// Make initCardHoverEffects available globally for re-initialization
 window.initCardHoverEffects = initCardHoverEffects;
 
-// Lightweight cursor trail effect
 let cursorTrails = [];
-const maxTrails = 5; // Reduced for better performance
+const maxTrails = 5;
 const particlePool = [];
-const maxPoolSize = 10; // Max particles to keep in the pool
+const maxPoolSize = 10;
 
 document.addEventListener('mousemove', (e) => {
     let particle;
     if (particlePool.length > 0) {
-        particle = particlePool.shift(); // Reuse existing particle
+        particle = particlePool.shift();
     } else {
         particle = document.createElement('div');
         particle.className = 'cursor-particle';
@@ -100,7 +86,6 @@ document.addEventListener('mousemove', (e) => {
     particle.style.left = e.pageX + 'px';
     particle.style.top = e.pageY + 'px';
 
-    // Randomize transform for variation
     const tx = (Math.random() - 0.5) * 30;
     const ty = (Math.random() - 0.5) * 30;
     particle.style.setProperty('--tx', tx + 'px');
@@ -108,7 +93,6 @@ document.addEventListener('mousemove', (e) => {
 
     document.body.appendChild(particle);
 
-    // Remove after animation and return to pool
     setTimeout(() => {
         if (particle.parentNode) {
             particle.remove();
@@ -119,7 +103,6 @@ document.addEventListener('mousemove', (e) => {
     }, 600);
 });
 
-// Pause animations when tab is hidden (performance optimization)
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
         document.body.style.animationPlayState = 'paused';
@@ -128,9 +111,7 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// Lightweight cursor effects
 function initCursorEffects() {
-    // Add subtle glow effect on interactive elements
     const interactiveElements = document.querySelectorAll('a, button, .story-card, .control-btn');
 
     interactiveElements.forEach(el => {

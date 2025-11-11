@@ -1,5 +1,3 @@
-// === BASE PATH DETECTION FOR UNIVERSAL HOSTING ===
-// Detects the base path for the app to work on any hosting platform
 function getBasePath() {
     const baseElement = document.querySelector('base');
     if (baseElement && baseElement.href) {
@@ -7,8 +5,6 @@ function getBasePath() {
         return base.pathname;
     }
 
-    // Try to derive from script.js location (most reliable for SPAs)
-    // Find the script tag that loaded this file
     const scripts = document.getElementsByTagName('script');
     for (let i = 0; i < scripts.length; i++) {
         const src = scripts[i].src;
@@ -16,36 +12,27 @@ function getBasePath() {
             try {
                 const scriptUrl = new URL(src);
                 const scriptPath = scriptUrl.pathname;
-                // script.js is in the app root, so extract its directory
                 return scriptPath.substring(0, scriptPath.lastIndexOf('/') + 1);
             } catch (e) {
-                // URL parsing failed, fall through to next method
             }
         }
     }
 
-    // Fallback: derive from document location
     let pathname = window.location.pathname;
 
-    // If we're on index.html, extract its directory
     if (pathname.endsWith('/index.html')) {
         return pathname.substring(0, pathname.lastIndexOf('/') + 1);
     }
 
-    // If already ends with /, use as-is
     if (pathname.endsWith('/')) {
         return pathname;
     }
 
-    // Check if the last segment looks like a file (has extension)
     const lastSegment = pathname.substring(pathname.lastIndexOf('/') + 1);
     if (lastSegment.includes('.')) {
-        // It's a file, return its directory
         return pathname.substring(0, pathname.lastIndexOf('/') + 1);
     }
 
-    // No trailing slash and no extension
-    // This could be a directory without trailing slash, so add one
     return pathname + '/';
 }
 
@@ -53,6 +40,8 @@ function getBasePath() {
 const BASE_PATH = getBasePath();
 
 // Splash Screen Logic
+var splashScreenDismissed = false;
+
 (function initSplashScreen() {
     const splashScreen = document.getElementById('splashScreen');
     if (!splashScreen) return;
@@ -61,13 +50,20 @@ const BASE_PATH = getBasePath();
         splashScreen.classList.add('fade-out');
         setTimeout(() => {
             splashScreen.style.display = 'none';
+            splashScreenDismissed = true;
+            
+            // Start autoplay after splash screen is dismissed
+            if (autoplayEnabled && musicPlaylist.length > 0) {
+                setTimeout(() => {
+                    startAutoplay();
+                }, 1000);
+            }
         }, 600);
     }
 
     splashScreen.addEventListener('click', hideSplashScreen);
 })();
 
-// Global Variables
 var currentTheme = 'dark';
 var currentStory = '';
 var currentFontSize = 100;
@@ -531,6 +527,10 @@ function showReaderView() {
     document.getElementById('libraryView').style.display = 'none';
     document.getElementById('readerView').style.display = 'block';
 
+    // Push state to browser history so back button works properly
+    if (window.history.state?.view !== 'reader') {
+        window.history.pushState({ view: 'reader' }, '', window.location.pathname);
+    }
 
     // Show reading controls and progress on reader page
     if (progressContainer) {
@@ -1979,9 +1979,6 @@ function initializeApp() {
     setTimeout(() => {
         initializeLazyLoading();
     }, 500);
-
-    // Initialize cursor effects
-    initializeCursorEffects();
 }
 
 // Setup reading progress tracking for reader view
@@ -2347,94 +2344,60 @@ function updateContinueReadingVisibility() {
     }
 }
 
-// Cursor Effects Variables
-var cursorGlow = null;
-var particleInterval = null;
+// Click Particle Flow Effect
+const particleFlowPool = [];
+const maxFlowPoolSize = 50;
 
-// Initialize cursor effects
-function initializeCursorEffects() {
-    // Create cursor glow element
-    cursorGlow = document.createElement('div');
-    cursorGlow.className = 'cursor-glow';
-    document.body.appendChild(cursorGlow);
-
-    // Track mouse movement for glow and particles
-    let lastParticleTime = 0;
-    const particleInterval = 50; // Create particle every 50ms during movement
-
-    document.addEventListener('mousemove', (e) => {
-        if (cursorGlow) {
-            cursorGlow.style.left = e.clientX + 'px';
-            cursorGlow.style.top = e.clientY + 'px';
+document.addEventListener('click', (e) => {
+    // Create flowing particles (15-20 particles)
+    const particleCount = 15 + Math.floor(Math.random() * 6);
+    
+    for (let i = 0; i < particleCount; i++) {
+        let particle;
+        if (particleFlowPool.length > 0) {
+            particle = particleFlowPool.shift();
+        } else {
+            particle = document.createElement('div');
+            particle.className = 'click-flow-particle';
         }
 
-        // Create particle trail with consistent timing
-        const now = Date.now();
-        if (now - lastParticleTime > particleInterval) {
-            createCursorParticle(e.clientX, e.clientY);
-            lastParticleTime = now;
-        }
-    });
+        // Random direction and distance
+        const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5;
+        const distance = 80 + Math.random() * 120;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
 
-    // Click effect
-    document.addEventListener('click', (e) => {
-        createClickRipple(e.clientX, e.clientY);
-        // Create burst of particles on click
-        for (let i = 0; i < 6; i++) {
-            setTimeout(() => {
-                createCursorParticle(e.clientX, e.clientY, true);
-            }, i * 20);
-        }
-    });
-}
+        // Random color from gradient
+        const colors = [
+            'rgba(100, 181, 246, 0.8)',
+            'rgba(139, 92, 246, 0.8)',
+            'rgba(236, 72, 153, 0.8)',
+            'rgba(59, 130, 246, 0.8)',
+            'rgba(168, 85, 247, 0.8)'
+        ];
+        const color = colors[Math.floor(Math.random() * colors.length)];
 
-// Create cursor particle
-function createCursorParticle(x, y, isBurst = false) {
-    const particle = document.createElement('div');
-    particle.className = 'cursor-particle';
+        particle.style.left = e.pageX + 'px';
+        particle.style.top = e.pageY + 'px';
+        particle.style.background = color;
+        particle.style.setProperty('--dx', dx + 'px');
+        particle.style.setProperty('--dy', dy + 'px');
+        particle.style.animation = `particleFlow ${0.6 + Math.random() * 0.4}s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`;
+        particle.style.boxShadow = `0 0 10px ${color}`;
 
-    // Random movement direction
-    const angle = isBurst ? (Math.random() * Math.PI * 2) : (Math.random() * Math.PI * 2);
-    const distance = isBurst ? (30 + Math.random() * 40) : (10 + Math.random() * 20);
-    const tx = Math.cos(angle) * distance;
-    const ty = Math.sin(angle) * distance;
+        document.body.appendChild(particle);
 
-    particle.style.left = x + 'px';
-    particle.style.top = y + 'px';
-    particle.style.setProperty('--tx', tx + 'px');
-    particle.style.setProperty('--ty', ty + 'px');
-
-    // Random size variation
-    const size = isBurst ? (6 + Math.random() * 8) : (4 + Math.random() * 6);
-    particle.style.width = size + 'px';
-    particle.style.height = size + 'px';
-
-    document.body.appendChild(particle);
-
-    // Remove after animation
-    setTimeout(() => {
-        if (particle.parentNode) {
-            particle.remove();
-        }
-    }, 800);
-}
-
-// Create click ripple effect
-function createClickRipple(x, y) {
-    const ripple = document.createElement('div');
-    ripple.className = 'click-ripple';
-    ripple.style.left = (x - 50) + 'px';
-    ripple.style.top = (y - 50) + 'px';
-
-    document.body.appendChild(ripple);
-
-    // Remove after animation
-    setTimeout(() => {
-        if (ripple.parentNode) {
-            ripple.remove();
-        }
-    }, 600);
-}
+        setTimeout(() => {
+            if (particle.parentNode) {
+                particle.remove();
+                particle.style.animation = '';
+                if (particleFlowPool.length < maxFlowPoolSize) {
+                    particleFlowPool.push(particle);
+                }
+            }
+        }, 1000);
+    }
+});
 
 // Track if event listeners are already set up
 var eventListenersInitialized = false;
@@ -2864,12 +2827,8 @@ function initializeMusicSystem() {
     // Generate music list dynamically
     generateMusicList();
 
-    // Start autoplay if enabled
-    if (autoplayEnabled && musicPlaylist.length > 0) {
-        setTimeout(() => {
-            startAutoplay();
-        }, 2000); // Delay to let the page load completely
-    }
+    // Autoplay will be started when splash screen is dismissed
+    // See initSplashScreen() function
 
     // Setup music modal listeners
     setupMusicModalListeners();
@@ -4992,7 +4951,37 @@ async function initializeOfflineSupport() {
         loadCachedStoriesList();
 
     } catch (error) {
+    } finally {
+        // Always setup browser history navigation, regardless of service worker status
+        // This ensures back button works even if service worker fails to register
+        setupHistoryNavigation();
     }
+}
+
+// Setup browser history navigation for proper back button behavior
+function setupHistoryNavigation() {
+    // Set initial state for library view
+    if (!window.history.state) {
+        window.history.replaceState({ view: 'library' }, '', window.location.pathname);
+    }
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', (event) => {
+        const readerView = document.getElementById('readerView');
+        const isReaderVisible = readerView && readerView.style.display !== 'none';
+        
+        // If user presses back while in reader view, return to library
+        if (isReaderVisible) {
+            returnToLibrary();
+        }
+        // If state exists and indicates library view, ensure we're showing library
+        else if (event.state && event.state.view === 'library') {
+            const libraryView = document.getElementById('libraryView');
+            if (libraryView && libraryView.style.display === 'none') {
+                returnToLibrary();
+            }
+        }
+    });
 }
 
 // Handle online/offline status changes
@@ -5099,22 +5088,332 @@ function updateOfflineIndicator() {
     }
 }
 
-// Show offline status and cached stories
+// Show offline status and cached stories in a modal
 function showOfflineStatus() {
     const cachedCount = cachedStories.size;
     const totalStories = Object.keys(storyDatabase).length;
 
-    let message = isOnline ?
-        `Online - All ${totalStories} stories available` :
-        `Offline - ${cachedCount}/${totalStories} stories cached`;
+    // Create modal overlay
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'offline-modal-overlay';
+    modalOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    `;
 
-    if (!isOnline && cachedCount > 0) {
-        message += `\n\nCached stories:\n${Array.from(cachedStories).join(', ')}`;
-    } else if (!isOnline && cachedCount === 0) {
-        message += `\n\nNo stories cached yet. Read stories while online to cache them.`;
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'offline-modal-content';
+    modalContent.style.cssText = `
+        background: var(--primary-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    `;
+
+    // Modal header
+    const header = document.createElement('div');
+    header.className = 'offline-modal-header';
+    header.style.cssText = `
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, rgba(100, 181, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+    `;
+
+    const title = document.createElement('h3');
+    title.style.cssText = `
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 1.2rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    `;
+    
+    const statusIcon = isOnline ? 
+        '<i class="fas fa-wifi" style="color: #4caf50;"></i>' : 
+        '<i class="fas fa-wifi-slash" style="color: #ff6b6b;"></i>';
+    
+    title.innerHTML = `${statusIcon} ${isOnline ? 'Online' : 'Offline'} - Story Downloads`;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'offline-modal-close';
+    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    closeBtn.style.cssText = `
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.5rem;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    `;
+    closeBtn.onmouseover = () => {
+        closeBtn.style.background = 'var(--accent-bg)';
+        closeBtn.style.color = 'var(--accent-color)';
+    };
+    closeBtn.onmouseout = () => {
+        closeBtn.style.background = 'none';
+        closeBtn.style.color = 'var(--text-muted)';
+    };
+    closeBtn.onclick = () => modalOverlay.remove();
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    // Status info
+    const statusInfo = document.createElement('div');
+    statusInfo.style.cssText = `
+        padding: 1rem 1.5rem;
+        background: ${isOnline ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 107, 107, 0.1)'};
+        border-bottom: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    `;
+    statusInfo.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i class="fas fa-book"></i>
+            <strong>${cachedCount} / ${totalStories}</strong> stories cached for offline reading
+        </div>
+        ${!isOnline ? '<div style="color: var(--text-muted); font-size: 0.85rem;"><i class="fas fa-info-circle"></i> You\'re offline. Only cached stories are available.</div>' : ''}
+    `;
+
+    // Download all button (only show when online and not all stories are cached)
+    let downloadAllBtn = null;
+    if (isOnline && cachedCount < totalStories) {
+        downloadAllBtn = document.createElement('button');
+        downloadAllBtn.className = 'download-all-btn';
+        downloadAllBtn.innerHTML = '<i class="fas fa-download"></i> Download All Stories for Offline';
+        downloadAllBtn.style.cssText = `
+            margin: 1rem 1.5rem;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: calc(100% - 3rem);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        `;
+        downloadAllBtn.onmouseover = () => {
+            downloadAllBtn.style.transform = 'translateY(-2px)';
+            downloadAllBtn.style.boxShadow = '0 6px 16px rgba(76, 175, 80, 0.4)';
+        };
+        downloadAllBtn.onmouseout = () => {
+            downloadAllBtn.style.transform = 'translateY(0)';
+            downloadAllBtn.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.3)';
+        };
+        downloadAllBtn.onclick = async () => {
+            downloadAllBtn.disabled = true;
+            downloadAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+            await downloadAllStories();
+            modalOverlay.remove();
+        };
     }
 
-    showNotification(message, isOnline ? 'success' : 'warning');
+    // Story list
+    const storyList = document.createElement('div');
+    storyList.className = 'offline-story-list';
+    storyList.style.cssText = `
+        padding: 1rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    `;
+
+    // Add stories to list
+    Object.keys(storyDatabase).forEach(filename => {
+        if (filename === 'upcoming.txt') return; // Skip upcoming stories
+        
+        const story = storyDatabase[filename];
+        const isCached = cachedStories.has(filename);
+        
+        const storyItem = document.createElement('div');
+        storyItem.className = 'offline-story-item';
+        storyItem.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        `;
+        storyItem.onmouseover = () => {
+            storyItem.style.background = 'var(--glass-bg)';
+            storyItem.style.borderColor = 'var(--accent-color)';
+        };
+        storyItem.onmouseout = () => {
+            storyItem.style.background = 'var(--accent-bg)';
+            storyItem.style.borderColor = 'var(--border-color)';
+        };
+
+        const storyInfo = document.createElement('div');
+        storyInfo.style.cssText = `
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        `;
+        
+        const storyName = document.createElement('div');
+        storyName.className = 'bangla-text';
+        storyName.style.cssText = `
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+        `;
+        storyName.textContent = story.name;
+
+        const storyMeta = document.createElement('div');
+        storyMeta.style.cssText = `
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        `;
+        storyMeta.innerHTML = `
+            <span><i class="fas fa-tag"></i> ${story.category}</span>
+            ${isCached ? '<span style="color: #4caf50;"><i class="fas fa-check-circle"></i> Cached</span>' : '<span style="color: var(--text-muted);"><i class="fas fa-cloud"></i> Online only</span>'}
+        `;
+
+        storyInfo.appendChild(storyName);
+        storyInfo.appendChild(storyMeta);
+
+        // Download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'story-download-btn';
+        downloadBtn.style.cssText = `
+            padding: 0.5rem 0.75rem;
+            background: ${isCached ? 'rgba(76, 175, 80, 0.2)' : 'var(--accent-color)'};
+            color: ${isCached ? '#4caf50' : 'white'};
+            border: 1px solid ${isCached ? '#4caf50' : 'var(--accent-color)'};
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: ${isCached ? 'default' : 'pointer'};
+            transition: all 0.3s ease;
+            min-width: 80px;
+        `;
+        downloadBtn.innerHTML = isCached ? 
+            '<i class="fas fa-check"></i> Saved' : 
+            '<i class="fas fa-download"></i> Save';
+        
+        if (!isCached && isOnline) {
+            downloadBtn.onmouseover = () => {
+                downloadBtn.style.transform = 'translateY(-2px)';
+                downloadBtn.style.boxShadow = '0 4px 12px rgba(100, 181, 246, 0.3)';
+            };
+            downloadBtn.onmouseout = () => {
+                downloadBtn.style.transform = 'translateY(0)';
+                downloadBtn.style.boxShadow = 'none';
+            };
+            downloadBtn.onclick = async (e) => {
+                e.stopPropagation();
+                downloadBtn.disabled = true;
+                downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                const success = await cacheStoryForOffline(filename);
+                if (success) {
+                    downloadBtn.innerHTML = '<i class="fas fa-check"></i> Saved';
+                    downloadBtn.style.background = 'rgba(76, 175, 80, 0.2)';
+                    downloadBtn.style.color = '#4caf50';
+                    downloadBtn.style.borderColor = '#4caf50';
+                    storyMeta.innerHTML = `
+                        <span><i class="fas fa-tag"></i> ${story.category}</span>
+                        <span style="color: #4caf50;"><i class="fas fa-check-circle"></i> Cached</span>
+                    `;
+                } else {
+                    downloadBtn.disabled = false;
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> Save';
+                }
+            };
+        } else if (!isCached && !isOnline) {
+            downloadBtn.disabled = true;
+            downloadBtn.style.opacity = '0.5';
+            downloadBtn.style.cursor = 'not-allowed';
+        }
+
+        storyItem.appendChild(storyInfo);
+        storyItem.appendChild(downloadBtn);
+        storyList.appendChild(storyItem);
+    });
+
+    // Assemble modal
+    modalContent.appendChild(header);
+    modalContent.appendChild(statusInfo);
+    if (downloadAllBtn) {
+        modalContent.appendChild(downloadAllBtn);
+    }
+    modalContent.appendChild(storyList);
+    modalOverlay.appendChild(modalContent);
+
+    // Close on overlay click
+    modalOverlay.onclick = (e) => {
+        if (e.target === modalOverlay) {
+            modalOverlay.remove();
+        }
+    };
+
+    document.body.appendChild(modalOverlay);
+}
+
+// Download all stories for offline reading
+async function downloadAllStories() {
+    const storiesToDownload = Object.keys(storyDatabase).filter(
+        filename => filename !== 'upcoming.txt' && !cachedStories.has(filename)
+    );
+
+    if (storiesToDownload.length === 0) {
+        showNotification('All stories are already cached!', 'success');
+        return;
+    }
+
+    showNotification(`Downloading ${storiesToDownload.length} stories...`, 'info');
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const filename of storiesToDownload) {
+        const success = await cacheStoryForOffline(filename);
+        if (success) {
+            successCount++;
+        } else {
+            failCount++;
+        }
+    }
+
+    if (failCount === 0) {
+        showNotification(`✅ Successfully downloaded all ${successCount} stories for offline reading!`, 'success');
+    } else {
+        showNotification(`Downloaded ${successCount} stories. ${failCount} failed.`, 'warning');
+    }
 }
 
 // Cache a story for offline reading

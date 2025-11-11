@@ -1,42 +1,34 @@
 <!DOCTYPE html>
-<!--
-  BASE PATH CONFIGURATION:
-  Set data-base-path to your deployment path!
-  - Root deployment: data-base-path="/"
-  - GitHub Pages repo: data-base-path="/repo-name/"
-  - Netlify subdirectory: data-base-path="/subfolder/"
--->
 <html lang="bn" data-base-path="/">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</title>
-  
+
   <!-- Preload critical assets -->
   <link rel="preload" href="style.css" as="style">
   <link rel="preload" href="script.js" as="script">
   <link rel="preload" href="assets/English_font.otf" as="font" type="font/otf" crossorigin>
   <link rel="preload" href="assets/Bangla_font.ttf" as="font" type="font/ttf" crossorigin>
-  
+
   <!-- Stylesheets -->
   <link rel="stylesheet" href="style.css">
-  
+
   <!-- Font preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
   <!-- Favicon - Static fallback -->
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/logo.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/logo.png">
   <link rel="shortcut icon" href="/assets/logo.png">
-  
+
   <!-- Advanced Animation Libraries -->
   <link rel="stylesheet" href="animations.css">
-  
+
   <!-- Base Path Detection & Dynamic Icon/Manifest Loading -->
   <!--
     DEPLOYMENT NOTES:
@@ -47,22 +39,22 @@
     - Netlify: Add redirect rules if using SPA mode
   -->
   <script>
-    (function() {
+    (function () {
       // Get base path from data attribute (set in <html> tag)
       const htmlElement = document.documentElement;
       const configuredPath = htmlElement.getAttribute('data-base-path');
       let appRoot = configuredPath || '/';
-      
+
       // Ensure appRoot ends with /
       if (!appRoot.endsWith('/')) {
         appRoot = appRoot + '/';
       }
-      
+
       // Set base tag dynamically
       const baseTag = document.createElement('base');
       baseTag.href = appRoot;
       document.head.insertBefore(baseTag, document.head.firstChild);
-      
+
       function getBasePath() {
         const baseElement = document.querySelector('base');
         if (baseElement && baseElement.href) {
@@ -71,15 +63,15 @@
         }
         return appRoot;
       }
-      
+
       const basePath = getBasePath();
-      
+
       // Set manifest link for mobile PWA
       const manifestLink = document.createElement('link');
       manifestLink.rel = 'manifest';
       manifestLink.href = basePath + 'manifest.json';
       document.head.appendChild(manifestLink);
-      
+
       // Set favicon dynamically for all browsers (with leading slash)
       const favicon32 = document.createElement('link');
       favicon32.rel = 'icon';
@@ -87,14 +79,14 @@
       favicon32.sizes = '32x32';
       favicon32.href = '/assets/logo.png';
       document.head.appendChild(favicon32);
-      
+
       const favicon16 = document.createElement('link');
       favicon16.rel = 'icon';
       favicon16.type = 'image/png';
       favicon16.sizes = '16x16';
       favicon16.href = '/assets/logo.png';
       document.head.appendChild(favicon16);
-      
+
       const shortcutIcon = document.createElement('link');
       shortcutIcon.rel = 'shortcut icon';
       shortcutIcon.href = '/assets/logo.png';
@@ -102,7 +94,7 @@
     })();
   </script>
   <meta name="theme-color" content="#000000">
-  
+
   <!-- PWA Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -116,7 +108,8 @@
   <div class="splash-screen" id="splashScreen">
     <div class="splash-content">
       <div class="splash-logo-container">
-        <img src="assets/logo.png" alt="Golpo Logo" class="splash-logo" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
+        <img src="assets/logo.png" alt="Golpo Logo" class="splash-logo"
+          onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
         <div class="splash-glow"></div>
       </div>
       <h1 class="splash-title">Golpo</h1>
@@ -209,7 +202,8 @@
               </div>
               <div class="auto-scroll-controls" id="autoScrollControls" style="display: none;">
                 <label class="speed-label">Speed</label>
-                <input type="range" id="scrollSpeedSlider" class="scroll-speed-slider" min="1" max="10" value="3" step="1">
+                <input type="range" id="scrollSpeedSlider" class="scroll-speed-slider" min="1" max="10" value="3"
+                  step="1">
                 <div class="speed-indicators">
                   <span class="speed-indicator">Slow</span>
                   <span class="speed-indicator">Fast</span>
@@ -304,10 +298,12 @@
             <button class="category-filter-btn" data-category="Mystery" onclick="filterByCategory('Mystery')">
               <i class="fas fa-search"></i><span class="filter-text"> Mystery</span>
             </button>
-            <button class="category-filter-btn" data-category="series" onclick="filterByCategory('series')" title="Multi-Part Series">
+            <button class="category-filter-btn" data-category="series" onclick="filterByCategory('series')"
+              title="Multi-Part Series">
               <i class="fas fa-list-ol"></i><span class="filter-text"> Series</span>
             </button>
-            <button class="category-filter-btn" id="favoritesNavBtn" data-category="favorites" onclick="filterByCategory('favorites')" title="Favorite Stories">
+            <button class="category-filter-btn" id="favoritesNavBtn" data-category="favorites"
+              onclick="filterByCategory('favorites')" title="Favorite Stories">
               <i class="fas fa-star"></i><span class="filter-text"> Favorites</span>
             </button>
           </div>
@@ -331,7 +327,8 @@
       <!-- Footer Image Section -->
       <section class="footer-image-section">
         <p class="secret-hint english-text">Tap footer logo for secret</p>
-        <img src="https://i.postimg.cc/MTvjDs38/footer.gif" alt="Footer Animation" class="footer-animation" loading="lazy">
+        <img src="https://i.postimg.cc/MTvjDs38/footer.gif" alt="Footer Animation" class="footer-animation"
+          loading="lazy">
       </section>
     </div>
 
@@ -348,8 +345,8 @@
           <i class="fas fa-list-ul"></i>
           <span>Contents</span>
         </button>
-        <button class="favorite-btn-reader" id="favoriteBtn" onclick="toggleCurrentStoryFavorite()" aria-label="Toggle Favorite"
-          title="Add to Favorites">
+        <button class="favorite-btn-reader" id="favoriteBtn" onclick="toggleCurrentStoryFavorite()"
+          aria-label="Toggle Favorite" title="Add to Favorites">
           <i class="fas fa-star"></i>
           <span class="favorite-text">Favorite</span>
         </button>
@@ -428,7 +425,7 @@
     <div class="modal-overlay" id="musicModalOverlay"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Choose Your Music</h3>
+        <p>Choose Your Music</p>
         <button class="modal-close" id="closeMusicModal">&times;</button>
       </div>
       <div class="song-playlist">
@@ -536,41 +533,45 @@
       <div class="analytics-section">
         <h4 class="analytics-title english-text"><i class="fas fa-star"></i> Favorite Stories</h4>
         <div class="favorite-stories-list" id="favoriteStoriesList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No favorite stories yet. Mark stories as favorite to see them here!</p>
+          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No favorite
+            stories yet. Mark stories as favorite to see them here!</p>
         </div>
       </div>
       <div class="analytics-section">
         <h4 class="analytics-title english-text"><i class="fas fa-book-open"></i> Recently Read</h4>
         <div class="recently-read-list" id="recentlyReadList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No recent reading activity</p>
+          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No recent reading
+            activity</p>
         </div>
       </div>
       <div class="analytics-section">
         <h4 class="analytics-title english-text"><i class="fas fa-music"></i> Recently Played Songs</h4>
         <div class="recently-played-list" id="recentlyPlayedList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No songs played yet</p>
+          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No songs played
+            yet</p>
         </div>
       </div>
       <div class="analytics-section">
         <h4 class="analytics-title english-text"><i class="fas fa-clock"></i> Reading Time Per Story</h4>
         <div class="reading-time-list" id="readingTimeList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">Start reading to track your time!</p>
+          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">Start reading to
+            track your time!</p>
         </div>
       </div>
       <div class="analytics-section">
         <h4 class="analytics-title english-text"><i class="fas fa-history"></i> Activity Timeline</h4>
         <div class="analytics-timeline" id="analyticsTimeline">
-          <p class="english-text" style="text-align: center; color: var(--text-muted);">Recent activity will appear here</p>
+          <p class="english-text" style="text-align: center; color: var(--text-muted);">Recent activity will appear here
+          </p>
         </div>
       </div>
       <div class="analytics-section">
         <h4 class="analytics-title english-text"><i class="fas fa-bell"></i> Recent Notifications</h4>
         <div class="notification-history-list" id="notificationHistoryList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No notifications yet</p>
+          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No notifications
+            yet</p>
         </div>
       </div>
     </div>
   </div>
 </div>
-
-

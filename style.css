@@ -682,42 +682,28 @@ button:active {
 
 /* ======================================== */
 
-/* Cursor Particle Effects */
-.cursor-particle {
+/* Mouse tail effect removed per user request */
+
+/* Click Particle Flow Effect */
+.click-flow-particle {
     position: fixed;
-    pointer-events: none;
-    width: 8px;
-    height: 8px;
-    background: radial-gradient(circle, rgba(100, 181, 246, 0.8) 0%, rgba(139, 92, 246, 0.4) 100%);
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
+    pointer-events: none;
     z-index: 9999;
-    opacity: 1;
-    animation: particleFade 0.8s ease-out forwards;
+    will-change: transform, opacity;
 }
 
-@keyframes particleFade {
+@keyframes particleFlow {
     0% {
-        transform: translate(0, 0) scale(1);
         opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
     }
     100% {
-        transform: translate(var(--tx), var(--ty)) scale(0);
         opacity: 0;
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0);
     }
-}
-
-
-.cursor-glow {
-    position: fixed;
-    width: 20px;
-    height: 20px;
-    background: radial-gradient(circle, rgba(100, 181, 246, 0.4) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%) scale(1);
-    transition: transform 0.2s ease;
-    will-change: transform;
 }
 
 /* Custom Bangla Font */
@@ -733,6 +719,15 @@ button:active {
 @font-face {
     font-family: 'EnglishFont';
     src: url('assets/English_font.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Reading Font - For descriptions, reading content, and addresses */
+@font-face {
+    font-family: 'ReadingFont';
+    src: url('assets/Valty_font.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -2402,6 +2397,18 @@ body {
 /* English text styling */
 .english-text, .welcome-text, .story-subtitle {
     font-family: 'EnglishFont', Arial, sans-serif;
+}
+
+/* Reading font for descriptions, reading content, and addresses */
+.story-description,
+.story-location,
+.story-writer,
+.hero-description,
+.reading-content,
+.story-meta-text,
+.author,
+.location {
+    font-family: 'ReadingFont', 'EnglishFont', Arial, sans-serif;
 }
 
 /* Bangla text styling */
