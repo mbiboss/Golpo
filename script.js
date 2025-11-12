@@ -1078,7 +1078,8 @@ function generateSeriesView() {
                         ${parts.map(part => `
                             <div class="series-part-item" onclick="loadStoryFromCard('${part.filename}')">
                                 <div class="part-number">
-                                    <span>Part ${part.partNumber}</span>
+                                    <i class="fas fa-bookmark"></i>
+                                    <span>${part.partNumber}</span>
                                 </div>
                                 <div class="part-info">
                                     <div class="part-name">${part.name}</div>
