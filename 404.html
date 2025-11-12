@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting...</title>
+  <script>
+    (function() {
+      // Get the full pathname
+      const path = window.location.pathname;
+      
+      // If we're on a story path (not root, not 404.html itself)
+      if (path && path !== '/' && path !== '/404.html') {
+        // Redirect to index.html with the path preserved
+        // The app's JavaScript will handle parsing the path
+        window.location.replace('/' + window.location.search + window.location.hash);
+      } else if (window.location.search.includes('redirect=')) {
+        // Handle legacy redirect parameter
+        const redirect = new URLSearchParams(window.location.search).get('redirect');
+        window.location.replace('/' + window.location.search + window.location.hash);
+      } else {
+        // Just go to home
+        window.location.replace('/');
+      }
+    })();
+  </script>
+</head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+  <h1>Redirecting...</h1>
+  <p>If you are not redirected automatically, <a href="/">click here</a>.</p>
+</body>
+</html>

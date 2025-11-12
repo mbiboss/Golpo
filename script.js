@@ -51,7 +51,7 @@ var splashScreenDismissed = false;
         setTimeout(() => {
             splashScreen.style.display = 'none';
             splashScreenDismissed = true;
-            
+
             // Start autoplay after splash screen is dismissed
             if (autoplayEnabled && musicPlaylist.length > 0) {
                 setTimeout(() => {
@@ -120,6 +120,7 @@ var defaultImages = {
 
 // Story Database with metadata including image URLs
 var storyDatabase = {};
+var slugToFilename = {};
 
 async function loadStoryDatabase() {
     try {
@@ -130,12 +131,35 @@ async function loadStoryDatabase() {
 
             // Automatically detect and link story parts
             detectStoryParts();
+
+            // Build slug lookup table
+            buildSlugLookup();
         } else {
             console.error('Failed to load stories.json');
         }
     } catch (error) {
         console.error('Error loading story database:', error);
     }
+}
+
+function buildSlugLookup() {
+    slugToFilename = {};
+    Object.keys(storyDatabase).forEach(filename => {
+        const story = storyDatabase[filename];
+        if (story.id) {
+            slugToFilename[story.id] = filename;
+        }
+    });
+    console.log('Slug lookup built:', Object.keys(slugToFilename).length, 'slugs');
+}
+
+function getFilenameFromSlug(slug) {
+    return slugToFilename[slug] || null;
+}
+
+function getSlugFromFilename(filename) {
+    const story = storyDatabase[filename];
+    return story ? story.id : null;
 }
 
 // Automatic story parts detection system
@@ -422,24 +446,132 @@ document.addEventListener('DOMContentLoaded', async function() {
         navContainer.style.opacity = '1';
     }
 
-    // Check if URL has a story parameter (from shared link)
-    const urlParams = new URLSearchParams(window.location.search);
-    const sharedStoryId = urlParams.get('story');
-    if (sharedStoryId) {
-        // Find the story file by ID
-        const storyFile = Object.keys(storyDatabase).find(filename => {
-            return storyDatabase[filename].id === sharedStoryId;
-        });
-        if (storyFile) {
-            setTimeout(() => {
-                loadStoryFromCard(storyFile);
-            }, 500);
+    // Check for story in URL BEFORE touching history - try pathname first (clean URLs), then query params (legacy)
+    let storyFile = null;
+
+    // Parse pathname for clean URLs like /storyname or /base-path/storyname
+    const pathname = window.location.pathname;
+    const pathSegments = pathname.split('/').filter(s => s);
+    const basePath = BASE_PATH.split('/').filter(s => s);
+
+    // Remove base path segments to get the story slug
+    const relevantSegments = pathSegments.slice(basePath.length);
+
+    if (relevantSegments.length > 0) {
+        const slug = decodeURIComponent(relevantSegments[0]);
+        // Try to find story by slug
+        storyFile = getFilenameFromSlug(slug);
+
+        if (!storyFile) {
+            console.log('Story not found for slug:', slug);
+            // Try direct filename match as fallback
+            const potentialFilename = slug.endsWith('.txt') ? slug : slug + '.txt';
+            if (storyDatabase[potentialFilename]) {
+                storyFile = potentialFilename;
+            }
         }
+    }
+
+    // Fallback to query parameter for backward compatibility
+    if (!storyFile) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedStoryId = urlParams.get('story');
+        if (sharedStoryId) {
+            // URLSearchParams.get() already returns a decoded string, no need to decode again
+            // Find the story file by ID
+            storyFile = getFilenameFromSlug(sharedStoryId) || 
+                       Object.keys(storyDatabase).find(filename => {
+                           return storyDatabase[filename].id === sharedStoryId;
+                       });
+
+            // Redirect to clean URL
+            if (storyFile) {
+                const slug = getSlugFromFilename(storyFile);
+                if (slug) {
+                    const encodedSlug = encodeURIComponent(slug);
+                    window.history.replaceState({ view: 'reader', slug: slug }, '', BASE_PATH + encodedSlug);
+                }
+            }
+        }
+    }
+
+    // Initialize browser history state ONLY if no story found
+    if (!storyFile && !window.history.state) {
+        window.history.replaceState({ view: 'library' }, '', BASE_PATH);
+    }
+
+    // Load the story if found
+    if (storyFile) {
+        setTimeout(() => {
+            loadStoryFromCard(storyFile);
+        }, 500);
+    }
+});
+
+// Handle browser back/forward button
+window.addEventListener('popstate', function(event) {
+    const readerView = document.getElementById('readerView');
+    const libraryView = document.getElementById('libraryView');
+
+    if (!readerView || !libraryView) return;
+
+    // Check if we're currently in reader view
+    const isInReaderView = readerView.style.display !== 'none' && readerView.style.display !== '';
+
+    // Always check the event state to determine what to show
+    const shouldShowLibrary = !event.state || event.state.view === 'library';
+
+    // If we're in reader view and should show library, or if back was pressed from reader
+    if (isInReaderView && shouldShowLibrary) {
+        // Stop reading timer for current story
+        if (currentStory) {
+            stopReadingTimer(currentStory);
+        }
+
+        // Hide reader view
+        readerView.style.display = 'none';
+        libraryView.style.display = 'block';
+
+        // Hide reading controls and progress
+        const progressContainer = document.getElementById('progressContainer');
+        const readingControlsDropdown = document.getElementById('readingControlsDropdown');
+
+        if (progressContainer) {
+            progressContainer.style.display = 'none';
+            progressContainer.style.visibility = 'hidden';
+            progressContainer.style.opacity = '0';
+        }
+        if (readingControlsDropdown) {
+            readingControlsDropdown.style.display = 'none';
+            readingControlsDropdown.style.visibility = 'hidden';
+            readingControlsDropdown.style.opacity = '0';
+            readingControlsDropdown.classList.remove('active');
+        }
+
+        // Show navigation again
+        const navContainer = document.querySelector('.nav-container');
+        const footer = document.querySelector('.footer');
+        if (navContainer) {
+            navContainer.style.opacity = '1';
+        }
+        if (footer) {
+            footer.style.opacity = '1';
+        }
+
+        // Reset story content
+        resetReaderView();
     }
 });
 
 // Function to load story from story card click
 function loadStoryFromCard(storyFile) {
+    // Update URL with clean slug
+    const slug = getSlugFromFilename(storyFile);
+    if (slug) {
+        const encodedSlug = encodeURIComponent(slug);
+        window.history.pushState({ view: 'reader', slug: slug }, '', BASE_PATH + encodedSlug);
+    }
+
     // Switch to reader view
     showReaderView();
     // Load the story
@@ -450,6 +582,13 @@ function loadStoryFromCard(storyFile) {
 
 // Function to load story from suggestion card click
 function loadStoryFromSuggestion(storyFile) {
+    // Update URL with clean slug
+    const slug = getSlugFromFilename(storyFile);
+    if (slug) {
+        const encodedSlug = encodeURIComponent(slug);
+        window.history.pushState({ view: 'reader', slug: slug }, '', BASE_PATH + encodedSlug);
+    }
+
     // Switch to reader view
     showReaderView();
     // Load the story
@@ -527,10 +666,8 @@ function showReaderView() {
     document.getElementById('libraryView').style.display = 'none';
     document.getElementById('readerView').style.display = 'block';
 
-    // Push state to browser history so back button works properly
-    if (window.history.state?.view !== 'reader') {
-        window.history.pushState({ view: 'reader' }, '', window.location.pathname);
-    }
+    // Always push reader state to history
+    window.history.pushState({ view: 'reader' }, '', window.location.pathname);
 
     // Show reading controls and progress on reader page
     if (progressContainer) {
@@ -557,6 +694,13 @@ function returnToLibrary() {
 
     document.getElementById('readerView').style.display = 'none';
     document.getElementById('libraryView').style.display = 'block';
+
+    // Update browser history - always reset to base path
+    if (window.history.state?.view === 'reader') {
+        window.history.back();
+    } else {
+        window.history.replaceState({ view: 'library' }, '', BASE_PATH);
+    }
 
     // Hide reading controls and progress on landing page
     if (progressContainer) {
@@ -589,7 +733,7 @@ window.displayPage = displayPage;
 function resetReaderView() {
     // Clear current story reference FIRST
     currentStory = '';
-    
+
     // Clear story content
     const storyContent = document.getElementById('storyContent');
     if (storyContent) {
@@ -802,7 +946,7 @@ function filterByCategory(category) {
         } else if (category === 'favorites') {
             // Filter by favorites
             const isFavorite = favoriteStories.includes(filename);
-            
+
             if (isFavorite) {
                 card.style.display = '';
                 card.style.opacity = '1';
@@ -865,7 +1009,7 @@ function generateSeriesView() {
 
     // Find all multi-part stories and group them
     const seriesGroups = {};
-    
+
     Object.keys(storyDatabase).forEach(filename => {
         const story = storyDatabase[filename];
         if (story.partOf) {
@@ -891,43 +1035,63 @@ function generateSeriesView() {
 
     // Generate HTML for series cards
     let seriesHTML = '';
-    
+
     Object.keys(seriesGroups).forEach(seriesName => {
         const parts = seriesGroups[seriesName];
         const totalParts = parts.length;
         const firstPart = parts[0];
-        
+
+        // Get the first part's banner image
+        const firstPartStory = storyDatabase[firstPart.filename];
+        const firstPartImage = getBannerImageForStory(firstPartStory.id);
+
         // Calculate total reading time
         const totalReadingTime = parts.reduce((sum, part) => sum + (part.readingTime || 0), 0);
-        
+
+        // Get category icon
+        const categoryIcons = {
+            'Romance': 'fas fa-heart',
+            'Horror': 'fas fa-ghost',
+            'Drama': 'fas fa-theater-masks',
+            'Mystery': 'fas fa-search'
+        };
+        const categoryIcon = categoryIcons[firstPart.category] || 'fas fa-book';
+
         seriesHTML += `
             <div class="series-card">
-                <div class="series-header">
-                    <div class="series-icon">
-                        <i class="fas fa-list-ol"></i>
-                    </div>
-                    <div class="series-info">
-                        <h3 class="series-title">${seriesName}</h3>
-                        <p class="series-meta english-text">${totalParts} Parts • ${totalReadingTime} min total</p>
+                <div class="series-cover" style="background-image: url('${firstPartImage}');">
+                    <div class="series-overlay">
+                        <div class="series-badge">
+                            <i class="fas fa-list-ol"></i> ${totalParts} Parts Series
+                        </div>
                     </div>
                 </div>
-                <div class="series-parts-list">
-                    ${parts.map(part => `
-                        <div class="series-part-item" onclick="loadStoryFromCard('${part.filename}')">
-                            <div class="part-number">
-                                <span>${part.partNumber}</span>
-                            </div>
-                            <div class="part-info">
-                                <div class="part-name">${part.name}</div>
-                                <div class="part-meta english-text">
-                                    ${part.category || 'Story'} • ${part.readingTime || 0} min read
+                <div class="series-content">
+                    <div class="series-header">
+                        <h3 class="series-title">${seriesName}</h3>
+                        <div class="series-meta english-text">
+                            <span><i class="${categoryIcon}"></i> ${firstPart.category || 'Story'}</span>
+                            <span><i class="fas fa-clock"></i> ${totalReadingTime} min total</span>
+                        </div>
+                    </div>
+                    <div class="series-parts-list">
+                        ${parts.map(part => `
+                            <div class="series-part-item" onclick="loadStoryFromCard('${part.filename}')">
+                                <div class="part-number">
+                                    <span>Part ${part.partNumber}</span>
+                                </div>
+                                <div class="part-info">
+                                    <div class="part-name">${part.name}</div>
+                                    <div class="part-meta english-text">
+                                        ${part.readingTime || 0} min read
+                                    </div>
+                                </div>
+                                <div class="part-play-icon">
+                                    <i class="fas fa-play"></i>
                                 </div>
                             </div>
-                            <div class="part-play-icon">
-                                <i class="fas fa-play"></i>
-                            </div>
-                        </div>
-                    `).join('')}
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         `;
@@ -1419,7 +1583,18 @@ function shareStory(filename) {
 
 function shareCurrentStoryByFilename(filename) {
     const storyData = getStoryMetadata(filename);
-    const storyUrl = window.location.origin + window.location.pathname + '?story=' + filename;
+    const slug = getSlugFromFilename(filename);
+    
+    // Always use clean URL format with slug, properly encoded for non-ASCII characters
+    let storyUrl;
+    if (slug) {
+        const encodedSlug = encodeURIComponent(slug);
+        storyUrl = `${window.location.origin}${BASE_PATH}${encodedSlug}`;
+    } else {
+        storyUrl = `${window.location.origin}${BASE_PATH}`;
+    }
+
+    console.log('Sharing story URL:', storyUrl);
 
     if (navigator.share) {
         navigator.share({
@@ -1530,7 +1705,7 @@ function updateFavoriteStoriesList() {
             </div>
         `;
     }).join('');
-    
+
     // Also update favorites menu if it exists
     updateFavoritesMenuList();
 }
@@ -2043,6 +2218,125 @@ function createPagination(content) {
     return storyPages;
 }
 
+// Helper function to build paragraph content with link buttons
+function buildParagraphWithLinkButtons(text, isBangla) {
+    const fragment = document.createDocumentFragment();
+
+    // URL detection pattern
+    const urlPattern = /(https?:\/\/|www\.)[\w\-._~:/?#\[\]@!$&'()*+,;=%]+/gi;
+
+    // Social media platform mapping to icons
+    const socialPlatforms = {
+        'youtube.com': { icon: 'fab fa-youtube', name: 'YouTube', color: '#FF0000' },
+        'youtu.be': { icon: 'fab fa-youtube', name: 'YouTube', color: '#FF0000' },
+        'facebook.com': { icon: 'fab fa-facebook', name: 'Facebook', color: '#1877F2' },
+        'fb.com': { icon: 'fab fa-facebook', name: 'Facebook', color: '#1877F2' },
+        'discord.com': { icon: 'fab fa-discord', name: 'Discord', color: '#5865F2' },
+        'discord.gg': { icon: 'fab fa-discord', name: 'Discord', color: '#5865F2' },
+        'whatsapp.com': { icon: 'fab fa-whatsapp', name: 'WhatsApp', color: '#25D366' },
+        'wa.me': { icon: 'fab fa-whatsapp', name: 'WhatsApp', color: '#25D366' },
+        'instagram.com': { icon: 'fab fa-instagram', name: 'Instagram', color: '#E4405F' },
+        'twitter.com': { icon: 'fab fa-twitter', name: 'Twitter', color: '#1DA1F2' },
+        'x.com': { icon: 'fab fa-x-twitter', name: 'X', color: '#000000' },
+        'tiktok.com': { icon: 'fab fa-tiktok', name: 'TikTok', color: '#000000' },
+        'reddit.com': { icon: 'fab fa-reddit', name: 'Reddit', color: '#FF4500' },
+        'linkedin.com': { icon: 'fab fa-linkedin', name: 'LinkedIn', color: '#0A66C2' },
+        'github.com': { icon: 'fab fa-github', name: 'GitHub', color: '#181717' },
+        'telegram.org': { icon: 'fab fa-telegram', name: 'Telegram', color: '#26A5E4' },
+        't.me': { icon: 'fab fa-telegram', name: 'Telegram', color: '#26A5E4' }
+    };
+
+    let lastIndex = 0;
+    let match;
+    const matches = [];
+
+    // Find all URLs
+    while ((match = urlPattern.exec(text)) !== null) {
+        matches.push({
+            url: match[0],
+            index: match.index
+        });
+    }
+
+    // If no URLs found, return plain text
+    if (matches.length === 0) {
+        fragment.appendChild(document.createTextNode(text));
+        return fragment;
+    }
+
+    // Build content with text and buttons
+    matches.forEach((match, i) => {
+        // Add text before the URL
+        if (match.index > lastIndex) {
+            const textBefore = text.substring(lastIndex, match.index);
+            fragment.appendChild(document.createTextNode(textBefore));
+        }
+
+        // Normalize URL
+        let url = match.url;
+        if (url.startsWith('www.')) {
+            url = 'https://' + url;
+        }
+
+        // Try to parse URL to detect platform
+        let platform = null;
+        try {
+            const urlObj = new URL(url);
+            const hostname = urlObj.hostname.replace('www.', '');
+
+            // Check for platform match
+            for (const [domain, info] of Object.entries(socialPlatforms)) {
+                if (hostname.includes(domain)) {
+                    platform = info;
+                    break;
+                }
+            }
+        } catch (e) {
+            console.warn('Invalid URL:', url);
+        }
+
+        // Create link button
+        const button = document.createElement('a');
+        button.href = url;
+        button.target = '_blank';
+        button.rel = 'noopener noreferrer';
+        button.className = 'link-button';
+
+        if (platform) {
+            button.classList.add('social-link-button');
+            button.style.setProperty('--social-color', platform.color);
+
+            const icon = document.createElement('i');
+            icon.className = platform.icon;
+            button.appendChild(icon);
+
+            const label = document.createElement('span');
+            label.textContent = platform.name;
+            button.appendChild(label);
+        } else {
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-link';
+            button.appendChild(icon);
+
+            const label = document.createElement('span');
+            label.textContent = 'Visit Link';
+            button.appendChild(label);
+        }
+
+        fragment.appendChild(button);
+
+        lastIndex = match.index + match.url.length;
+    });
+
+    // Add remaining text after last URL
+    if (lastIndex < text.length) {
+        const textAfter = text.substring(lastIndex);
+        fragment.appendChild(document.createTextNode(textAfter));
+    }
+
+    return fragment;
+}
+
 function displayPage(pageNumber) {
     if (pageNumber < 1 || pageNumber > totalPages) return;
 
@@ -2059,8 +2353,16 @@ function displayPage(pageNumber) {
 
     paragraphs.forEach(paragraph => {
         const p = document.createElement('p');
-        p.className = 'bangla-text';
-        p.textContent = paragraph.trim();
+        // Detect language and apply appropriate class, but use a combined approach
+        const text = paragraph.trim();
+        const isBangla = /[\u0980-\u09FF]/.test(text); // Bengali Unicode range
+        // Apply both reading-content class for proper font fallback
+        p.className = isBangla ? 'bangla-text reading-content' : 'english-text reading-content';
+
+        // Process text for links and create content with link buttons
+        const contentFragment = buildParagraphWithLinkButtons(text, isBangla);
+        p.appendChild(contentFragment);
+
         storyContent.appendChild(p);
     });
 
@@ -2091,6 +2393,9 @@ function displayPage(pageNumber) {
 
     // Update bookmark button to show correct page info
     updateBookmarkButton();
+
+    // Restore bookmark position for this story
+    restoreBookmarkForCurrentStory();
 
     // Scroll to top of content
     window.scrollTo({ top: 300, behavior: 'smooth' });
@@ -2351,7 +2656,7 @@ const maxFlowPoolSize = 50;
 document.addEventListener('click', (e) => {
     // Create flowing particles (15-20 particles)
     const particleCount = 15 + Math.floor(Math.random() * 6);
-    
+
     for (let i = 0; i < particleCount; i++) {
         let particle;
         if (particleFlowPool.length > 0) {
@@ -2377,8 +2682,9 @@ document.addEventListener('click', (e) => {
         ];
         const color = colors[Math.floor(Math.random() * colors.length)];
 
-        particle.style.left = e.pageX + 'px';
-        particle.style.top = e.pageY + 'px';
+        // Use clientX/clientY for viewport coordinates instead of pageX/pageY
+        particle.style.left = e.clientX + 'px';
+        particle.style.top = e.clientY + 'px';
         particle.style.background = color;
         particle.style.setProperty('--dx', dx + 'px');
         particle.style.setProperty('--dy', dy + 'px');
@@ -2618,7 +2924,7 @@ function displayStory(filename, content) {
 
     // Update browser title
     document.title = storyName + ' by ' + writerName;
-    
+
     // Update logo text to show current story name
     const logoText = document.querySelector('.logo-text');
     if (logoText) {
@@ -4521,22 +4827,8 @@ function displaySearchResults(results, searchTerm) {
 }
 
 // Social Sharing System
-function shareStory(storyFile) {
-    const story = getStoryMetadata(storyFile);
-    const shareData = {
-        title: `${story.name} - Golpo`,
-        text: `Read "${story.name}" by ${story.writer} on Golpo - Bengali Story Platform`,
-        url: window.location.href
-    };
-
-    if (navigator.share) {
-        navigator.share(shareData)
-            .then(() => showNotification('Story shared successfully! 🎉', 'success'))
-            .catch(() => copyShareLink(shareData));
-    } else {
-        copyShareLink(shareData);
-    }
-}
+// Note: shareStory function is defined earlier in the file (line ~1580)
+// to avoid duplication and ensure proper URL encoding
 
 function shareCurrentStory() {
     if (!currentStory) {
@@ -4545,9 +4837,12 @@ function shareCurrentStory() {
     }
 
     const story = getStoryMetadata(currentStory);
-    // Create a URL with story parameter so it opens directly to the story
-    const baseUrl = window.location.origin + window.location.pathname;
-    const storyUrl = `${baseUrl}?story=${encodeURIComponent(story.id)}`;
+    const slug = getSlugFromFilename(currentStory);
+    const storyUrl = slug 
+        ? `${window.location.origin}${BASE_PATH}${encodeURIComponent(slug)}`
+        : `${window.location.origin}${window.location.pathname}?story=${encodeURIComponent(story.id)}`;
+
+    console.log('Sharing current story URL:', storyUrl);
 
     const shareData = {
         title: `${story.name} - Golpo`,
@@ -4600,7 +4895,7 @@ function copyShareLink(shareData) {
 }
 
 // Export to global scope
-window.shareStory = shareStory;
+// Note: window.shareStory is already exported earlier (line ~1799)
 window.shareCurrentStory = shareCurrentStory;
 
 function displaySearchResults(results, searchTerm) {
@@ -4969,7 +5264,7 @@ function setupHistoryNavigation() {
     window.addEventListener('popstate', (event) => {
         const readerView = document.getElementById('readerView');
         const isReaderVisible = readerView && readerView.style.display !== 'none';
-        
+
         // If user presses back while in reader view, return to library
         if (isReaderVisible) {
             returnToLibrary();
@@ -5091,286 +5386,142 @@ function updateOfflineIndicator() {
 // Show offline status and cached stories in a modal
 function showOfflineStatus() {
     const cachedCount = cachedStories.size;
-    const totalStories = Object.keys(storyDatabase).length;
+    // Count only actual story files (exclude upcoming.txt and any other non-story entries)
+    const totalStories = Object.keys(storyDatabase).filter(filename => 
+        filename !== 'upcoming.txt' && storyDatabase[filename].status !== 'upcoming'
+    ).length;
+    const percentCached = totalStories > 0 ? Math.round((cachedCount / totalStories) * 100) : 0;
 
     // Create modal overlay
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'offline-modal-overlay';
-    modalOverlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: fadeIn 0.3s ease;
-    `;
 
     // Create modal content
     const modalContent = document.createElement('div');
     modalContent.className = 'offline-modal-content';
-    modalContent.style.cssText = `
-        background: var(--primary-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        max-width: 600px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    `;
 
     // Modal header
     const header = document.createElement('div');
     header.className = 'offline-modal-header';
-    header.style.cssText = `
-        padding: 1.5rem;
-        border-bottom: 1px solid var(--glass-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: linear-gradient(135deg, rgba(100, 181, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
-    `;
 
     const title = document.createElement('h3');
-    title.style.cssText = `
-        margin: 0;
-        color: var(--text-primary);
-        font-size: 1.2rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    `;
-    
-    const statusIcon = isOnline ? 
-        '<i class="fas fa-wifi" style="color: #4caf50;"></i>' : 
-        '<i class="fas fa-wifi-slash" style="color: #ff6b6b;"></i>';
-    
-    title.innerHTML = `${statusIcon} ${isOnline ? 'Online' : 'Offline'} - Story Downloads`;
+    const statusIconClass = isOnline ? 'online' : 'offline';
+    const statusIconHTML = isOnline ? 
+        `<i class="fas fa-wifi offline-status-icon ${statusIconClass}"></i>` : 
+        `<i class="fas fa-wifi-slash offline-status-icon ${statusIconClass}"></i>`;
+
+    title.innerHTML = `${statusIconHTML} ${isOnline ? 'Online Mode' : 'Offline Mode'}`;
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'offline-modal-close';
     closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-    closeBtn.style.cssText = `
-        background: none;
-        border: none;
-        color: var(--text-muted);
-        font-size: 1.5rem;
-        cursor: pointer;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    `;
-    closeBtn.onmouseover = () => {
-        closeBtn.style.background = 'var(--accent-bg)';
-        closeBtn.style.color = 'var(--accent-color)';
-    };
-    closeBtn.onmouseout = () => {
-        closeBtn.style.background = 'none';
-        closeBtn.style.color = 'var(--text-muted)';
-    };
     closeBtn.onclick = () => modalOverlay.remove();
 
     header.appendChild(title);
     header.appendChild(closeBtn);
 
-    // Status info
+    // Status info with stats cards
     const statusInfo = document.createElement('div');
-    statusInfo.style.cssText = `
-        padding: 1rem 1.5rem;
-        background: ${isOnline ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 107, 107, 0.1)'};
-        border-bottom: 1px solid var(--glass-border);
-        color: var(--text-primary);
-        font-size: 0.9rem;
-    `;
-    statusInfo.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <i class="fas fa-book"></i>
-            <strong>${cachedCount} / ${totalStories}</strong> stories cached for offline reading
-        </div>
-        ${!isOnline ? '<div style="color: var(--text-muted); font-size: 0.85rem;"><i class="fas fa-info-circle"></i> You\'re offline. Only cached stories are available.</div>' : ''}
-    `;
+    statusInfo.className = `offline-status-info ${isOnline ? 'online-status' : 'offline-status'}`;
 
-    // Download all button (only show when online and not all stories are cached)
-    let downloadAllBtn = null;
-    if (isOnline && cachedCount < totalStories) {
-        downloadAllBtn = document.createElement('button');
-        downloadAllBtn.className = 'download-all-btn';
-        downloadAllBtn.innerHTML = '<i class="fas fa-download"></i> Download All Stories for Offline';
-        downloadAllBtn.style.cssText = `
-            margin: 1rem 1.5rem;
-            padding: 0.8rem 1.5rem;
-            background: linear-gradient(135deg, #4caf50, #45a049);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: calc(100% - 3rem);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-        `;
-        downloadAllBtn.onmouseover = () => {
-            downloadAllBtn.style.transform = 'translateY(-2px)';
-            downloadAllBtn.style.boxShadow = '0 6px 16px rgba(76, 175, 80, 0.4)';
-        };
-        downloadAllBtn.onmouseout = () => {
-            downloadAllBtn.style.transform = 'translateY(0)';
-            downloadAllBtn.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.3)';
-        };
-        downloadAllBtn.onclick = async () => {
-            downloadAllBtn.disabled = true;
-            downloadAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-            await downloadAllStories();
-            modalOverlay.remove();
-        };
-    }
+    statusInfo.innerHTML = `
+        <div class="offline-stats-grid">
+            <div class="offline-stat-card">
+                <span class="offline-stat-value">${cachedCount}</span>
+                <span class="offline-stat-label">Cached</span>
+            </div>
+            <div class="offline-stat-card">
+                <span class="offline-stat-value">${totalStories}</span>
+                <span class="offline-stat-label">Total Stories</span>
+            </div>
+            <div class="offline-stat-card">
+                <span class="offline-stat-value">${percentCached}%</span>
+                <span class="offline-stat-label">Available</span>
+            </div>
+        </div>
+        ${!isOnline ? `
+            <div class="offline-info-message">
+                <i class="fas fa-info-circle"></i>
+                <span>You're offline. Only cached stories are accessible.</span>
+            </div>
+        ` : `
+            <div class="offline-info-message">
+                <i class="fas fa-cloud-download-alt"></i>
+                <span>Cache stories to read them offline anytime.</span>
+            </div>
+        `}
+    `;
 
     // Story list
     const storyList = document.createElement('div');
     storyList.className = 'offline-story-list';
-    storyList.style.cssText = `
-        padding: 1rem 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    `;
 
     // Add stories to list
     Object.keys(storyDatabase).forEach(filename => {
         if (filename === 'upcoming.txt') return; // Skip upcoming stories
-        
+
         const story = storyDatabase[filename];
         const isCached = cachedStories.has(filename);
-        
+
         const storyItem = document.createElement('div');
         storyItem.className = 'offline-story-item';
-        storyItem.style.cssText = `
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem;
-            background: var(--accent-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        `;
-        storyItem.onmouseover = () => {
-            storyItem.style.background = 'var(--glass-bg)';
-            storyItem.style.borderColor = 'var(--accent-color)';
-        };
-        storyItem.onmouseout = () => {
-            storyItem.style.background = 'var(--accent-bg)';
-            storyItem.style.borderColor = 'var(--border-color)';
-        };
 
         const storyInfo = document.createElement('div');
-        storyInfo.style.cssText = `
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        `;
-        
+        storyInfo.className = 'offline-story-info';
+
         const storyName = document.createElement('div');
-        storyName.className = 'bangla-text';
-        storyName.style.cssText = `
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            font-weight: 500;
-        `;
+        storyName.className = 'offline-story-name bangla-text';
         storyName.textContent = story.name;
 
         const storyMeta = document.createElement('div');
-        storyMeta.style.cssText = `
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        `;
+        storyMeta.className = 'offline-story-meta';
         storyMeta.innerHTML = `
             <span><i class="fas fa-tag"></i> ${story.category}</span>
-            ${isCached ? '<span style="color: #4caf50;"><i class="fas fa-check-circle"></i> Cached</span>' : '<span style="color: var(--text-muted);"><i class="fas fa-cloud"></i> Online only</span>'}
+            ${isCached ? 
+                '<span class="cached"><i class="fas fa-check-circle"></i> Cached</span>' : 
+                '<span class="online-only"><i class="fas fa-cloud"></i> Online only</span>'}
         `;
 
         storyInfo.appendChild(storyName);
         storyInfo.appendChild(storyMeta);
 
-        // Download button
-        const downloadBtn = document.createElement('button');
-        downloadBtn.className = 'story-download-btn';
-        downloadBtn.style.cssText = `
-            padding: 0.5rem 0.75rem;
-            background: ${isCached ? 'rgba(76, 175, 80, 0.2)' : 'var(--accent-color)'};
-            color: ${isCached ? '#4caf50' : 'white'};
-            border: 1px solid ${isCached ? '#4caf50' : 'var(--accent-color)'};
-            border-radius: 8px;
-            font-size: 0.85rem;
-            cursor: ${isCached ? 'default' : 'pointer'};
-            transition: all 0.3s ease;
-            min-width: 80px;
-        `;
-        downloadBtn.innerHTML = isCached ? 
+        // Cache button
+        const cacheBtn = document.createElement('button');
+        cacheBtn.className = `story-cache-btn ${isCached ? 'cached' : 'not-cached'}`;
+        cacheBtn.innerHTML = isCached ? 
             '<i class="fas fa-check"></i> Saved' : 
             '<i class="fas fa-download"></i> Save';
-        
+
         if (!isCached && isOnline) {
-            downloadBtn.onmouseover = () => {
-                downloadBtn.style.transform = 'translateY(-2px)';
-                downloadBtn.style.boxShadow = '0 4px 12px rgba(100, 181, 246, 0.3)';
-            };
-            downloadBtn.onmouseout = () => {
-                downloadBtn.style.transform = 'translateY(0)';
-                downloadBtn.style.boxShadow = 'none';
-            };
-            downloadBtn.onclick = async (e) => {
+            cacheBtn.onclick = async (e) => {
                 e.stopPropagation();
-                downloadBtn.disabled = true;
-                downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                cacheBtn.disabled = true;
+                cacheBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 const success = await cacheStoryForOffline(filename);
                 if (success) {
-                    downloadBtn.innerHTML = '<i class="fas fa-check"></i> Saved';
-                    downloadBtn.style.background = 'rgba(76, 175, 80, 0.2)';
-                    downloadBtn.style.color = '#4caf50';
-                    downloadBtn.style.borderColor = '#4caf50';
+                    cacheBtn.innerHTML = '<i class="fas fa-check"></i> Saved';
+                    cacheBtn.className = 'story-cache-btn cached';
                     storyMeta.innerHTML = `
                         <span><i class="fas fa-tag"></i> ${story.category}</span>
-                        <span style="color: #4caf50;"><i class="fas fa-check-circle"></i> Cached</span>
+                        <span class="cached"><i class="fas fa-check-circle"></i> Cached</span>
                     `;
                 } else {
-                    downloadBtn.disabled = false;
-                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> Save';
+                    cacheBtn.disabled = false;
+                    cacheBtn.innerHTML = '<i class="fas fa-download"></i> Save';
                 }
             };
         } else if (!isCached && !isOnline) {
-            downloadBtn.disabled = true;
-            downloadBtn.style.opacity = '0.5';
-            downloadBtn.style.cursor = 'not-allowed';
+            cacheBtn.disabled = true;
         }
 
         storyItem.appendChild(storyInfo);
-        storyItem.appendChild(downloadBtn);
+        storyItem.appendChild(cacheBtn);
         storyList.appendChild(storyItem);
     });
 
     // Assemble modal
     modalContent.appendChild(header);
     modalContent.appendChild(statusInfo);
-    if (downloadAllBtn) {
-        modalContent.appendChild(downloadAllBtn);
-    }
     modalContent.appendChild(storyList);
     modalOverlay.appendChild(modalContent);
 
@@ -5698,11 +5849,11 @@ function showNotification(message, type = 'info', duration = 4000, options = {})
 // Helper function to get notification icons
 function getNotificationIcon(type) {
     const icons = {
-        success: 'fas fa-check-circle',
-        error: 'fas fa-exclamation-triangle',
-        warning: 'fas fa-exclamation-circle',
-        info: 'fas fa-info-circle',
-        music: 'fas fa-music'
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-triangle',
+        warning: 'fa-exclamation-circle',
+        info: 'fa-info-circle',
+        music: 'fa-music'
     };
     return icons[type] || icons.info;
 }
@@ -6157,7 +6308,7 @@ window.returnToLibrary = function() {
                     progressContainer.style.visibility = 'hidden';
                     progressContainer.style.opacity = '0';
                 }
-                if (readingControlsDropdown) {
+                if (readingControlsDropdown){
                     readingControlsDropdown.style.display = 'none';
                     readingControlsDropdown.style.visibility = 'hidden';
                     readingControlsDropdown.style.opacity = '0';
