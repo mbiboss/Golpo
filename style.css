@@ -7465,6 +7465,58 @@ body {
     font-size: 16px;
 }
 
+.download-all-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, var(--accent-color), var(--glow-secondary));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(100, 181, 246, 0.3);
+}
+
+.download-all-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(100, 181, 246, 0.5);
+}
+
+.download-all-btn:active {
+    transform: translateY(0);
+}
+
+.download-all-btn i {
+    font-size: 16px;
+}
+
+.all-cached-message {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px 20px;
+    background: rgba(76, 175, 80, 0.15);
+    border: 1px solid rgba(76, 175, 80, 0.4);
+    border-radius: 12px;
+    color: #4caf50;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.all-cached-message i {
+    font-size: 18px;
+}
+
 .offline-story-list {
     padding: 20px 28px;
     display: flex;
