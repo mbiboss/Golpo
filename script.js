@@ -5450,6 +5450,17 @@ function showOfflineStatus() {
                 <i class="fas fa-cloud-download-alt"></i>
                 <span>Cache stories to read them offline anytime.</span>
             </div>
+            ${cachedCount < totalStories ? `
+                <button class="download-all-btn" onclick="downloadAllStories()">
+                    <i class="fas fa-download"></i>
+                    <span>Download All Stories (${totalStories - cachedCount} remaining)</span>
+                </button>
+            ` : `
+                <div class="all-cached-message">
+                    <i class="fas fa-check-circle"></i>
+                    <span>All stories are cached!</span>
+                </div>
+            `}
         `}
     `;
 
@@ -5547,24 +5558,45 @@ async function downloadAllStories() {
         return;
     }
 
-    showNotification(`Downloading ${storiesToDownload.length} stories...`, 'info');
+    if (!isOnline) {
+        showNotification('You need to be online to download stories', 'warning');
+        return;
+    }
+
+    const totalStories = storiesToDownload.length;
+    showNotification(`📥 Starting download of ${totalStories} stories...`, 'info', 3000);
 
     let successCount = 0;
     let failCount = 0;
 
-    for (const filename of storiesToDownload) {
+    for (let i = 0; i < storiesToDownload.length; i++) {
+        const filename = storiesToDownload[i];
+        const storyName = getStoryMetadata(filename).name;
+        
+        // Show progress notification
+        showNotification(`Downloading ${i + 1}/${totalStories}: ${storyName}`, 'info', 2000);
+        
         const success = await cacheStoryForOffline(filename);
         if (success) {
             successCount++;
         } else {
             failCount++;
         }
+        
+        // Small delay between downloads to avoid overwhelming the server
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    // Update the offline status modal if it's open
+    const offlineModal = document.querySelector('.offline-modal-overlay');
+    if (offlineModal) {
+        showOfflineStatus();
     }
 
     if (failCount === 0) {
-        showNotification(`✅ Successfully downloaded all ${successCount} stories for offline reading!`, 'success');
+        showNotification(`✅ Successfully downloaded all ${successCount} stories for offline reading!`, 'success', 5000);
     } else {
-        showNotification(`Downloaded ${successCount} stories. ${failCount} failed.`, 'warning');
+        showNotification(`Downloaded ${successCount} stories. ${failCount} failed.`, 'warning', 5000);
     }
 }
 
