@@ -55,6 +55,20 @@
         "readingTime": 0,
         "wordCount": 0
     },
+    "ShopnerDurotto-1.txt": {
+        "id": "ShopnerDurotto-1",
+        "name": "_স্বপ্নের দূরত্ব_",
+        "location": "Kathora,Shalna,Gazipur",
+        "writer": "✿ㅤ\"MʙɪㅤDᴀʀᴋ\"",
+        "description": "Life ends when dreams fade.",
+        "status": "available",
+        "category": "Romance",
+        "tags": ["trust", "faith", "relationship", "emotional""],
+        "banner": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
+        "reading": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
+        "readingTime": 0,
+        "wordCount": 0
+    },
     "Chaya-2.txt": {
         "id": "Chaya-2",
         "name": "ছায়া - পার্ট ২",
