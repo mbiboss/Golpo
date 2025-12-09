@@ -1,462 +1,172 @@
-
-// Service Worker for Golpo App - Optimized v2.3.9
-const CACHE_VERSION = 'v2.3.9';
+// Service Worker for Golpo App - Lightweight v3.0.0
+const CACHE_VERSION = 'v3.0.0';
 const STATIC_CACHE = `golpo-static-${CACHE_VERSION}`;
 const STORIES_CACHE = `golpo-stories-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `golpo-dynamic-${CACHE_VERSION}`;
-const IMAGES_CACHE = `golpo-images-${CACHE_VERSION}`;
 
-// Detect base path dynamically for different hosting environments
+// Detect base path dynamically
 const SW_URL = new URL(self.location.href);
 let BASE_PATH = SW_URL.pathname.substring(0, SW_URL.pathname.lastIndexOf('/') + 1);
+if (!BASE_PATH.endsWith('/')) BASE_PATH += '/';
+if (!BASE_PATH.startsWith('/')) BASE_PATH = '/' + BASE_PATH;
 
-// Normalize base path - ensure it ends with / and starts with /
-if (!BASE_PATH.endsWith('/')) {
-    BASE_PATH += '/';
-}
-if (!BASE_PATH.startsWith('/')) {
-    BASE_PATH = '/' + BASE_PATH;
-}
+// For PWA, also handle root scope
+const isRootScope = BASE_PATH === '/' || BASE_PATH === './';
 
-// Core app files to cache (relative to base path)
+// Only cache essential files (minimal footprint)
 const CORE_FILES = [
     BASE_PATH,
     BASE_PATH + 'index.html',
     BASE_PATH + 'style.css',
     BASE_PATH + 'script.js',
     BASE_PATH + 'animations.css',
-    BASE_PATH + 'animations.js',
     BASE_PATH + 'manifest.json',
-    BASE_PATH + 'assets/logo.png',
-    BASE_PATH + 'assets/English_font.otf',
-    BASE_PATH + 'assets/Bangla_font.ttf',
     BASE_PATH + 'songs.json',
     BASE_PATH + 'stories.json'
 ];
 
-// External resources to cache
-const EXTERNAL_RESOURCES = [
-    'https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
-];
+// Max cached stories (text files only, small)
+const MAX_CACHED_STORIES = 5;
 
-// Cache timeout duration (24 hours)
-const CACHE_TIMEOUT = 24 * 60 * 60 * 1000;
-
-// Install event - cache core files and external resources
+// Install event - cache only essential files
 self.addEventListener('install', (event) => {
-    
     event.waitUntil(
-        Promise.all([
-            // Cache core application files
-            caches.open(STATIC_CACHE).then((cache) => {
-                return cache.addAll(CORE_FILES).catch((error) => {
-                    // Don't fail the entire install if some files can't be cached
-                    return Promise.resolve();
-                });
-            }),
-            // Cache external resources
-            caches.open(DYNAMIC_CACHE).then((cache) => {
-                return Promise.all(
-                    EXTERNAL_RESOURCES.map(url => 
-                        cache.add(url).catch(err => {
-                        })
-                    )
-                );
-            }),
-            // Initialize other caches
-            caches.open(STORIES_CACHE),
-            caches.open(IMAGES_CACHE)
-        ]).then(() => {
-            // Force activation of new service worker
-            return self.skipWaiting();
-        })
+        caches.open(STATIC_CACHE).then((cache) => {
+            return cache.addAll(CORE_FILES).catch(() => Promise.resolve());
+        }).then(() => self.skipWaiting())
     );
 });
 
-// Activate event - clean up old caches
+// Activate event - aggressive cleanup of old caches
 self.addEventListener('activate', (event) => {
-    
     event.waitUntil(
-        Promise.all([
-            // Clean up old caches
-            caches.keys().then((cacheNames) => {
-                return Promise.all(
-                    cacheNames.map((cacheName) => {
-                        // Delete caches that don't match current version
-                        if (!cacheName.includes(CACHE_VERSION)) {
-                            console.log('SW v2.2.0: Deleting old cache:', cacheName);
-                            return caches.delete(cacheName);
-                        }
-                    })
-                );
-            }),
-            // Take control of all pages immediately
-            self.clients.claim()
-        ]).then(() => {
-            console.log('SW v2.2.0: Activated and ready (PWA removed, offline support active)');
-        })
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    // Delete ALL old caches and image caches
+                    if (!cacheName.includes(CACHE_VERSION) || 
+                        cacheName.includes('images') || 
+                        cacheName.includes('dynamic')) {
+                        console.log('SW: Deleting cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
     );
 });
 
-// Fetch event - smart caching strategy
+// Fetch event - minimal caching strategy
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Skip non-GET requests
-    if (request.method !== 'GET') {
-        return;
-    }
+    if (request.method !== 'GET') return;
 
-    // Handle story text files - Network first, then cache
+    // Story text files - cache limited number
     if (url.pathname.endsWith('.txt') && url.pathname.includes('/stories/')) {
         event.respondWith(handleStoryRequest(request));
         return;
     }
 
-    // Handle images - Cache first, then network
-    if (request.destination === 'image' || /\.(png|jpg|jpeg|gif|svg|webp)$/i.test(url.pathname)) {
-        event.respondWith(handleImageRequest(request));
-        return;
-    }
-
-    // Handle fonts - Cache first
-    if (request.destination === 'font' || /\.(woff|woff2|ttf|otf|eot)$/i.test(url.pathname)) {
-        event.respondWith(handleFontRequest(request));
-        return;
-    }
-
-    // Handle core app files - Cache first with network update
-    if (CORE_FILES.some(file => url.pathname === file || url.pathname.endsWith(file))) {
-        event.respondWith(handleCoreFileRequest(request));
-        return;
-    }
-
-    // Handle external resources (fonts, CDNs) - Stale-while-revalidate
-    if (url.origin !== location.origin) {
-        event.respondWith(handleExternalRequest(request));
-        return;
-    }
-
-    // Handle other same-origin requests - Network first, then cache
+    // Core files only - network first with cache fallback
     if (url.origin === location.origin) {
-        event.respondWith(handleDynamicRequest(request));
+        event.respondWith(handleCoreRequest(request));
         return;
     }
+
+    // External resources - NO caching (fonts/CDN load fresh)
+    // This prevents storage bloat from external resources
 });
 
-// Network-first strategy for stories (fresh content preferred)
+// Handle story requests with limited caching
 async function handleStoryRequest(request) {
-    const cache = await caches.open(STORIES_CACHE);
-    
     try {
-        // Try network first for fresh content
-        const networkResponse = await fetchWithTimeout(request, 5000);
-        
+        const networkResponse = await fetch(request);
         if (networkResponse && networkResponse.ok) {
-            // Cache the fresh story with timestamp
-            const responseToCache = networkResponse.clone();
-            await cacheWithMetadata(cache, request, responseToCache);
+            // Cache story but limit total cached stories
+            const cache = await caches.open(STORIES_CACHE);
+            await limitCacheSize(cache, MAX_CACHED_STORIES);
+            cache.put(request, networkResponse.clone());
             return networkResponse;
         }
-        
-        // If network fails, try cache
-        const cachedResponse = await getCachedResponse(cache, request);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
-        
-        return createErrorResponse('Story not available offline');
-        
     } catch (error) {
-        // Network failed, try cache
-        const cachedResponse = await getCachedResponse(cache, request);
-        
-        if (cachedResponse) {
-            return cachedResponse;
-        }
-        
-        return createErrorResponse('Story not available offline');
+        // Offline - try cache
+        const cache = await caches.open(STORIES_CACHE);
+        const cached = await cache.match(request);
+        if (cached) return cached;
     }
+    return new Response('Story not available', { status: 404 });
 }
 
-// Cache-first strategy for core files with background update
-async function handleCoreFileRequest(request) {
-    const cache = await caches.open(STATIC_CACHE);
-    const cachedResponse = await cache.match(request);
-    
-    // Return cached response immediately
-    if (cachedResponse) {
-        // Update cache in background
-        fetchAndCache(cache, request).catch(() => {});
-        return cachedResponse;
-    }
-    
-    // If not in cache, fetch from network
-    try {
-        const networkResponse = await fetch(request);
-        if (networkResponse && networkResponse.ok) {
-            cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-    } catch (error) {
-        return createErrorResponse('App files not available offline');
-    }
-}
-
-// Cache-first strategy for images
-async function handleImageRequest(request) {
-    const cache = await caches.open(IMAGES_CACHE);
-    
-    const cachedResponse = await cache.match(request);
-    if (cachedResponse) {
-        return cachedResponse;
-    }
-    
-    try {
-        const networkResponse = await fetch(request);
-        if (networkResponse && networkResponse.ok) {
-            cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-    } catch (error) {
-        return createPlaceholderImageResponse();
-    }
-}
-
-// Cache-first strategy for fonts
-async function handleFontRequest(request) {
-    const cache = await caches.open(STATIC_CACHE);
-    
-    const cachedResponse = await cache.match(request);
-    if (cachedResponse) {
-        return cachedResponse;
-    }
-    
-    try {
-        const networkResponse = await fetch(request);
-        if (networkResponse && networkResponse.ok) {
-            cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-    } catch (error) {
-        return new Response('Font not available', { status: 404 });
-    }
-}
-
-// Stale-while-revalidate strategy for external resources
-async function handleExternalRequest(request) {
-    const cache = await caches.open(DYNAMIC_CACHE);
-    const cachedResponse = await cache.match(request);
-    
-    // Return cached response and update in background
-    if (cachedResponse) {
-        fetchAndCache(cache, request).catch(() => {});
-        return cachedResponse;
-    }
-    
-    try {
-        const networkResponse = await fetch(request);
-        if (networkResponse && networkResponse.ok) {
-            cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-    } catch (error) {
-        return cachedResponse || new Response('Resource not available', { status: 404 });
-    }
-}
-
-// Network-first strategy for dynamic content
-async function handleDynamicRequest(request) {
-    const cache = await caches.open(DYNAMIC_CACHE);
-    
-    try {
-        const networkResponse = await fetch(request);
-        if (networkResponse && networkResponse.ok) {
-            cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-    } catch (error) {
-        const cachedResponse = await cache.match(request);
-        return cachedResponse || createErrorResponse('Content not available');
-    }
-}
-
-// Utility: Fetch with timeout
-async function fetchWithTimeout(request, timeout = 5000) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
-    try {
-        const response = await fetch(request, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        return response;
-    } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
-    }
-}
-
-// Utility: Cache with metadata
-async function cacheWithMetadata(cache, request, response) {
-    const metadata = {
-        timestamp: Date.now(),
-        url: request.url
-    };
-    
-    const headers = new Headers(response.headers);
-    headers.set('X-Cache-Timestamp', metadata.timestamp.toString());
-    
-    const modifiedResponse = new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: headers
-    });
-    
-    await cache.put(request, modifiedResponse);
-}
-
-// Utility: Get cached response with freshness check
-async function getCachedResponse(cache, request) {
-    const response = await cache.match(request);
-    
-    if (!response) return null;
-    
-    // Check cache freshness
-    const timestamp = response.headers.get('X-Cache-Timestamp');
-    if (timestamp) {
-        const age = Date.now() - parseInt(timestamp);
-        if (age > CACHE_TIMEOUT) {
-            // Still return it, but it's marked as stale
-        }
-    }
-    
-    return response;
-}
-
-// Utility: Fetch and cache in background
-async function fetchAndCache(cache, request) {
-    try {
-        const response = await fetch(request);
-        if (response && response.ok) {
-            await cache.put(request, response.clone());
-        }
-    } catch (error) {
-    }
-}
-
-// Create error response
-function createErrorResponse(message) {
-    return new Response(
-        JSON.stringify({ error: message }), 
-        { 
-            status: 404, 
-            headers: { 'Content-Type': 'application/json' } 
-        }
+// Handle core requests - network first, only cache allowlisted files
+async function handleCoreRequest(request) {
+    const url = new URL(request.url);
+    const isCoreFile = CORE_FILES.some(file => 
+        url.pathname === file || url.pathname.endsWith(file.replace(BASE_PATH, '/'))
     );
+    
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse && networkResponse.ok) {
+            // Only cache if it's a core file (prevents unbounded cache growth)
+            if (isCoreFile) {
+                const cache = await caches.open(STATIC_CACHE);
+                cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+        }
+    } catch (error) {
+        // Offline fallback
+        const cache = await caches.open(STATIC_CACHE);
+        const cached = await cache.match(request);
+        if (cached) return cached;
+    }
+    return new Response('Not available offline', { status: 404 });
 }
 
-// Create placeholder image response (1x1 transparent PNG)
-function createPlaceholderImageResponse() {
-    const pixels = new Uint8Array([
-        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-        0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-        0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
-        0x89, 0x00, 0x00, 0x00, 0x0B, 0x49, 0x44, 0x41,
-        0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-        0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
-        0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
-        0x42, 0x60, 0x82
-    ]);
-    
-    return new Response(pixels, {
-        status: 200,
-        headers: { 
-            'Content-Type': 'image/png',
-            'Cache-Control': 'public, max-age=31536000'
+// Limit cache size to prevent storage bloat
+async function limitCacheSize(cache, maxItems) {
+    const keys = await cache.keys();
+    if (keys.length >= maxItems) {
+        // Delete oldest entries
+        const deleteCount = keys.length - maxItems + 1;
+        for (let i = 0; i < deleteCount; i++) {
+            await cache.delete(keys[i]);
         }
-    });
+    }
 }
 
 // Message handling for cache management
 self.addEventListener('message', (event) => {
-    const { action, data } = event.data;
+    const { action } = event.data || {};
     
     switch (action) {
-        case 'CACHE_STORY':
-            cacheStory(data.url).then(() => {
-                event.ports[0].postMessage({ success: true });
-            }).catch((error) => {
-                event.ports[0].postMessage({ success: false, error: error.message });
+        case 'CLEAR_ALL_CACHES':
+            caches.keys().then(names => {
+                Promise.all(names.map(name => caches.delete(name)))
+                    .then(() => {
+                        if (event.ports[0]) {
+                            event.ports[0].postMessage({ success: true });
+                        }
+                    });
             });
             break;
             
-        case 'CHECK_CACHE':
-            checkCacheStatus(data.url).then((cached) => {
-                event.ports[0].postMessage({ cached });
-            });
-            break;
-            
-        case 'CLEAR_CACHE':
-            clearStoriesCache().then(() => {
-                event.ports[0].postMessage({ success: true });
-            });
-            break;
-
-        case 'CLEAR_ALL_CACHE':
-            clearAllCaches().then(() => {
-                event.ports[0].postMessage({ success: true });
-            });
-            break;
-
         case 'GET_CACHE_SIZE':
-            getCacheSize().then((size) => {
-                event.ports[0].postMessage({ size });
+            getCacheSize().then(size => {
+                if (event.ports[0]) {
+                    event.ports[0].postMessage({ size });
+                }
             });
             break;
-
+            
         case 'SKIP_WAITING':
             self.skipWaiting();
-            event.ports[0].postMessage({ success: true });
             break;
     }
 });
 
-// Manually cache a story
-async function cacheStory(url) {
-    const cache = await caches.open(STORIES_CACHE);
-    const response = await fetch(url);
-    
-    if (response.ok) {
-        await cacheWithMetadata(cache, new Request(url), response);
-    } else {
-        throw new Error('Failed to fetch story for caching');
-    }
-}
-
-// Check if story is cached
-async function checkCacheStatus(url) {
-    const cache = await caches.open(STORIES_CACHE);
-    const response = await cache.match(url);
-    return !!response;
-}
-
-// Clear stories cache
-async function clearStoriesCache() {
-    const cache = await caches.open(STORIES_CACHE);
-    const keys = await cache.keys();
-    await Promise.all(keys.map(key => cache.delete(key)));
-}
-
-// Clear all caches
-async function clearAllCaches() {
-    const cacheNames = await caches.keys();
-    await Promise.all(cacheNames.map(name => caches.delete(name)));
-}
-
-// Get total cache size (estimate)
+// Get approximate cache size
 async function getCacheSize() {
     let totalSize = 0;
     const cacheNames = await caches.keys();
@@ -464,42 +174,8 @@ async function getCacheSize() {
     for (const name of cacheNames) {
         const cache = await caches.open(name);
         const keys = await cache.keys();
-        
-        for (const request of keys) {
-            const response = await cache.match(request);
-            if (response) {
-                const blob = await response.blob();
-                totalSize += blob.size;
-            }
-        }
+        totalSize += keys.length;
     }
     
     return totalSize;
 }
-
-// Periodic cache cleanup (run on activation)
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        cleanupOldCaches().then(() => {
-        })
-    );
-});
-
-async function cleanupOldCaches() {
-    const cache = await caches.open(STORIES_CACHE);
-    const requests = await cache.keys();
-    
-    for (const request of requests) {
-        const response = await cache.match(request);
-        const timestamp = response.headers.get('X-Cache-Timestamp');
-        
-        if (timestamp) {
-            const age = Date.now() - parseInt(timestamp);
-            // Remove entries older than 30 days
-            if (age > 30 * 24 * 60 * 60 * 1000) {
-                await cache.delete(request);
-            }
-        }
-    }
-}
-

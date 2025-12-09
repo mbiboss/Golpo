@@ -5,100 +5,28 @@
   <meta charset="UTF-8">
   <meta name="google-site-verification" content="obsoS1ZxktHEZtqpTIQ3v0bedzumOytsJ9ZkWbsrtxc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Golpo by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</title>
+  <title>Golpo by MBI Dark</title>
   <meta name="description" content="Golpo by MBI BOSS. Read Bengali stories, thriller, mystery and horror written by MBI DARK. Original Bengali storytelling platform.">
 
-  <!-- Preload critical assets -->
   <link rel="preload" href="style.css" as="style">
   <link rel="preload" href="script.js" as="script">
   <link rel="preload" href="assets/English_font.otf" as="font" type="font/otf" crossorigin>
   <link rel="preload" href="assets/Bangla_font.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="preload" href="assets/reading_font.otf" as="font" type="font/otf" crossorigin>
 
-  <!-- Stylesheets -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- Font preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600&family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Favicon - Static fallback -->
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/logo.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/logo.png">
   <link rel="shortcut icon" href="/assets/logo.png">
 
-  <!-- Advanced Animation Libraries -->
   <link rel="stylesheet" href="animations.css">
 
-  <!-- Base Path Detection & Dynamic Icon/Manifest Loading -->
-  <!--
-    DEPLOYMENT NOTES:
-    - For root deployment: Deploy to domain root, app works at /
-    - For subdirectory: Deploy to subdirectory, app works at /subdirectory/
-    - Configure your hosting to serve index.html for directory requests
-    - GitHub Pages: Works automatically
-    - Netlify: Add redirect rules if using SPA mode
-  -->
-  <script>
-    (function () {
-      // Get base path from data attribute (set in <html> tag)
-      const htmlElement = document.documentElement;
-      const configuredPath = htmlElement.getAttribute('data-base-path');
-      let appRoot = configuredPath || '/';
-
-      // Ensure appRoot ends with /
-      if (!appRoot.endsWith('/')) {
-        appRoot = appRoot + '/';
-      }
-
-      // Set base tag dynamically
-      const baseTag = document.createElement('base');
-      baseTag.href = appRoot;
-      document.head.insertBefore(baseTag, document.head.firstChild);
-
-      function getBasePath() {
-        const baseElement = document.querySelector('base');
-        if (baseElement && baseElement.href) {
-          const base = new URL(baseElement.href);
-          return base.pathname;
-        }
-        return appRoot;
-      }
-
-      const basePath = getBasePath();
-
-      // Set manifest link for mobile PWA
-      const manifestLink = document.createElement('link');
-      manifestLink.rel = 'manifest';
-      manifestLink.href = basePath + 'manifest.json';
-      document.head.appendChild(manifestLink);
-
-      // Set favicon dynamically for all browsers (with leading slash)
-      const favicon32 = document.createElement('link');
-      favicon32.rel = 'icon';
-      favicon32.type = 'image/png';
-      favicon32.sizes = '32x32';
-      favicon32.href = '/assets/logo.png';
-      document.head.appendChild(favicon32);
-
-      const favicon16 = document.createElement('link');
-      favicon16.rel = 'icon';
-      favicon16.type = 'image/png';
-      favicon16.sizes = '16x16';
-      favicon16.href = '/assets/logo.png';
-      document.head.appendChild(favicon16);
-
-      const shortcutIcon = document.createElement('link');
-      shortcutIcon.rel = 'shortcut icon';
-      shortcutIcon.href = '/assets/logo.png';
-      document.head.appendChild(shortcutIcon);
-    })();
-  </script>
-  <meta name="theme-color" content="#000000">
-
-  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#0a0a0f">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -107,301 +35,406 @@
 </head>
 
 <body data-theme="dark">
-  <!-- Startup Splash Screen -->
+  <div class="ambient-bg">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+
   <div class="splash-screen" id="splashScreen">
     <div class="splash-content">
-      <div class="splash-logo-container">
-        <img src="assets/logo.png" alt="Golpo Logo" class="splash-logo"
-          onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
-        <div class="splash-glow"></div>
+      <div class="splash-logo-wrapper">
+        <div class="splash-ring"></div>
+        <div class="splash-ring ring-2"></div>
+        <img src="assets/logo.png" alt="Golpo Logo" class="splash-logo" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
       </div>
       <h1 class="splash-title">Golpo</h1>
-      <p class="splash-subtitle">By ✿ㅤ"MʙɪㅤDᴀʀᴋ"</p>
-      <div class="tap-to-continue">
-        <i class="fas fa-hand-pointer"></i>
-        <span>Tap to Continue</span>
+      <p class="splash-tagline">Stories from the Heart</p>
+      <div class="splash-loader">
+        <div class="loader-bar"></div>
       </div>
-    </div>
-    <div class="splash-particles">
-      <div class="splash-particle"></div>
-      <div class="splash-particle"></div>
-      <div class="splash-particle"></div>
-      <div class="splash-particle"></div>
-      <div class="splash-particle"></div>
-      <div class="splash-particle"></div>
+      <p class="splash-tap">Tap anywhere to continue</p>
     </div>
   </div>
 
-  <!-- Background Particles -->
-  <div class="particles-container">
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
+  <div class="notification-container" id="notificationContainer"></div>
+
+  <div class="offline-indicator" id="offlineIndicator">
+    <i class="fas fa-wifi"></i>
+    <span class="offline-indicator-text" id="offlineIndicatorText">Online</span>
   </div>
-  <!-- Dynamic Island Style Navigation -->
-  <nav class="nav-container">
-    <div class="nav-island">
-      <div class="nav-left">
-        <img src="assets/logo.png" alt="MB Logo" class="logo" loading="lazy"
-          onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
-        <span class="logo-text" id="logoText">Golpo</span>
+
+  <div class="pwa-install-popup" id="pwaInstallPopup">
+    <div class="pwa-install-content">
+      <button class="pwa-close-btn" id="pwaCloseBtn"><i class="fas fa-times"></i></button>
+      <div class="pwa-icon">
+        <img src="assets/logo.png" alt="Golpo" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
+      </div>
+      <div class="pwa-info">
+        <h3>Install Golpo</h3>
+        <p>Add to home screen for the best experience</p>
+      </div>
+      <button class="pwa-install-btn" id="pwaInstallBtn">
+        <i class="fas fa-download"></i>
+        <span>Install App</span>
+      </button>
+    </div>
+  </div>
+
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand" onclick="returnToLibrary()">
+        <img src="assets/logo.png" alt="Golpo" class="nav-logo" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
+        <span class="nav-title">Golpo</span>
       </div>
 
-      <div class="nav-center">
-        <button class="selection-btn music-selector-btn" id="musicSelector" title="Select Music">
-          <i class="fas fa-music"></i>
-          <span class="selector-text">Select Music</span>
+      <div class="nav-center" id="navCenter">
+        <button class="nav-music-btn" id="musicSelector" title="Music">
+          <i class="fas fa-headphones"></i>
+          <span class="nav-btn-text">Music</span>
         </button>
-
-        <button id="playPauseBtn" class="control-btn" title="Play/Pause Music">
-          <i class="fas fa-play icon"></i>
+        <button class="nav-play-btn" id="playPauseBtn" title="Play/Pause">
+          <i class="fas fa-play"></i>
         </button>
-
-        <div class="nav-progress-container" id="progressContainer" title="Reading Progress">
-          <div class="nav-progress-bar">
-            <div class="nav-progress-fill" id="progressFill"></div>
+        <div class="nav-progress" id="progressContainer">
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
           </div>
-          <span class="nav-progress-text" id="progressPercentage">0%</span>
+          <span class="progress-text" id="progressPercentage">0%</span>
         </div>
       </div>
 
-
-      <div class="nav-right">
-        <!-- Reading Controls Dropdown -->
-        <div class="reading-controls-dropdown" id="readingControlsDropdown">
-          <button class="control-btn reading-controls-btn" id="readingControlsBtn" title="Reading Controls">
+      <div class="nav-actions">
+        <div class="reading-controls-wrapper nav-reader-only" id="readingControlsDropdown">
+          <button class="nav-action-btn" id="readingControlsBtn" title="Reading Controls">
             <i class="fas fa-sliders-h"></i>
           </button>
-          <div class="reading-controls-menu" id="readingControlsMenu">
-            <div class="control-group">
-              <label class="control-label">Text Zoom & Focus</label>
-              <div class="control-row">
-                <button class="control-btn" id="decreaseFontBtn" title="Decrease Font Size">
-                  <i class="fas fa-minus"></i>
-                </button>
-                <span class="font-size-display" id="fontSizeDisplay">100%</span>
-                <button class="control-btn" id="increaseFontBtn" title="Increase Font Size">
-                  <i class="fas fa-plus"></i>
-                </button>
-                <button class="control-btn mode-btn" id="focusModeBtn" title="Toggle Focus Mode">
-                  <i class="fas fa-eye"></i>
-                </button>
+          <div class="reading-controls-panel" id="readingControlsMenu">
+            <div class="control-section">
+              <label>Text Size</label>
+              <div class="size-controls">
+                <button class="size-btn" id="decreaseFontBtn"><i class="fas fa-minus"></i></button>
+                <span class="size-value" id="fontSizeDisplay">100%</span>
+                <button class="size-btn" id="increaseFontBtn"><i class="fas fa-plus"></i></button>
               </div>
             </div>
-            <div class="control-group">
-              <label class="control-label">Auto Scroll & Go Top</label>
-              <div class="control-row">
-                <button class="control-btn mode-btn" id="autoScrollBtn" title="Toggle Auto Scroll">
-                  <i class="fas fa-play-circle"></i>
-                </button>
-                <button class="control-btn" id="scrollTopBtn" title="Scroll to Top">
-                  <i class="fas fa-arrow-up"></i>
-                </button>
-                <button class="control-btn" id="bookmarkBtn" title="Bookmark Position">
-                  <i class="fas fa-bookmark"></i>
-                </button>
-              </div>
-              <div class="auto-scroll-controls" id="autoScrollControls" style="display: none;">
-                <label class="speed-label">Speed</label>
-                <input type="range" id="scrollSpeedSlider" class="scroll-speed-slider" min="1" max="10" value="3"
-                  step="1">
-                <div class="speed-indicators">
-                  <span class="speed-indicator">Slow</span>
-                  <span class="speed-indicator">Fast</span>
-                </div>
+            <div class="control-section">
+              <label>Reading Mode</label>
+              <div class="mode-controls">
+                <button class="mode-btn" id="focusModeBtn" title="Focus Mode"><i class="fas fa-eye"></i></button>
+                <button class="mode-btn" id="autoScrollBtn" title="Auto Scroll"><i class="fas fa-scroll"></i></button>
+                <button class="mode-btn" id="bookmarkBtn" title="Bookmark"><i class="fas fa-bookmark"></i></button>
+                <button class="mode-btn" id="scrollTopBtn" title="Scroll Top"><i class="fas fa-arrow-up"></i></button>
               </div>
             </div>
-            <div class="control-group">
-              <label class="control-label">Search in Story</label>
-              <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search text...">
-                <button class="control-btn" id="searchBtn" title="Search">
-                  <i class="fas fa-search"></i>
-                </button>
-                <button class="control-btn" id="clearSearchBtn" title="Clear Search">
-                  <i class="fas fa-times"></i>
-                </button>
+            <div class="control-section" id="autoScrollControls" style="display: none;">
+              <label>Scroll Speed</label>
+              <input type="range" id="scrollSpeedSlider" class="speed-slider" min="1" max="10" value="3">
+            </div>
+            <div class="control-section">
+              <label>Search in Story</label>
+              <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search...">
+                <button id="searchBtn"><i class="fas fa-search"></i></button>
+                <button id="clearSearchBtn"><i class="fas fa-times"></i></button>
               </div>
               <div class="search-results" id="searchResults"></div>
             </div>
           </div>
         </div>
 
-        <button id="themeToggle" class="control-btn theme-toggle" title="Toggle Theme">
-          <i class="fas fa-moon icon"></i>
+        <button class="nav-action-btn" id="themeToggle" title="Theme">
+          <i class="fas fa-moon"></i>
+        </button>
+
+        <button class="nav-action-btn nav-home-only" id="aboutBtn" title="About">
+          <i class="fas fa-info-circle"></i>
+        </button>
+
+        <button class="nav-action-btn nav-home-only" id="offlineStoriesBtn" title="Offline Stories">
+          <i class="fas fa-download"></i>
+          <span class="offline-badge" id="offlineBadge">0</span>
         </button>
       </div>
     </div>
   </nav>
 
-  <!-- Focus Mode Exit Button -->
   <button id="focusExitBtn" class="focus-exit-btn" title="Exit Focus Mode" style="display: none;">
     <i class="fas fa-times"></i>
     <span class="progress-text">0%</span>
   </button>
+  
+  <button id="focusAutoScrollBtn" class="focus-auto-scroll-btn" title="Toggle Auto Scroll" style="display: none;">
+    <i class="fas fa-scroll"></i>
+  </button>
 
-  <!-- Main Content Area -->
+  <button id="autoScrollCloseBtn" class="auto-scroll-close-btn" title="Stop Auto Scroll">
+    <i class="fas fa-times"></i>
+    <span>Stop Auto Scroll</span>
+  </button>
+
   <main class="main-content" id="mainContent">
-    <!-- Landing/Library View -->
     <div class="library-view" id="libraryView">
-      <!-- Hero Section -->
-      <section class="hero-section">
+      <section class="hero">
+        <div class="hero-bg"></div>
         <div class="hero-content">
-          <h1 class="hero-title">Welcome to Golpo</h1>
-          <p class="hero-subtitle">আমার নিজের লেখা গল্পঃ</p>
-          <div class="hero-description english-text">
-            <p>My Own Story From The Heart</p>
-          </div>
-          <div class="continue-reading" id="continueReading" style="display: none;">
-            <button class="continue-btn" onclick="continuePreviousReading()">
-              <i class="fas fa-play"></i>
+          <div class="hero-badge">Bengali Stories Platform</div>
+          <h1 class="hero-title">
+            <span class="title-line">Welcome to</span>
+            <span class="title-accent">Golpo</span>
+          </h1>
+          <p class="hero-subtitle">আমার নিজের লেখা গল্প</p>
+          <p class="hero-desc">Original Stories from the Heart</p>
+          <div class="hero-cta" id="continueReading" style="display: none;">
+            <button class="cta-btn" onclick="continuePreviousReading()">
+              <i class="fas fa-book-reader"></i>
               <span>Continue Reading</span>
             </button>
           </div>
         </div>
+        <div class="hero-visual">
+          <div class="hero-card-stack" id="heroCardStack">
+            <div class="hero-card hc-1"><img id="heroImg1" src="" alt="Story"></div>
+            <div class="hero-card hc-2"><img id="heroImg2" src="" alt="Story"></div>
+            <div class="hero-card hc-3"><img id="heroImg3" src="" alt="Story"></div>
+          </div>
+        </div>
       </section>
 
-      <!-- Story Library -->
-      <section class="story-library">
-        <div class="library-header">
-          <h2 class="library-title english-text">Story Collection</h2>
-          <div class="library-actions">
-            <button class="search-toggle" onclick="toggleSearch()" aria-label="Toggle story search"
-              title="Search stories">
-              <i class="fas fa-search"></i>
-            </button>
-          </div>
+      <section class="library-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <i class="fas fa-book-open"></i>
+            Story Collection
+          </h2>
+          <button class="search-toggle-btn" onclick="toggleSearch()">
+            <i class="fas fa-search"></i>
+          </button>
         </div>
 
         <div class="search-section" id="searchSection" style="display: none;">
-          <div class="search-container">
-            <input type="text" id="globalSearch" class="global-search" placeholder="Search stories...">
-            <button class="search-btn" onclick="performGlobalSearch()" aria-label="Search stories" title="Search">
-              <i class="fas fa-search"></i>
-            </button>
+          <div class="global-search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="globalSearch" placeholder="Search stories by name, category, or tags...">
+            <button onclick="performGlobalSearch()">Search</button>
           </div>
         </div>
 
-        <div class="category-filter-section" id="categoryFilterSection">
-          <div class="category-filters">
-            <button class="category-filter-btn active" data-category="all" onclick="filterByCategory('all')">
-              <i class="fas fa-list"></i><span class="filter-text"> All Stories</span>
-            </button>
-            <button class="category-filter-btn" data-category="Romance" onclick="filterByCategory('Romance')">
-              <i class="fas fa-heart"></i><span class="filter-text"> Romance</span>
-            </button>
-            <button class="category-filter-btn" data-category="Horror" onclick="filterByCategory('Horror')">
-              <i class="fas fa-ghost"></i><span class="filter-text"> Horror</span>
-            </button>
-            <button class="category-filter-btn" data-category="Drama" onclick="filterByCategory('Drama')">
-              <i class="fas fa-theater-masks"></i><span class="filter-text"> Drama</span>
-            </button>
-            <button class="category-filter-btn" data-category="Mystery" onclick="filterByCategory('Mystery')">
-              <i class="fas fa-search"></i><span class="filter-text"> Mystery</span>
-            </button>
-            <button class="category-filter-btn" data-category="series" onclick="filterByCategory('series')"
-              title="Multi-Part Series">
-              <i class="fas fa-list-ol"></i><span class="filter-text"> Series</span>
-            </button>
-            <button class="category-filter-btn" id="favoritesNavBtn" data-category="favorites"
-              onclick="filterByCategory('favorites')" title="Favorite Stories">
-              <i class="fas fa-star"></i><span class="filter-text"> Favorites</span>
-            </button>
-          </div>
+        <div class="category-pills" id="categoryFilterSection">
+          <button class="pill active" data-category="all" onclick="filterByCategory('all')">
+            <i class="fas fa-layer-group"></i><span class="pill-text">All</span>
+          </button>
+          <button class="pill" data-category="Romance" onclick="filterByCategory('Romance')">
+            <i class="fas fa-heart"></i><span class="pill-text">Romance</span>
+          </button>
+          <button class="pill" data-category="Horror" onclick="filterByCategory('Horror')">
+            <i class="fas fa-ghost"></i><span class="pill-text">Horror</span>
+          </button>
+          <button class="pill" data-category="Drama" onclick="filterByCategory('Drama')">
+            <i class="fas fa-theater-masks"></i><span class="pill-text">Drama</span>
+          </button>
+          <button class="pill" data-category="Mystery" onclick="filterByCategory('Mystery')">
+            <i class="fas fa-magnifying-glass"></i><span class="pill-text">Mystery</span>
+          </button>
+          <button class="pill" data-category="series" onclick="filterByCategory('series')">
+            <i class="fas fa-list-ol"></i><span class="pill-text">Series</span>
+          </button>
+          <button class="pill" id="favoritesNavBtn" data-category="favorites" onclick="filterByCategory('favorites')">
+            <i class="fas fa-star"></i><span class="pill-text">Favorites</span>
+          </button>
         </div>
 
-        <div class="story-grid" id="storyGrid">
-          <!-- Story cards will be automatically generated from stories.json -->
-        </div>
-        <div class="series-view" id="seriesView" style="display: none;">
-          <!-- Series cards will be generated here -->
-        </div>
-        <div class="no-stories-message" id="noStoriesMessage" style="display: none;">
-          <div class="no-stories-icon">
-            <i class="fas fa-book-open"></i>
-          </div>
+        <div class="story-grid" id="storyGrid"></div>
+        <div class="series-view" id="seriesView" style="display: none;"></div>
+        <div class="no-stories" id="noStoriesMessage" style="display: none;">
+          <i class="fas fa-book-open"></i>
           <h3>No Stories Found</h3>
-          <p>There are no stories in this category yet. Try selecting a different category.</p>
+          <p>Try selecting a different category</p>
         </div>
-      </section>
-
-      <!-- Footer Image Section -->
-      <section class="footer-image-section">
-        <p class="secret-hint english-text">Tap footer logo for secret</p>
-        <img src="https://i.postimg.cc/MTvjDs38/footer.gif" alt="Footer Animation" class="footer-animation"
-          loading="lazy">
       </section>
     </div>
 
-    <!-- Reader View -->
     <div class="reader-view" id="readerView" style="display: none;">
-      <div class="reader-header">
-        <button class="back-btn" onclick="returnToLibrary()" aria-label="Return to story library"
-          title="Back to Library">
+      <div class="reader-toolbar">
+        <button class="toolbar-btn" onclick="returnToLibrary()">
           <i class="fas fa-arrow-left"></i>
           <span>Library</span>
         </button>
-        <button class="toc-btn" id="tocBtn" onclick="toggleTOC()" aria-label="Table of Contents"
-          title="Table of Contents" style="display: none;">
+        <button class="toolbar-btn" id="tocBtn" onclick="toggleTOC()" style="display: none;">
           <i class="fas fa-list-ul"></i>
           <span>Contents</span>
         </button>
-        <button class="favorite-btn-reader" id="favoriteBtn" onclick="toggleCurrentStoryFavorite()"
-          aria-label="Toggle Favorite" title="Add to Favorites">
+        <button class="toolbar-btn favorite-btn" id="favoriteBtn" onclick="toggleCurrentStoryFavorite()">
           <i class="fas fa-star"></i>
-          <span class="favorite-text">Favorite</span>
+          <span>Favorite</span>
         </button>
-        <button class="share-btn" id="shareBtn" onclick="shareCurrentStory()" aria-label="Share Story"
-          title="Share Story">
+        <button class="toolbar-btn" id="shareBtn" onclick="shareCurrentStory()">
           <i class="fas fa-share-alt"></i>
           <span>Share</span>
         </button>
       </div>
 
-      <article class="story-reader">
-        <header class="story-header">
-          <div class="story-cover-small">
-            <img id="readerCoverImage" src="" alt="Story Cover" loading="lazy" />
+      <article class="reader-article">
+        <header class="reader-header">
+          <div class="reader-cover">
+            <img id="readerCoverImage" src="" alt="Story Cover">
+            <div class="cover-overlay"></div>
           </div>
-          <div class="story-title-section">
-            <h1 id="readerStoryTitle" class="story-title-large">Story Title</h1>
-            <p id="readerAuthor" class="story-author">by ✿ㅤ"MʙɪㅤDᴀʀᴋ"</p>
-            <div class="story-details">
-              <span id="readerReadingTime" class="reading-time">~15 min read</span>
-              <span class="divider">•</span>
-              <span id="readerWordCount" class="word-count">~2,500 words</span>
+          <div class="reader-meta">
+            <h1 id="readerStoryTitle" class="reader-title">Story Title</h1>
+            <p id="readerAuthor" class="reader-author">by MBI Dark</p>
+            <div class="reader-stats">
+              <span id="readerReadingTime"><i class="fas fa-clock"></i> ~15 min</span>
+              <span id="readerWordCount"><i class="fas fa-file-word"></i> ~2,500 words</span>
             </div>
           </div>
           <div class="next-part-preview" id="nextPartPreview" style="display: none;">
             <div class="next-part-cover">
-              <img id="nextPartCoverImage" src="" alt="Next Part Cover" loading="lazy" />
-              <div class="next-part-overlay">
-                <i class="fas fa-forward"></i>
-              </div>
+              <img id="nextPartCoverImage" src="" alt="Next Part">
+              <div class="next-overlay"><i class="fas fa-forward"></i></div>
             </div>
             <button class="next-part-btn" id="nextPartBtn" onclick="loadNextPart()">
-              <i class="fas fa-arrow-right"></i>
               <span>Next Part</span>
+              <i class="fas fa-arrow-right"></i>
             </button>
           </div>
         </header>
 
-        <div class="story-content" id="storyContent" lang="bn">
-          <!-- Story content will be loaded here -->
+        <div class="story-content" id="storyContent" lang="bn"></div>
+        
+        <div class="next-part-mobile-section" id="nextPartMobileSection" style="display: none;">
+          <h3><i class="fas fa-forward"></i> Continue Reading</h3>
+          <div class="next-part-mobile-content">
+            <div class="next-part-mobile-cover">
+              <img id="nextPartMobileCover" src="" alt="Next Part">
+            </div>
+            <div class="next-part-mobile-info">
+              <h4 id="nextPartMobileTitle">Next Part</h4>
+              <p id="nextPartMobileDesc">Continue the story...</p>
+            </div>
+          </div>
+          <button class="next-part-mobile-btn" id="nextPartMobileBtn" onclick="loadNextPart()">
+            <span>Read Next Part</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
         </div>
-
-        <footer class="story-footer">
-          <!-- Story navigation buttons removed - now only appear on last page of story -->
-        </footer>
+        
+        <footer class="reader-footer"></footer>
       </article>
     </div>
 
-    <!-- Hidden Audio Player -->
-    <audio id="audioPlayer" loop></audio>
+    <div class="about-view" id="aboutView" style="display: none;">
+      <button class="about-close" onclick="closeAbout()">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="about-wrapper">
+        <div class="about-bg-effects">
+          <div class="about-orb about-orb-1"></div>
+          <div class="about-orb about-orb-2"></div>
+          <div class="about-orb about-orb-3"></div>
+        </div>
+        
+        <div class="about-card">
+          <div class="about-card-header">
+            <div class="about-avatar-wrapper">
+              <div class="about-avatar-glow"></div>
+              <div class="about-avatar-ring-outer"></div>
+              <div class="about-avatar-ring-inner"></div>
+              <img src="https://i.postimg.cc/Bb01XY06/Darklogo.gif" alt="MBI Dark" class="about-avatar-img" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
+            </div>
+            <div class="about-name-wrapper">
+              <h1 class="about-name-new">MBI Dark</h1>
+              <div class="about-title-badge">
+                <i class="fas fa-pen-nib"></i>
+                <span>Story Writer & Developer</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="about-stats-row">
+            <div class="about-stat">
+              <div class="about-stat-icon"><i class="fas fa-book"></i></div>
+              <div class="about-stat-info">
+                <span class="about-stat-value">7+</span>
+                <span class="about-stat-label">Stories</span>
+              </div>
+            </div>
+            <div class="about-stat">
+              <div class="about-stat-icon"><i class="fas fa-heart"></i></div>
+              <div class="about-stat-info">
+                <span class="about-stat-value">100+</span>
+                <span class="about-stat-label">Readers</span>
+              </div>
+            </div>
+            <div class="about-stat">
+              <div class="about-stat-icon"><i class="fas fa-star"></i></div>
+              <div class="about-stat-info">
+                <span class="about-stat-value">5.0</span>
+                <span class="about-stat-label">Rating</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="about-content-new">
+            <div class="about-section-card">
+              <div class="about-section-icon"><i class="fas fa-user-astronaut"></i></div>
+              <div class="about-section-text">
+                <h3>About Me</h3>
+                <p>I'm a passionate storyteller from Bangladesh, weaving tales of romance, mystery, and horror. Through Golpo, I share my stories with readers who appreciate authentic Bengali narratives.</p>
+              </div>
+            </div>
+            
+            <div class="about-section-card">
+              <div class="about-section-icon"><i class="fas fa-magic"></i></div>
+              <div class="about-section-text">
+                <h3>About Golpo</h3>
+                <p>Golpo is a Progressive Web Application designed for immersive reading experiences. It features ambient music, offline reading, multiple themes, and a beautiful interface crafted for story lovers.</p>
+              </div>
+            </div>
+            
+            <div class="about-section-card">
+              <div class="about-section-icon"><i class="fas fa-rocket"></i></div>
+              <div class="about-section-text">
+                <h3>My Mission</h3>
+                <p>To create compelling stories that touch hearts and spark imagination. Every story on Golpo is written with love, carrying pieces of my soul and experiences.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="about-social-new">
+            <h4>Connect With Me</h4>
+            <div class="about-social-grid">
+              <a href="https://www.facebook.com/mbiboss.1/" target="_blank" class="about-social-btn facebook-btn">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a href="https://www.youtube.com/@Bekar_Golpo" target="_blank" class="about-social-btn youtube-btn">
+                <i class="fab fa-youtube"></i>
+              </a>
+              <a href="https://discord.com/users/731544517542674443" target="_blank" class="about-social-btn discord-btn">
+                <i class="fab fa-discord"></i>
+              </a>
+              <a href="https://wa.me/8801317460865" target="_blank" class="about-social-btn whatsapp-btn">
+                <i class="fab fa-whatsapp"></i>
+              </a>
+              <a href="mailto:ooismailforajioo@gmail.com" target="_blank" class="about-social-btn email-btn">
+                <i class="fas fa-envelope"></i>
+              </a>
+            </div>
+          </div>
+          
+          <div class="about-footer-new">
+            <div class="about-footer-brand">
+              <img src="assets/logo.png" alt="Golpo" class="about-footer-logo" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
+              <span>Golpo</span>
+            </div>
+            <p>&copy; 2025 All rights reserved</p>
+            <p class="about-version">Version 2.0</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- YouTube Music Player -->
+    <audio id="audioPlayer" loop></audio>
     <div id="youtubePlayer" style="display: none;">
       <iframe id="youtubeFrame" width="0" height="0" frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -409,172 +442,577 @@
     </div>
   </main>
 
-  <!-- Story Selection Modal -->
-  <div class="selection-modal" id="storyModal">
-    <div class="modal-overlay" id="storyModalOverlay"></div>
-    <div class="modal-content">
+  <div class="modal" id="musicModal">
+    <div class="modal-backdrop" id="musicModalOverlay"></div>
+    <div class="modal-box">
       <div class="modal-header">
-        <h3>Choose Your Story</h3>
-        <button class="modal-close" id="closeStoryModal">&times;</button>
+        <h3><i class="fas fa-headphones"></i> Choose Music</h3>
+        <button class="modal-close-btn" id="closeMusicModal"><i class="fas fa-times"></i></button>
       </div>
-      <div class="selection-cards">
-        <!-- Story cards are now generated dynamically from JavaScript -->
+      <div class="modal-body">
+        <div class="playlist-info" id="playlistCount">Loading songs...</div>
+        <button class="shuffle-btn" onclick="shufflePlaylist()" style="margin: 10px 0; padding: 10px 20px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px;">
+          <i class="fas fa-random"></i> Shuffle & Play
+        </button>
+        <div class="song-list" id="songList"></div>
       </div>
     </div>
   </div>
 
-  <!-- Music Selection Modal -->
-  <div class="selection-modal" id="musicModal">
-    <div class="modal-overlay" id="musicModalOverlay"></div>
-    <div class="modal-content">
+  <div class="modal" id="storyModal">
+    <div class="modal-backdrop" id="storyModalOverlay"></div>
+    <div class="modal-box">
       <div class="modal-header">
-        <p>Choose Your Music</p>
-        <button class="modal-close" id="closeMusicModal">&times;</button>
+        <h3><i class="fas fa-book"></i> Choose Story</h3>
+        <button class="modal-close-btn" id="closeStoryModal"><i class="fas fa-times"></i></button>
       </div>
-      <div class="song-playlist">
-        <div class="playlist-header">
-          <div class="playlist-info">
-            <div class="playlist-count" id="playlistCount">Loading songs...</div>
+      <div class="modal-body">
+        <div class="selection-cards"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="statsModal">
+    <div class="modal-backdrop" id="statsModalOverlay"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fas fa-chart-bar"></i> Reading Statistics</h3>
+        <button class="modal-close-btn" id="closeStatsModal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="stats-grid" id="statsContainer">
+          <div class="stat-card">
+            <i class="fas fa-book-reader"></i>
+            <div class="stat-value" id="storiesRead">0</div>
+            <div class="stat-label">Stories Completed</div>
+          </div>
+          <div class="stat-card">
+            <i class="fas fa-clock"></i>
+            <div class="stat-value" id="totalReadingTime">0h 0m</div>
+            <div class="stat-label">Reading Time</div>
+          </div>
+          <div class="stat-card">
+            <i class="fas fa-file-alt"></i>
+            <div class="stat-value" id="pagesRead">0</div>
+            <div class="stat-label">Pages Read</div>
+          </div>
+          <div class="stat-card">
+            <i class="fas fa-fire"></i>
+            <div class="stat-value" id="readingStreak">0</div>
+            <div class="stat-label">Day Streak</div>
           </div>
         </div>
-        <div class="song-list" id="songList">
-          <!-- Songs will be generated dynamically from JavaScript musicPlaylist array -->
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="tocModal">
+    <div class="modal-backdrop" id="tocModalOverlay"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fas fa-list-ul"></i> Table of Contents</h3>
+        <button class="modal-close-btn" id="closeTocModal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="toc-container" id="tocContainer">
+          <p class="toc-empty">No table of contents available</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-left">
-        <img src="https://i.postimg.cc/Bb01XY06/Darklogo.gif" alt="MB Logo" class="footer-logo" loading="lazy"
-          onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
-        <p class="english-text">✿ㅤ"MʙɪㅤDᴀʀᴋ &copy; 2025 Golpo. All rights reserved.</p>
+  <div class="modal" id="analyticsModal">
+    <div class="modal-backdrop" id="analyticsModalOverlay"></div>
+    <div class="modal-box modal-xl">
+      <div class="modal-header">
+        <h3><i class="fas fa-chart-pie"></i> Secret Analytics</h3>
+        <button class="modal-close-btn" id="closeAnalyticsModal"><i class="fas fa-times"></i></button>
       </div>
-
-      <div class="footer-right">
-        <div class="social-links">
-          <a href="https://www.facebook.com/mbiboss.1/" class="social-link" title="Facebook" target="_blank"><i
-              class="fab fa-facebook-f"></i></a>
-          <a href="https://www.youtube.com/@Bekar_Golpo" class="social-link" title="YouTube" target="_blank"><i
-              class="fab fa-youtube"></i></a>
-          <a href="https://discord.com/users/731544517542674443r" class="social-link" title="Discord" target="_blank"><i
-              class="fab fa-discord"></i></a>
-          <a href="https://wa.me/8801317460865" class="social-link" title="WhatsApp" target="_blank"><i
-              class="fab fa-whatsapp"></i></a>
-          <a href="mailto:ooismailforajioo@gmail.com" class="social-link" title="Email" target="_blank"><i
-              class="fas fa-envelope"></i></a>
+      <div class="modal-body" id="analyticsDashboard">
+        <div class="analytics-grid">
+          <div class="analytics-section">
+            <h4><i class="fas fa-star"></i> Favorite Stories</h4>
+            <div class="analytics-list" id="favoriteStoriesList">
+              <p class="empty-msg">No favorite stories yet</p>
+            </div>
+          </div>
+          <div class="analytics-section">
+            <h4><i class="fas fa-music"></i> Recently Played Songs</h4>
+            <div class="analytics-list" id="recentlyPlayedSongsList">
+              <p class="empty-msg">No songs played yet</p>
+            </div>
+          </div>
+          <div class="analytics-section">
+            <h4><i class="fas fa-clock"></i> Reading Time Per Story</h4>
+            <div class="analytics-list" id="readingTimeList">
+              <p class="empty-msg">No reading data yet</p>
+            </div>
+          </div>
+          <div class="analytics-section">
+            <h4><i class="fas fa-stream"></i> Activity Timeline</h4>
+            <div class="analytics-list timeline-list" id="activityTimeline">
+              <p class="empty-msg">No activity yet</p>
+            </div>
+          </div>
+          <div class="analytics-section full-width">
+            <h4><i class="fas fa-bell"></i> Recent Notifications</h4>
+            <div class="analytics-list" id="recentNotificationsList">
+              <p class="empty-msg">No notifications yet</p>
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="adminDashboard">
+    <div class="modal-backdrop" id="adminDashboardOverlay" onclick="closeAdminDashboard()"></div>
+    <div class="modal-box modal-xl admin-modal">
+      <div class="modal-header admin-header">
+        <h3><i class="fas fa-cog"></i> Story Management Dashboard</h3>
+        <button class="modal-close-btn" id="closeAdminDashboard" onclick="closeAdminDashboard()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="stories"><i class="fas fa-book"></i> Stories</button>
+          <button class="admin-tab" data-tab="songs"><i class="fas fa-music"></i> Songs</button>
+          <button class="admin-tab" data-tab="add"><i class="fas fa-plus"></i> Add Story</button>
+          <button class="admin-tab" data-tab="addSong"><i class="fas fa-plus"></i> Add Song</button>
+          <button class="admin-tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
+        </div>
+
+        <div class="admin-content">
+          <div class="admin-panel active" id="storiesPanel">
+            <div class="admin-toolbar">
+              <input type="text" id="adminSearch" placeholder="Search stories..." class="admin-search">
+              <button class="admin-btn" onclick="refreshAdminStories()"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+            <div class="admin-stories-list" id="adminStoriesList"></div>
+          </div>
+
+          <div class="admin-panel" id="songsPanel">
+            <div class="admin-toolbar">
+              <input type="text" id="adminSongSearch" placeholder="Search songs..." class="admin-search">
+              <button class="admin-btn" onclick="refreshAdminSongs()"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+            <div class="admin-songs-list" id="adminSongsList"></div>
+          </div>
+
+          <div class="admin-panel" id="addPanel">
+            <form id="addStoryForm" class="admin-form">
+              <div class="form-group">
+                <label>Story Name (Bengali)</label>
+                <input type="text" name="name" required placeholder="গল্পের নাম">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Story ID (slug)</label>
+                  <input type="text" name="id" required placeholder="story-id">
+                </div>
+                <div class="form-group">
+                  <label>Category</label>
+                  <select name="category" required>
+                    <option value="Romance">Romance</option>
+                    <option value="Horror">Horror</option>
+                    <option value="Mystery">Mystery</option>
+                    <option value="Drama">Drama</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" rows="3" placeholder="Brief description..."></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Banner Image URL</label>
+                  <input type="url" name="banner" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                  <label>Reading Image URL</label>
+                  <input type="url" name="reading" placeholder="https://...">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Story Content</label>
+                <textarea name="content" rows="10" placeholder="Paste story content here..."></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="admin-btn primary"><i class="fas fa-save"></i> Save Story</button>
+                <button type="reset" class="admin-btn"><i class="fas fa-undo"></i> Reset</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="admin-panel" id="addSongPanel">
+            <form id="addSongForm" class="admin-form">
+              <div class="form-group">
+                <label>Song Title</label>
+                <input type="text" name="title" required placeholder="Song title">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Artist</label>
+                  <input type="text" name="artist" placeholder="Artist name">
+                </div>
+                <div class="form-group">
+                  <label>Duration</label>
+                  <input type="text" name="duration" placeholder="3:45">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>YouTube Embed URL</label>
+                <input type="url" name="url" required placeholder="https://www.youtube.com/embed/...">
+              </div>
+              <div class="form-group">
+                <label>Icon Class</label>
+                <select name="icon">
+                  <option value="fas fa-music">Music Note</option>
+                  <option value="fas fa-star">Star (Favorite)</option>
+                  <option value="fas fa-heart">Heart</option>
+                  <option value="fas fa-headphones">Headphones</option>
+                </select>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="admin-btn primary"><i class="fas fa-save"></i> Add Song</button>
+                <button type="reset" class="admin-btn"><i class="fas fa-undo"></i> Reset</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="admin-panel" id="settingsPanel">
+            <div class="settings-section">
+              <h4><i class="fas fa-palette"></i> Appearance Settings</h4>
+              <div class="setting-item">
+                <label>Default Theme</label>
+                <select id="defaultThemeSetting">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                  <option value="sepia">Sepia</option>
+                  <option value="dark-sepia">Dark Sepia</option>
+                </select>
+              </div>
+              <div class="setting-item">
+                <label>Default Font Size</label>
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                  <input type="range" id="defaultFontSizeSetting" min="80" max="150" value="100" style="flex: 1;">
+                  <span id="defaultFontSizeValue" style="min-width: 50px; text-align: right; color: var(--accent-primary); font-weight: 600;">100%</span>
+                </div>
+              </div>
+              <div class="setting-item">
+                <label>Enable Animations</label>
+                <div class="visibility-toggle">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="enableAnimationsSetting" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h4><i class="fas fa-music"></i> Music Settings</h4>
+              <div class="setting-item">
+                <label>Auto-play Music on Load</label>
+                <div class="visibility-toggle">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="autoplayMusicSetting" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h4><i class="fas fa-book-reader"></i> Reading Settings</h4>
+              <div class="setting-item">
+                <label>Enable Reading Time Tracking</label>
+                <div class="visibility-toggle">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="readingTimeTracking" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h4><i class="fas fa-key"></i> Security</h4>
+              <div class="password-change-form">
+                <div class="form-group">
+                  <label>Current Password</label>
+                  <input type="password" id="currentPasswordAdmin" placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                  <label>New Password</label>
+                  <input type="password" id="newPasswordAdmin" placeholder="Enter new password">
+                </div>
+                <div class="form-group">
+                  <label>Confirm New Password</label>
+                  <input type="password" id="confirmPasswordAdmin" placeholder="Confirm new password">
+                </div>
+                <button class="admin-btn primary" onclick="changeAdminPasswordFromPanel()">
+                  <i class="fas fa-key"></i> Change Password
+                </button>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h4><i class="fas fa-database"></i> Data Management</h4>
+              <button class="admin-btn danger" onclick="clearAllData()">
+                <i class="fas fa-trash"></i> Clear All Local Data
+              </button>
+              <button class="admin-btn" onclick="exportData()">
+                <i class="fas fa-download"></i> Export Data
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="editStoryModal">
+    <div class="modal-backdrop" id="editStoryModalOverlay"></div>
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3><i class="fas fa-edit"></i> Edit Story</h3>
+        <button class="modal-close-btn" id="closeEditStoryModal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="editStoryForm" class="admin-form">
+          <input type="hidden" name="filename" id="editFilename">
+          <div class="form-group">
+            <label>Story Name</label>
+            <input type="text" name="name" id="editName" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Category</label>
+              <select name="category" id="editCategory" required>
+                <option value="Romance">Romance</option>
+                <option value="Horror">Horror</option>
+                <option value="Mystery">Mystery</option>
+                <option value="Drama">Drama</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select name="status" id="editStatus">
+                <option value="available">Available</option>
+                <option value="upcoming">Upcoming</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" id="editDescription" rows="3"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Banner URL</label>
+              <input type="url" name="banner" id="editBanner">
+            </div>
+            <div class="form-group">
+              <label>Reading Image URL</label>
+              <input type="url" name="reading" id="editReading">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Visibility</label>
+            <div class="visibility-toggle">
+              <label class="toggle-switch">
+                <input type="checkbox" name="isPublic" id="editIsPublic" checked>
+                <span class="toggle-slider"></span>
+              </label>
+              <span id="visibilityLabel">Public</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Story Content</label>
+            <textarea name="content" id="editContent" rows="10" placeholder="Edit story content here..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="admin-btn primary"><i class="fas fa-save"></i> Update</button>
+            <button type="button" class="admin-btn danger" onclick="deleteCurrentStory()"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="editSongModal">
+    <div class="modal-backdrop" id="editSongModalOverlay"></div>
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3><i class="fas fa-edit"></i> Edit Song</h3>
+        <button class="modal-close-btn" id="closeEditSongModal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="editSongForm" class="admin-form">
+          <input type="hidden" name="id" id="editSongId">
+          <div class="form-group">
+            <label>Song Title</label>
+            <input type="text" name="title" id="editSongTitle" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Artist</label>
+              <input type="text" name="artist" id="editSongArtist">
+            </div>
+            <div class="form-group">
+              <label>Duration</label>
+              <input type="text" name="duration" id="editSongDuration">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>YouTube Embed URL</label>
+            <input type="url" name="url" id="editSongUrl" required>
+          </div>
+          <div class="form-group">
+            <label>Icon Class</label>
+            <select name="icon" id="editSongIcon">
+              <option value="fas fa-music">Music Note</option>
+              <option value="fas fa-star">Star (Favorite)</option>
+              <option value="fas fa-heart">Heart</option>
+              <option value="fas fa-headphones">Headphones</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Visibility</label>
+            <div class="visibility-toggle">
+              <label class="toggle-switch">
+                <input type="checkbox" name="isPublic" id="editSongIsPublic" checked>
+                <span class="toggle-slider"></span>
+              </label>
+              <span id="songVisibilityLabel">Public</span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="admin-btn primary"><i class="fas fa-save"></i> Update</button>
+            <button type="button" class="admin-btn danger" onclick="deleteCurrentSong()"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="passwordModal">
+    <div class="modal-backdrop" id="passwordModalOverlay"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fas fa-lock"></i> <span id="passwordModalTitle">Admin Login</span></h3>
+        <button class="modal-close-btn" id="closePasswordModal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="passwordForm" class="password-form">
+          <div class="form-group" id="currentPasswordGroup" style="display: none;">
+            <label for="currentPasswordInput">Current Password</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="currentPasswordInput" placeholder="Enter current password">
+              <button type="button" class="password-toggle" data-target="currentPasswordInput">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group" id="passwordGroup">
+            <label for="passwordInput" id="passwordLabel">Password</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="passwordInput" placeholder="Enter password" required>
+              <button type="button" class="password-toggle" data-target="passwordInput">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group" id="confirmPasswordGroup" style="display: none;">
+            <label for="confirmPasswordInput">Confirm New Password</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="confirmPasswordInput" placeholder="Confirm new password">
+              <button type="button" class="password-toggle" data-target="confirmPasswordInput">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="password-error" id="passwordError"></div>
+          <div class="form-actions">
+            <button type="submit" class="admin-btn primary" id="passwordSubmitBtn">
+              <i class="fas fa-sign-in-alt"></i> <span id="passwordSubmitText">Login</span>
+            </button>
+            <button type="button" class="admin-btn" id="passwordCancelBtn">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand" id="footerLogo">
+        <img src="https://i.postimg.cc/Bb01XY06/Darklogo.gif" alt="MBI Dark" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
+        <span>MBI Dark</span>
+      </div>
+      <div class="footer-info">
+        <p class="footer-copy">&copy; 2025 Golpo. All rights reserved.</p>
+        <p class="footer-tagline">Where Bengali Stories Come Alive</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://www.facebook.com/mbiboss.1/" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://www.youtube.com/@Bekar_Golpo" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+        <a href="https://discord.com/users/731544517542674443" target="_blank" title="Discord"><i class="fab fa-discord"></i></a>
+        <a href="https://wa.me/8801317460865" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        <a href="mailto:ooismailforajioo@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a>
       </div>
     </div>
   </footer>
+
+  <div class="modal" id="offlineStoriesModal">
+    <div class="modal-backdrop" id="offlineStoriesModalOverlay"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fas fa-download"></i> Offline Stories</h3>
+        <button class="modal-close-btn" id="closeOfflineStoriesModal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="offline-stats">
+          <div class="offline-stat-card">
+            <i class="fas fa-book"></i>
+            <div>
+              <div class="offline-stat-value" id="offlineStoriesCount">0</div>
+              <div class="offline-stat-label">Stories Available Offline</div>
+            </div>
+          </div>
+          <div class="offline-stat-card">
+            <i class="fas fa-database"></i>
+            <div>
+              <div class="offline-stat-value" id="totalStoriesCount">0</div>
+              <div class="offline-stat-label">Total Stories</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="offline-actions">
+          <button class="offline-btn primary" id="downloadAllStoriesBtn">
+            <i class="fas fa-cloud-download-alt"></i>
+            <span>Download All Stories for Offline</span>
+          </button>
+          <button class="offline-btn" id="clearOfflineStoriesBtn">
+            <i class="fas fa-trash"></i>
+            <span>Clear Offline Stories</span>
+          </button>
+        </div>
+
+        <div class="offline-stories-list" id="offlineStoriesList">
+          <h4>Available Offline Stories</h4>
+          <div id="offlineStoriesItems"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js" defer></script>
   <script src="animations.js" defer></script>
 </body>
 
 </html>
-
-
-<!-- Reading Statistics Modal -->
-<div class="selection-modal" id="statsModal">
-  <div class="modal-overlay" id="statsModalOverlay"></div>
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3><i class="fas fa-chart-bar"></i> Reading Statistics</h3>
-      <button class="modal-close" id="closeStatsModal">&times;</button>
-    </div>
-    <div class="stats-container" id="statsContainer">
-      <div class="stat-card">
-        <div class="stat-icon"><i class="fas fa-book-reader"></i></div>
-        <div class="stat-value" id="storiesRead">0</div>
-        <div class="stat-label">Stories Completed</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon"><i class="fas fa-clock"></i></div>
-        <div class="stat-value" id="totalReadingTime">0h 0m</div>
-        <div class="stat-label">Total Reading Time</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon"><i class="fas fa-book-open"></i></div>
-        <div class="stat-value" id="pagesRead">0</div>
-        <div class="stat-label">Pages Read</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon"><i class="fas fa-fire"></i></div>
-        <div class="stat-value" id="readingStreak">0</div>
-        <div class="stat-label">Day Streak</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Table of Contents Modal -->
-<div class="selection-modal" id="tocModal">
-  <div class="modal-overlay" id="tocModalOverlay"></div>
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3><i class="fas fa-list-ul"></i> Table of Contents</h3>
-      <button class="modal-close" id="closeTocModal">&times;</button>
-    </div>
-    <div class="toc-container" id="tocContainer">
-      <p class="toc-empty english-text">No table of contents available for this story.</p>
-    </div>
-  </div>
-</div>
-
-<!-- Secret Analytics Dashboard -->
-<div class="selection-modal" id="analyticsModal">
-  <div class="modal-overlay" id="analyticsModalOverlay"></div>
-  <div class="modal-content analytics-modal-content">
-    <div class="modal-header">
-      <h3><i class="fas fa-lock"></i> Secret Analytics Dashboard</h3>
-      <button class="modal-close" id="closeAnalyticsModal">&times;</button>
-    </div>
-    <div class="analytics-dashboard" id="analyticsDashboard">
-      <div class="analytics-section">
-        <h4 class="analytics-title english-text"><i class="fas fa-star"></i> Favorite Stories</h4>
-        <div class="favorite-stories-list" id="favoriteStoriesList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No favorite
-            stories yet. Mark stories as favorite to see them here!</p>
-        </div>
-      </div>
-      <div class="analytics-section">
-        <h4 class="analytics-title english-text"><i class="fas fa-book-open"></i> Recently Read</h4>
-        <div class="recently-read-list" id="recentlyReadList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No recent reading
-            activity</p>
-        </div>
-      </div>
-      <div class="analytics-section">
-        <h4 class="analytics-title english-text"><i class="fas fa-music"></i> Recently Played Songs</h4>
-        <div class="recently-played-list" id="recentlyPlayedList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No songs played
-            yet</p>
-        </div>
-      </div>
-      <div class="analytics-section">
-        <h4 class="analytics-title english-text"><i class="fas fa-clock"></i> Reading Time Per Story</h4>
-        <div class="reading-time-list" id="readingTimeList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">Start reading to
-            track your time!</p>
-        </div>
-      </div>
-      <div class="analytics-section">
-        <h4 class="analytics-title english-text"><i class="fas fa-history"></i> Activity Timeline</h4>
-        <div class="analytics-timeline" id="analyticsTimeline">
-          <p class="english-text" style="text-align: center; color: var(--text-muted);">Recent activity will appear here
-          </p>
-        </div>
-      </div>
-      <div class="analytics-section">
-        <h4 class="analytics-title english-text"><i class="fas fa-bell"></i> Recent Notifications</h4>
-        <div class="notification-history-list" id="notificationHistoryList">
-          <p class="english-text" style="text-align: center; color: var(--text-muted); padding: 1rem;">No notifications
-            yet</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>

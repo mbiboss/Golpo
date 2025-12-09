@@ -2,9 +2,10 @@
   "name": "Golpo - Bengali Stories",
   "short_name": "Golpo",
   "description": "Immersive Bengali storytelling platform with offline support",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "theme_color": "#000000",
   "background_color": "#000000",
   "lang": "bn",
@@ -35,5 +36,29 @@
     }
   ],
   "categories": ["books", "entertainment"],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Browse Stories",
+      "short_name": "Stories",
+      "description": "Browse all available stories",
+      "url": "./?view=library",
+      "icons": [{ "src": "assets/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Favorites",
+      "short_name": "Favorites",
+      "description": "View your favorite stories",
+      "url": "./?view=favorites",
+      "icons": [{ "src": "assets/logo.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/logo.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
 }

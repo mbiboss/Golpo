@@ -83,8 +83,8 @@ document.addEventListener('mousemove', (e) => {
         particle.className = 'cursor-particle';
     }
 
-    particle.style.left = e.pageX + 'px';
-    particle.style.top = e.pageY + 'px';
+    particle.style.left = e.clientX + 'px';
+    particle.style.top = e.clientY + 'px';
 
     const tx = (Math.random() - 0.5) * 30;
     const ty = (Math.random() - 0.5) * 30;
