@@ -922,61 +922,72 @@ function initializeAdminDashboard() {
 }
 
 async function loadAdminSettings() {
+    const defaultSettings = {
+        autoplay_enabled: autoplayEnabled || true,
+        default_theme: currentTheme || 'dark',
+        default_font_size: currentFontSize || 100,
+        enable_animations: !document.body.classList.contains('no-animations'),
+        reading_time_tracking: true
+    };
+    
+    let settings = defaultSettings;
+    
     try {
         const response = await fetch('/api/settings');
-        if (!response.ok) throw new Error('Failed to fetch settings');
-        const settings = await response.json();
-        
-        const autoplayMusicSetting = document.getElementById('autoplayMusicSetting');
-        if (autoplayMusicSetting) {
-            autoplayMusicSetting.checked = settings.autoplay_enabled || false;
-            autoplayMusicSetting.addEventListener('change', async (e) => {
-                await updateSetting('autoplay_enabled', e.target.checked);
-            });
+        if (response.ok) {
+            settings = await response.json();
+        } else {
+            console.warn('API unavailable, using default settings');
         }
-        
-        const defaultThemeSetting = document.getElementById('defaultThemeSetting');
-        if (defaultThemeSetting) {
-            defaultThemeSetting.value = settings.default_theme || 'dark';
-            defaultThemeSetting.addEventListener('change', async (e) => {
-                await updateSetting('default_theme', e.target.value);
-            });
-        }
-        
-        const defaultFontSizeSetting = document.getElementById('defaultFontSizeSetting');
-        if (defaultFontSizeSetting) {
-            defaultFontSizeSetting.value = settings.default_font_size || 100;
-            const fontSizeValue = document.getElementById('defaultFontSizeValue');
-            if (fontSizeValue) fontSizeValue.textContent = `${settings.default_font_size || 100}%`;
-            
-            defaultFontSizeSetting.addEventListener('input', (e) => {
-                if (fontSizeValue) fontSizeValue.textContent = `${e.target.value}%`;
-            });
-            
-            defaultFontSizeSetting.addEventListener('change', async (e) => {
-                await updateSetting('default_font_size', e.target.value);
-            });
-        }
-        
-        const enableAnimationsSetting = document.getElementById('enableAnimationsSetting');
-        if (enableAnimationsSetting) {
-            enableAnimationsSetting.checked = settings.enable_animations !== false;
-            enableAnimationsSetting.addEventListener('change', async (e) => {
-                await updateSetting('enable_animations', e.target.checked);
-            });
-        }
-        
-        const readingTimeTracking = document.getElementById('readingTimeTracking');
-        if (readingTimeTracking) {
-            readingTimeTracking.checked = settings.reading_time_tracking !== false;
-            readingTimeTracking.addEventListener('change', async (e) => {
-                await updateSetting('reading_time_tracking', e.target.checked);
-            });
-        }
-        
     } catch (error) {
-        console.error('Error loading admin settings:', error);
-        showNotification('Failed to load settings', 'error');
+        console.warn('API unavailable, using default settings:', error);
+    }
+    
+    const autoplayMusicSetting = document.getElementById('autoplayMusicSetting');
+    if (autoplayMusicSetting) {
+        autoplayMusicSetting.checked = settings.autoplay_enabled || false;
+        autoplayMusicSetting.addEventListener('change', async (e) => {
+            await updateSetting('autoplay_enabled', e.target.checked);
+        });
+    }
+    
+    const defaultThemeSetting = document.getElementById('defaultThemeSetting');
+    if (defaultThemeSetting) {
+        defaultThemeSetting.value = settings.default_theme || 'dark';
+        defaultThemeSetting.addEventListener('change', async (e) => {
+            await updateSetting('default_theme', e.target.value);
+        });
+    }
+    
+    const defaultFontSizeSetting = document.getElementById('defaultFontSizeSetting');
+    if (defaultFontSizeSetting) {
+        defaultFontSizeSetting.value = settings.default_font_size || 100;
+        const fontSizeValue = document.getElementById('defaultFontSizeValue');
+        if (fontSizeValue) fontSizeValue.textContent = `${settings.default_font_size || 100}%`;
+        
+        defaultFontSizeSetting.addEventListener('input', (e) => {
+            if (fontSizeValue) fontSizeValue.textContent = `${e.target.value}%`;
+        });
+        
+        defaultFontSizeSetting.addEventListener('change', async (e) => {
+            await updateSetting('default_font_size', e.target.value);
+        });
+    }
+    
+    const enableAnimationsSetting = document.getElementById('enableAnimationsSetting');
+    if (enableAnimationsSetting) {
+        enableAnimationsSetting.checked = settings.enable_animations !== false;
+        enableAnimationsSetting.addEventListener('change', async (e) => {
+            await updateSetting('enable_animations', e.target.checked);
+        });
+    }
+    
+    const readingTimeTracking = document.getElementById('readingTimeTracking');
+    if (readingTimeTracking) {
+        readingTimeTracking.checked = settings.reading_time_tracking !== false;
+        readingTimeTracking.addEventListener('change', async (e) => {
+            await updateSetting('reading_time_tracking', e.target.checked);
+        });
     }
 }
 
@@ -1081,7 +1092,12 @@ async function refreshAdminStories() {
         const response = await fetch('/api/stories');
         if (!response.ok) throw new Error('Failed to fetch stories');
         adminStoryDatabase = await response.json();
+    } catch (error) {
+        console.warn('API unavailable, using local story database:', error);
+        adminStoryDatabase = storyDatabase;
+    }
 
+    try {
         const stories = Object.keys(adminStoryDatabase).map(filename => ({
             file: filename,
             ...adminStoryDatabase[filename]
@@ -1116,8 +1132,11 @@ async function refreshAdminStories() {
             </div>
         `).join('');
         initAdminDragAndDrop('story');
+        if (adminStoryDatabase === storyDatabase) {
+            showNotification('Loaded stories from local data', 'info');
+        }
     } catch (error) {
-        console.error('Error fetching stories:', error);
+        console.error('Error displaying stories:', error);
         showNotification('Failed to load stories', 'error');
     }
 }
@@ -1454,7 +1473,15 @@ async function refreshAdminSongs() {
         const response = await fetch('/api/songs');
         if (!response.ok) throw new Error('Failed to fetch songs');
         adminSongsDatabase = await response.json();
+    } catch (error) {
+        console.warn('API unavailable, using local music playlist:', error);
+        adminSongsDatabase = musicPlaylist.map((song, index) => ({
+            id: index,
+            ...song
+        }));
+    }
 
+    try {
         list.innerHTML = adminSongsDatabase.map((song, index) => `
             <div class="admin-song-item ${song.isPublic === false ? 'hidden-song' : ''}" data-id="${song.id}" data-index="${index}">
                 <div class="admin-item-drag-handle" data-type="song" data-id="${song.id}">
@@ -1484,8 +1511,11 @@ async function refreshAdminSongs() {
             </div>
         `).join('');
         initAdminDragAndDrop('song');
+        if (adminSongsDatabase === musicPlaylist) {
+            showNotification('Loaded songs from local data', 'info');
+        }
     } catch (error) {
-        console.error('Error fetching songs:', error);
+        console.error('Error displaying songs:', error);
         showNotification('Failed to load songs', 'error');
     }
 }
@@ -3760,3 +3790,67 @@ function initializePWAInstall() {
 
 window.loadStoryFromCard = loadStoryFromCard;
 window.loadStoryFromSuggestion = loadStoryFromSuggestion;
+
+let scrollAnimationObserver = null;
+
+function initScrollAnimations() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    if (!scrollAnimationObserver) {
+        scrollAnimationObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                }
+            });
+        }, observerOptions);
+    }
+
+    document.querySelectorAll('.story-card').forEach((card, i) => {
+        if (!card.classList.contains('revealed') && !card.classList.contains('reveal')) {
+            card.style.transitionDelay = `${i * 0.1}s`;
+            card.classList.add('reveal');
+            scrollAnimationObserver.observe(card);
+        }
+    });
+
+    document.querySelectorAll('.reveal, .reveal-fade-up, .reveal-scale').forEach(el => {
+        if (!el.classList.contains('revealed')) {
+            scrollAnimationObserver.observe(el);
+        }
+    });
+}
+window.initScrollAnimations = initScrollAnimations;
+
+function initCardHoverEffects() {
+    const cards = document.querySelectorAll('.story-card');
+
+    cards.forEach(card => {
+        if (card.dataset.hoverInitialized) return;
+        card.dataset.hoverInitialized = 'true';
+
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / 20;
+            const rotateY = (centerX - x) / 20;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(1.02)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = '';
+        });
+    });
+}
+window.initCardHoverEffects = initCardHoverEffects;
+
+document.addEventListener('DOMContentLoaded', () => {
+    initScrollAnimations();
+    initCardHoverEffects();
+});

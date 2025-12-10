@@ -6,13 +6,16 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(express.static('.'));
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'DARK Host.02';
+if (!process.env.ADMIN_PASSWORD) {
+  console.warn('WARNING: ADMIN_PASSWORD environment variable not set. Admin features will be inaccessible.');
+}
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 function adminAuth(req, res, next) {
   const authHeader = req.headers['x-admin-password'];
