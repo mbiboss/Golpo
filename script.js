@@ -146,9 +146,88 @@ function showNotification(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
+// Global click particles effect for entire website
+(function initGlobalClickParticles() {
+    const globalClickContainer = document.getElementById('globalClickParticles');
+    if (!globalClickContainer) return;
+    
+    function createClickParticles(x, y) {
+        const particleCount = 8;
+        const colors = ['#a855f7', '#ec4899', '#6366f1'];
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'click-particle';
+            
+            const angle = (i / particleCount) * Math.PI * 2;
+            const velocity = 80 + Math.random() * 60;
+            const vx = Math.cos(angle) * velocity;
+            const vy = Math.sin(angle) * velocity;
+            
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.setProperty('--vx', vx + 'px');
+            particle.style.setProperty('--vy', vy + 'px');
+            particle.style.animation = 'clickBurst 0.8s ease-out forwards';
+            
+            globalClickContainer.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 800);
+        }
+    }
+    
+    document.addEventListener('click', (e) => {
+        createClickParticles(e.clientX, e.clientY);
+    });
+    
+    document.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        createClickParticles(touch.clientX, touch.clientY);
+    });
+})();
+
+// Ambient background particles
+(function initAmbientParticles() {
+    const ambientParticles = document.getElementById('ambientParticles');
+    if (!ambientParticles) return;
+    
+    const particleCount = 15;
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'ambient-particle';
+        const startX = Math.random() * 100;
+        const randomDrift = (Math.random() - 0.5) * 150;
+        particle.style.left = `${startX}%`;
+        particle.style.bottom = '-20px';
+        particle.style.setProperty('--tx', `${randomDrift}px`);
+        particle.style.animationDelay = `${Math.random() * 8}s`;
+        particle.style.animationDuration = `${10 + Math.random() * 6}s`;
+        ambientParticles.appendChild(particle);
+    }
+})();
+
 (function initSplashScreen() {
     const splashScreen = document.getElementById('splashScreen');
     if (!splashScreen) return;
+
+    const particlesContainer = document.getElementById('splashParticles');
+
+    // Create flowing particles on splash screen
+    if (particlesContainer) {
+        const particleCount = 30;
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'splash-particle';
+            const startX = Math.random() * 100;
+            const randomDrift = (Math.random() - 0.5) * 100;
+            particle.style.left = `${startX}%`;
+            particle.style.setProperty('--tx', `${randomDrift}px`);
+            particle.style.animationDelay = `${Math.random() * 6}s`;
+            particle.style.animationDuration = `${5 + Math.random() * 3}s`;
+            particlesContainer.appendChild(particle);
+        }
+    }
 
     function hideSplashScreen() {
         splashScreen.classList.add('fade-out');
@@ -158,7 +237,7 @@ function showNotification(message, type = 'info', duration = 3000) {
             if (autoplayEnabled && musicPlaylist.length > 0) {
                 setTimeout(() => startAutoplay(), 1000);
             }
-        }, 800);
+        }, 1000);
     }
 
     splashScreen.addEventListener('click', hideSplashScreen);
@@ -417,6 +496,7 @@ function initializeHeroImages() {
     const heroImg3 = document.getElementById('heroImg3');
 
     if (heroImg1 && heroImg2 && heroImg3) {
+        // Preload first set of images
         heroImg1.src = heroStoryImages[0] || defaultImages.banner;
         heroImg2.src = heroStoryImages[1 % heroStoryImages.length] || defaultImages.banner;
         heroImg3.src = heroStoryImages[2 % heroStoryImages.length] || defaultImages.banner;
@@ -426,19 +506,46 @@ function initializeHeroImages() {
         heroImg3.onerror = function() { this.src = defaultImages.banner; };
 
         let currentIndex = 0;
+        
+        // Preload next images
+        function preloadNextImages(index) {
+            const nextIndex1 = (index + 1) % heroStoryImages.length;
+            const nextIndex2 = (index + 2) % heroStoryImages.length;
+            const nextIndex3 = (index + 3) % heroStoryImages.length;
+            
+            const img1 = new Image();
+            const img2 = new Image();
+            const img3 = new Image();
+            img1.src = heroStoryImages[nextIndex1];
+            img2.src = heroStoryImages[nextIndex2];
+            img3.src = heroStoryImages[nextIndex3];
+        }
+        
+        // Preload first set
+        preloadNextImages(currentIndex);
+        
         heroImageInterval = setInterval(() => {
             currentIndex = (currentIndex + 1) % heroStoryImages.length;
             const nextIndex1 = currentIndex;
             const nextIndex2 = (currentIndex + 1) % heroStoryImages.length;
             const nextIndex3 = (currentIndex + 2) % heroStoryImages.length;
 
-            if (heroCard1) heroCard1.classList.add('swipe-out');
+            // Preload next set while transitioning
+            preloadNextImages(currentIndex);
+
+            if (heroCard1) {
+                requestAnimationFrame(() => {
+                    heroCard1.classList.add('swipe-out');
+                });
+            }
 
             setTimeout(() => {
-                heroImg1.src = heroStoryImages[nextIndex1];
-                heroImg2.src = heroStoryImages[nextIndex2];
-                heroImg3.src = heroStoryImages[nextIndex3];
-                if (heroCard1) heroCard1.classList.remove('swipe-out');
+                requestAnimationFrame(() => {
+                    heroImg1.src = heroStoryImages[nextIndex1];
+                    heroImg2.src = heroStoryImages[nextIndex2];
+                    heroImg3.src = heroStoryImages[nextIndex3];
+                    if (heroCard1) heroCard1.classList.remove('swipe-out');
+                });
             }, 600);
         }, 4000);
     }
@@ -471,7 +578,12 @@ function initializeNavbar() {
 function initializeAboutPage() {
     const aboutBtn = document.getElementById('aboutBtn');
     if (aboutBtn) {
-        aboutBtn.addEventListener('click', showAbout);
+        aboutBtn.addEventListener('click', toggleAbout);
+    }
+
+    const navBrand = document.querySelector('.nav-brand');
+    if (navBrand) {
+        navBrand.addEventListener('click', handleNavBrandClick);
     }
 
     const offlineStoriesBtn = document.getElementById('offlineStoriesBtn');
@@ -503,15 +615,71 @@ function initializeAboutPage() {
 
 function showAbout() {
     const aboutView = document.getElementById('aboutView');
+    const libraryView = document.getElementById('libraryView');
+    const readerView = document.getElementById('readerView');
+    const footer = document.querySelector('.site-footer');
+
     if (aboutView) {
         aboutView.style.display = 'block';
         document.body.style.overflow = 'hidden';
+    }
+
+    if (libraryView) {
+        libraryView.style.display = 'none';
+    }
+
+    if (readerView) {
+        readerView.style.display = 'none';
+    }
+
+    if (footer) {
+        footer.style.display = 'none';
+    }
+
+    // Update browser history
+    if (window.history.state?.view !== 'about') {
+        window.history.pushState({ view: 'about' }, '', BASE_PATH + 'about');
+    }
+}
+
+function toggleAbout() {
+    const aboutView = document.getElementById('aboutView');
+    
+    if (aboutView && aboutView.style.display === 'block') {
+        closeAbout();
+    } else {
+        showAbout();
+    }
+}
+
+function handleNavBrandClick() {
+    const aboutView = document.getElementById('aboutView');
+    const readerView = document.getElementById('readerView');
+    
+    // If About page is open, close it and return to library
+    if (aboutView && aboutView.style.display === 'block') {
+        closeAbout();
+    }
+    // If Reader view is open, return to library
+    else if (readerView && readerView.style.display !== 'none' && readerView.style.display !== '') {
+        returnToLibrary();
+    }
+    // Otherwise, just ensure we're on the library view
+    else {
+        const libraryView = document.getElementById('libraryView');
+        if (libraryView) {
+            libraryView.style.display = 'block';
+        }
+        if (window.history.state?.view !== 'library') {
+            window.history.pushState({ view: 'library' }, '', BASE_PATH);
+        }
     }
 }
 
 function closeAbout() {
     const aboutView = document.getElementById('aboutView');
     const libraryView = document.getElementById('libraryView');
+    const footer = document.querySelector('.site-footer');
 
     if (aboutView) {
         aboutView.style.display = 'none';
@@ -520,6 +688,10 @@ function closeAbout() {
 
     if (libraryView) {
         libraryView.style.display = 'block';
+    }
+
+    if (footer) {
+        footer.style.display = '';
     }
 
     // Update browser history to library view
@@ -916,7 +1088,10 @@ async function refreshAdminStories() {
         }));
 
         list.innerHTML = stories.map((story, index) => `
-            <div class="admin-story-item ${story.isPublic === false ? 'hidden-story' : ''}" data-filename="${story.file}">
+            <div class="admin-story-item ${story.isPublic === false ? 'hidden-story' : ''}" data-filename="${story.file}" data-index="${index}">
+                <div class="admin-item-drag-handle" data-type="story" data-id="${story.file}">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
                 <div class="admin-reorder-controls">
                     <button class="reorder-btn" onclick="reorderStory('${story.file}', 'up')" title="Move Up" ${index === 0 ? 'disabled' : ''}>
                         <i class="fas fa-chevron-up"></i>
@@ -940,6 +1115,7 @@ async function refreshAdminStories() {
                 </div>
             </div>
         `).join('');
+        initAdminDragAndDrop('story');
     } catch (error) {
         console.error('Error fetching stories:', error);
         showNotification('Failed to load stories', 'error');
@@ -999,6 +1175,128 @@ async function reorderSong(id, direction) {
     }
 }
 window.reorderSong = reorderSong;
+
+function initAdminDragAndDrop(type) {
+    const listId = type === 'story' ? 'adminStoriesList' : 'adminSongsList';
+    const list = document.getElementById(listId);
+    if (!list) return;
+
+    const itemClass = type === 'story' ? '.admin-story-item' : '.admin-song-item';
+    const items = list.querySelectorAll(itemClass);
+    
+    let draggedItem = null;
+    let draggedOverItem = null;
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    items.forEach(item => {
+        const handle = item.querySelector('.admin-item-drag-handle');
+        if (!handle) return;
+
+        handle.addEventListener('touchstart', (e) => {
+            draggedItem = item;
+            startY = e.touches[0].clientY;
+            item.classList.add('dragging');
+            isDragging = true;
+            e.preventDefault();
+        }, { passive: false });
+
+        handle.addEventListener('mousedown', (e) => {
+            draggedItem = item;
+            startY = e.clientY;
+            item.classList.add('dragging');
+            isDragging = true;
+            e.preventDefault();
+        });
+    });
+
+    const handleMove = (clientY) => {
+        if (!isDragging || !draggedItem) return;
+        
+        currentY = clientY;
+        const deltaY = currentY - startY;
+        
+        draggedItem.style.transform = `translateY(${deltaY}px) scale(1.02)`;
+        draggedItem.style.zIndex = '1000';
+
+        const items = list.querySelectorAll(itemClass);
+        draggedOverItem = null;
+        
+        items.forEach(item => {
+            if (item === draggedItem) return;
+            item.classList.remove('drag-over');
+            
+            const rect = item.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            
+            if (currentY >= rect.top && currentY <= rect.bottom) {
+                item.classList.add('drag-over');
+                draggedOverItem = item;
+            }
+        });
+    };
+
+    const handleEnd = async () => {
+        if (!isDragging || !draggedItem) return;
+
+        if (draggedOverItem && draggedOverItem !== draggedItem) {
+            const allItems = Array.from(list.querySelectorAll(itemClass));
+            const draggedIndex = allItems.indexOf(draggedItem);
+            const targetIndex = allItems.indexOf(draggedOverItem);
+            
+            if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
+                const moveCount = Math.abs(targetIndex - draggedIndex);
+                const direction = targetIndex < draggedIndex ? 'up' : 'down';
+                
+                // Move item multiple times to reach target position
+                if (type === 'story') {
+                    const filename = draggedItem.dataset.filename;
+                    for (let i = 0; i < moveCount; i++) {
+                        await reorderStory(filename, direction);
+                    }
+                } else {
+                    const id = parseInt(draggedItem.dataset.id);
+                    for (let i = 0; i < moveCount; i++) {
+                        await reorderSong(id, direction);
+                    }
+                }
+            }
+        }
+
+        if (draggedItem) {
+            draggedItem.classList.remove('dragging');
+            draggedItem.style.transform = '';
+            draggedItem.style.zIndex = '';
+        }
+
+        const items = list.querySelectorAll(itemClass);
+        items.forEach(item => item.classList.remove('drag-over'));
+
+        draggedItem = null;
+        draggedOverItem = null;
+        isDragging = false;
+        startY = 0;
+        currentY = 0;
+    };
+
+    document.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            handleMove(e.touches[0].clientY);
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            handleMove(e.clientY);
+        }
+    });
+
+    document.addEventListener('touchend', handleEnd);
+    document.addEventListener('mouseup', handleEnd);
+}
+window.initAdminDragAndDrop = initAdminDragAndDrop;
 
 async function editStory(filename) {
     const story = adminStoryDatabase[filename] || storyDatabase[filename];
@@ -1158,7 +1456,10 @@ async function refreshAdminSongs() {
         adminSongsDatabase = await response.json();
 
         list.innerHTML = adminSongsDatabase.map((song, index) => `
-            <div class="admin-song-item ${song.isPublic === false ? 'hidden-song' : ''}" data-id="${song.id}">
+            <div class="admin-song-item ${song.isPublic === false ? 'hidden-song' : ''}" data-id="${song.id}" data-index="${index}">
+                <div class="admin-item-drag-handle" data-type="song" data-id="${song.id}">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
                 <div class="admin-reorder-controls">
                     <button class="reorder-btn" onclick="reorderSong(${song.id}, 'up')" title="Move Up" ${index === 0 ? 'disabled' : ''}>
                         <i class="fas fa-chevron-up"></i>
@@ -1182,6 +1483,7 @@ async function refreshAdminSongs() {
                 </div>
             </div>
         `).join('');
+        initAdminDragAndDrop('song');
     } catch (error) {
         console.error('Error fetching songs:', error);
         showNotification('Failed to load songs', 'error');
@@ -1512,6 +1814,42 @@ function initializeSecretTrigger() {
     const footerLogo = document.getElementById('footerLogo');
     if (footerLogo) {
         footerLogo.addEventListener('click', showAnalyticsDashboard);
+        
+        let longPressTimer = null;
+        let longPressTriggered = false;
+        
+        footerLogo.addEventListener('touchstart', (e) => {
+            longPressTriggered = false;
+            longPressTimer = setTimeout(() => {
+                longPressTriggered = true;
+                navigator.vibrate && navigator.vibrate(50);
+                promptAdminPassword();
+            }, 800);
+        }, { passive: true });
+        
+        footerLogo.addEventListener('touchend', (e) => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            if (longPressTriggered) {
+                e.preventDefault();
+            }
+        });
+        
+        footerLogo.addEventListener('touchmove', () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }, { passive: true });
+        
+        footerLogo.addEventListener('touchcancel', () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }, { passive: true });
     }
 
     document.addEventListener('keydown', (e) => {
@@ -1522,6 +1860,10 @@ function initializeSecretTrigger() {
     });
 
     initializePasswordModal();
+    initializeMobileAdminAccess();
+}
+
+function initializeMobileAdminAccess() {
 }
 
 function promptAdminPassword() {
@@ -1618,10 +1960,34 @@ document.addEventListener('DOMContentLoaded', async function() {
 window.addEventListener('popstate', function(event) {
     const readerView = document.getElementById('readerView');
     const libraryView = document.getElementById('libraryView');
+    const aboutView = document.getElementById('aboutView');
     if (!readerView || !libraryView) return;
 
+    const viewState = event.state?.view || 'library';
+
+    // Handle About view
+    if (viewState === 'about') {
+        if (aboutView) {
+            const footer = document.querySelector('.site-footer');
+            aboutView.style.display = 'block';
+            libraryView.style.display = 'none';
+            readerView.style.display = 'none';
+            document.body.style.overflow = 'hidden';
+            if (footer) footer.style.display = 'none';
+        }
+        return;
+    }
+
+    // Handle closing About view
+    if (aboutView && aboutView.style.display === 'block') {
+        const footer = document.querySelector('.site-footer');
+        aboutView.style.display = 'none';
+        document.body.style.overflow = '';
+        if (footer) footer.style.display = '';
+    }
+
     const isInReaderView = readerView.style.display !== 'none' && readerView.style.display !== '';
-    const shouldShowLibrary = !event.state || event.state.view === 'library';
+    const shouldShowLibrary = viewState === 'library';
 
     if (isInReaderView && shouldShowLibrary) {
         if (currentStory) stopReadingTimer(currentStory);
@@ -2199,6 +2565,9 @@ function displayPage(pageNum) {
     currentPage = pageNum;
     localStorage.setItem(`page_${currentStory}`, currentPage);
 
+    // Show page transition overlay
+    showPageTransitionOverlay(pageNum);
+
     const content = storyPages[currentPage - 1] || '';
     const storyContentEl = document.getElementById('storyContent');
 
@@ -2246,6 +2615,23 @@ function displayPage(pageNum) {
 
     updateFullStoryProgress();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showPageTransitionOverlay(pageNum) {
+    const overlay = document.getElementById('pageTransitionOverlay');
+    const pageNumberText = document.getElementById('pageNumberText');
+    const pageInfoText = document.getElementById('pageInfoText');
+    
+    if (overlay && pageNumberText && pageInfoText) {
+        pageNumberText.textContent = `Page ${pageNum}`;
+        pageInfoText.textContent = `of ${totalPages}`;
+        
+        overlay.classList.add('active');
+        
+        setTimeout(() => {
+            overlay.classList.remove('active');
+        }, 800);
+    }
 }
 window.displayPage = displayPage;
 

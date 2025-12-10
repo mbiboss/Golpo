@@ -35,29 +35,40 @@
 </head>
 
 <body data-theme="dark">
-  <div class="ambient-bg">
+  <div class="ambient-bg" id="ambientBg">
     <div class="ambient-orb orb-1"></div>
     <div class="ambient-orb orb-2"></div>
     <div class="ambient-orb orb-3"></div>
+    <div class="ambient-particles" id="ambientParticles"></div>
   </div>
+  
+  <div class="global-click-particles" id="globalClickParticles"></div>
 
   <div class="splash-screen" id="splashScreen">
+    <div class="splash-particles" id="splashParticles"></div>
+    <div class="click-particles-container" id="clickParticlesContainer"></div>
     <div class="splash-content">
-      <div class="splash-logo-wrapper">
-        <div class="splash-ring"></div>
-        <div class="splash-ring ring-2"></div>
-        <img src="assets/logo.png" alt="Golpo Logo" class="splash-logo" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
+      <div class="splash-logo-container">
+        <img src="assets/logo.png" alt="Golpo Logo" class="splash-logo-clean" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
       </div>
-      <h1 class="splash-title">Golpo</h1>
-      <p class="splash-tagline">Stories from the Heart</p>
-      <div class="splash-loader">
-        <div class="loader-bar"></div>
-      </div>
-      <p class="splash-tap">Tap anywhere to continue</p>
+      <h1 class="splash-title-clean">GOLPO</h1>
+      <div class="splash-divider"></div>
+      <p class="splash-byline">By ✿ㅤ"MʙɪㅤDᴀʀᴋ"</p>
+      <p class="splash-tap-text">Tap anywhere to continue</p>
     </div>
   </div>
 
   <div class="notification-container" id="notificationContainer"></div>
+
+  <div class="page-transition-overlay" id="pageTransitionOverlay">
+    <div class="page-number-display">
+      <div class="page-icon">
+        <i class="fas fa-book-open"></i>
+      </div>
+      <div class="page-text" id="pageNumberText">Page 1</div>
+      <div class="page-info" id="pageInfoText">of 1</div>
+    </div>
+  </div>
 
   <div class="offline-indicator" id="offlineIndicator">
     <i class="fas fa-wifi"></i>
@@ -83,7 +94,7 @@
 
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <div class="nav-brand" onclick="returnToLibrary()">
+      <div class="nav-brand">
         <img src="assets/logo.png" alt="Golpo" class="nav-logo" onerror="this.src='https://i.postimg.cc/Rh4B24Dk/Mbi-dark.png'">
         <span class="nav-title">Golpo</span>
       </div>
@@ -275,10 +286,26 @@
       </div>
 
       <article class="reader-article">
-        <header class="reader-header">
-          <div class="reader-cover">
-            <img id="readerCoverImage" src="" alt="Story Cover">
-            <div class="cover-overlay"></div>
+        <header class="reader-header-new">
+          <div class="reader-header-covers">
+            <div class="current-story-cover">
+              <div class="cover-label">Current</div>
+              <div class="reader-cover">
+                <img id="readerCoverImage" src="" alt="Story Cover">
+                <div class="cover-overlay"></div>
+                <div class="cover-badge"><i class="fas fa-book-open"></i></div>
+              </div>
+            </div>
+            <div class="next-part-preview" id="nextPartPreview" style="display: none;">
+              <div class="cover-label">Next Part</div>
+              <div class="next-part-cover" onclick="loadNextPart()">
+                <img id="nextPartCoverImage" src="" alt="Next Part">
+                <div class="next-overlay">
+                  <i class="fas fa-arrow-right"></i>
+                  <span>Continue</span>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="reader-meta">
             <h1 id="readerStoryTitle" class="reader-title">Story Title</h1>
@@ -287,16 +314,6 @@
               <span id="readerReadingTime"><i class="fas fa-clock"></i> ~15 min</span>
               <span id="readerWordCount"><i class="fas fa-file-word"></i> ~2,500 words</span>
             </div>
-          </div>
-          <div class="next-part-preview" id="nextPartPreview" style="display: none;">
-            <div class="next-part-cover">
-              <img id="nextPartCoverImage" src="" alt="Next Part">
-              <div class="next-overlay"><i class="fas fa-forward"></i></div>
-            </div>
-            <button class="next-part-btn" id="nextPartBtn" onclick="loadNextPart()">
-              <span>Next Part</span>
-              <i class="fas fa-arrow-right"></i>
-            </button>
           </div>
         </header>
 
@@ -324,9 +341,6 @@
     </div>
 
     <div class="about-view" id="aboutView" style="display: none;">
-      <button class="about-close" onclick="closeAbout()">
-        <i class="fas fa-times"></i>
-      </button>
       <div class="about-wrapper">
         <div class="about-bg-effects">
           <div class="about-orb about-orb-1"></div>

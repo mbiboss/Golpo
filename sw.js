@@ -1,5 +1,5 @@
-// Service Worker for Golpo App - Lightweight v3.0.0
-const CACHE_VERSION = 'v3.0.0';
+// Service Worker for Golpo App - Lightweight v3.0.1
+const CACHE_VERSION = 'v3.0.1';
 const STATIC_CACHE = `golpo-static-${CACHE_VERSION}`;
 const STORIES_CACHE = `golpo-stories-${CACHE_VERSION}`;
 
@@ -68,6 +68,12 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Navigation requests (HTML pages) - serve index.html for story routes
+    if (request.mode === 'navigate') {
+        event.respondWith(handleNavigationRequest(request));
+        return;
+    }
+
     // Core files only - network first with cache fallback
     if (url.origin === location.origin) {
         event.respondWith(handleCoreRequest(request));
@@ -96,6 +102,41 @@ async function handleStoryRequest(request) {
         if (cached) return cached;
     }
     return new Response('Story not available', { status: 404 });
+}
+
+// Handle navigation requests - serve index.html for all routes
+async function handleNavigationRequest(request) {
+    try {
+        // Try network first
+        const networkResponse = await fetch(request);
+        if (networkResponse && networkResponse.ok) {
+            return networkResponse;
+        }
+    } catch (error) {
+        // Network failed, serve cached index.html
+    }
+    
+    // Serve index.html from cache for client-side routing
+    const cache = await caches.open(STATIC_CACHE);
+    const indexUrl = new URL(BASE_PATH + 'index.html', self.location.origin);
+    const cachedIndex = await cache.match(indexUrl);
+    
+    if (cachedIndex) {
+        return cachedIndex;
+    }
+    
+    // Fallback: try to fetch index.html
+    try {
+        const indexResponse = await fetch(indexUrl);
+        if (indexResponse && indexResponse.ok) {
+            cache.put(indexUrl, indexResponse.clone());
+            return indexResponse;
+        }
+    } catch (error) {
+        // Nothing we can do
+    }
+    
+    return new Response('Not available offline', { status: 404 });
 }
 
 // Handle core requests - network first, only cache allowlisted files

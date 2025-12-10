@@ -18,31 +18,12 @@
         "readingTime": 0,
         "wordCount": 0
     },
-    "ShopnerDurotto-1.txt": {
-        "id": "ShopnerDurotto-1",
-        "name": "_স্বপ্নের দূরত্ব_",
+    "Chaya-2.txt": {
+        "id": "Chaya-2",
+        "name": "ছায়া - পার্ট ২",
         "location": "Kathora,Shalna,Gazipur",
         "writer": "✿ㅤ\"MʙɪㅤDᴀʀᴋ\"",
-        "description": "Life ends when dreams fade.",
-        "status": "available",
-        "category": "Romance",
-        "tags": [
-            "trust",
-            "faith",
-            "relationship",
-            "emotional"
-        ],
-        "banner": "https://i.postimg.cc/PfmyXXVw/shopnerdurotto.png",
-        "reading": "https://i.postimg.cc/PfmyXXVw/shopnerdurotto.png",
-        "readingTime": 0,
-        "wordCount": 0
-    },
-    "Chaya-1.txt": {
-        "id": "Chaya-1",
-        "name": "_ছায়া_",
-        "location": "Kathora,Shalna,Gazipur",
-        "writer": "✿ㅤ\"MʙɪㅤDᴀʀᴋ\"",
-        "description": "The Beginning of the Shadow",
+        "description": "The Beginning of Truth",
         "status": "available",
         "category": "Horror",
         "tags": [
@@ -52,24 +33,6 @@
         ],
         "banner": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
         "reading": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
-        "readingTime": 0,
-        "wordCount": 0
-    },
-    "Valobasha.txt": {
-        "id": "Valobasha",
-        "name": "ভালোবাসা : এক অন্তহীন মহাবৃত্ত",
-        "location": "Kathora,Shalna,Gazipur",
-        "writer": "✿ㅤ\"MʙɪㅤDᴀʀᴋ\"",
-        "description": "About love",
-        "status": "available",
-        "category": "Mystery",
-        "tags": [
-            "mystery",
-            "love",
-            "emotional"
-        ],
-        "banner": "https://i.postimg.cc/gkcPhzjf/Valobashawide.png",
-        "reading": "https://i.postimg.cc/sXpRY1pR/Valobashasmall.png",
         "readingTime": 0,
         "wordCount": 0
     },
@@ -91,12 +54,30 @@
         "readingTime": 0,
         "wordCount": 0
     },
-    "Chaya-2.txt": {
-        "id": "Chaya-2",
-        "name": "ছায়া - পার্ট ২",
+    "Valobasha.txt": {
+        "id": "Valobasha",
+        "name": "ভালোবাসা : এক অন্তহীন মহাবৃত্ত",
         "location": "Kathora,Shalna,Gazipur",
         "writer": "✿ㅤ\"MʙɪㅤDᴀʀᴋ\"",
-        "description": "The Beginning of Truth",
+        "description": "About love",
+        "status": "available",
+        "category": "Mystery",
+        "tags": [
+            "mystery",
+            "love",
+            "emotional"
+        ],
+        "banner": "https://i.postimg.cc/gkcPhzjf/Valobashawide.png",
+        "reading": "https://i.postimg.cc/sXpRY1pR/Valobashasmall.png",
+        "readingTime": 0,
+        "wordCount": 0
+    },
+    "Chaya-1.txt": {
+        "id": "Chaya-1",
+        "name": "_ছায়া_",
+        "location": "Kathora,Shalna,Gazipur",
+        "writer": "✿ㅤ\"MʙɪㅤDᴀʀᴋ\"",
+        "description": "The Beginning of the Shadow",
         "status": "available",
         "category": "Horror",
         "tags": [
@@ -106,6 +87,25 @@
         ],
         "banner": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
         "reading": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
+        "readingTime": 0,
+        "wordCount": 0
+    },
+    "ShopnerDurotto-1.txt": {
+        "id": "ShopnerDurotto-1",
+        "name": "_স্বপ্নের দূরত্ব_",
+        "location": "Kathora,Shalna,Gazipur",
+        "writer": "✿ㅤ\"MʙɪㅤDᴀʀᴋ\"",
+        "description": "Life ends when dreams fade.",
+        "status": "available",
+        "category": "Romance",
+        "tags": [
+            "trust",
+            "faith",
+            "relationship",
+            "emotional"
+        ],
+        "banner": "https://i.postimg.cc/PfmyXXVw/shopnerdurotto.png",
+        "reading": "https://i.postimg.cc/PfmyXXVw/shopnerdurotto.png",
         "readingTime": 0,
         "wordCount": 0
     },
