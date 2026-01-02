@@ -18,24 +18,6 @@
         "readingTime": 0,
         "wordCount": 0
     },
-    "Chaya-2.txt": {
-        "id": "Chaya-2",
-        "name": "ছায়া - পার্ট ২",
-        "location": "Kathora,Shalna,Gazipur",
-        "writer": "✿ㅤ\"MʙɪㅤDᴀʀᴋ\"",
-        "description": "The Beginning of Truth",
-        "status": "available",
-        "category": "Horror",
-        "tags": [
-            "horror",
-            "supernatural",
-            "thriller"
-        ],
-        "banner": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
-        "reading": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
-        "readingTime": 0,
-        "wordCount": 0
-    },
     "Obisaperonontochaya.txt": {
         "id": "Obisaperonontochaya",
         "name": "অভিশাপের অনন্ত ছায়া",
@@ -109,6 +91,23 @@
         "readingTime": 0,
         "wordCount": 0
     },
+    "Chaya-2.txt": {
+        "id": "Chaya-2",
+        "name": "ছায়া - পার্ট ২",
+        "location": "Kathora,Shalna,Gazipur",
+        "writer": "✿ㅤ\"MʙɪㅤDᴀʀᴋ\"",
+        "description": "The Beginning of Truth",
+        "status": "available",
+        "category": "Horror",
+        "tags": [
+            "horror",
+            "supernatural",
+            "thriller"
+        ],
+        "banner": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
+        "reading": "https://i.postimg.cc/brF6cbDd/Chaya.jpg",
+        "readingTime": 0,
+        "wordCount": 0
     "upcoming.txt": {
         "id": "upcoming",
         "name": "Upcoming Stories",
